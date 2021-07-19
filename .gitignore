@@ -1,32 +1,62 @@
-# Prerequisites
-*.d
+-# Prerequisites
+-*.d
+-
+-# Compiled Object files
+-*.slo
+-*.lo
+-*.o
+-*.obj
+-
+-# Precompiled Headers
+-*.gch
+-*.pch
+-
+-# Compiled Dynamic libraries
+-*.so
+-*.dylib
+-*.dll
+-
+-# Fortran module files
+-*.mod
+-*.smod
+-
+-# Compiled Static libraries
+-*.lai
+-*.la
+-*.a
+-*.lib
+-
+-# Executables
+-*.exe
+-*.out
+-*.app
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Build output
+bin/
+obj/
 
-# Precompiled Headers
-*.gch
-*.pch
+# VS files
+*.suo
+*.DotSettings
+*.user
+*.vstemplate
+*.lock.json
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+# Test results
+sln/TestResults/
+test/packages/
+*BenchmarkDotNet.Artifacts*
 
-# Fortran module files
-*.mod
-*.smod
+# StyleCop files
+StyleCop.Cache
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+# Downloaded Nuget packages
+sln/packages/
+test/PackageTests/packages/
 
-# Executables
-*.exe
-*.out
-*.app
+# Packages under tests
+test/PackageTests/TestPackages
+
+# Symbol
+*.pdb
+
