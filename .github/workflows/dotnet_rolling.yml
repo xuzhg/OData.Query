@@ -1,5 +1,4 @@
-name: .NET
-
+name: OData.Query Rolling
 on:
   push:
     branches: [ main ]
