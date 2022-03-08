@@ -3,10 +3,15 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query
+namespace Microsoft.OData.Query.Parser
 {
-    public class Class1
+    public class ExpressionLexerSettings
     {
+        internal static ExpressionLexerSettings Default = new ExpressionLexerSettings();
 
+        /// <summary>
+        /// Lexer ignores whitespace
+        /// </summary>
+        public bool IgnoreWhitespace { get; set; }
     }
 }
