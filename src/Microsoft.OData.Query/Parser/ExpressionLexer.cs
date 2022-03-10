@@ -8,6 +8,9 @@ using System.Globalization;
 
 namespace Microsoft.OData.Query.Parser
 {
+    /// <summary>
+    /// Use this class to parse an expression in to token.
+    /// </summary>
     public class ExpressionLexer : IExpressionLexer
     {
         /// <summary>
@@ -148,7 +151,7 @@ namespace Microsoft.OData.Query.Parser
                 ParseIdentifier();
                 string currentIdentifier = RawText.Substring(tokenPos + 1, _textPos - tokenPos - 1);
 
-                if (ExpressionLexerUtils.IsInfinityLiteralDouble(currentIdentifier))
+                if (ExpressionLexerUtils.IsInfinityLiteral(currentIdentifier))
                 {
                     return ExpressionTokenKind.NegativeInfinityLiteral;
                 }

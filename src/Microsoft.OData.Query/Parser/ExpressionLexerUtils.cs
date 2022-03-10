@@ -30,7 +30,7 @@ namespace Microsoft.OData.Query.Parser
         /// </summary>
         /// <param name="text">Text to look in.</param>
         /// <returns>true if the substring is equal using an ordinal comparison; false otherwise.</returns>
-        public static bool IsInfinityLiteralDouble(string text)
+        public static bool IsInfinityLiteral(string text)
         {
             return string.Equals(text, ExpressionConstants.InfinityLiteral);
         }
