@@ -3,12 +3,43 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.OData.Query.Tokenizors
 {
     public class SearchLexer : ExpressionLexer
     {
+        /// <summary>
+        /// Pattern for searchWord
+        /// From ABNF rule:
+        /// searchWord   = 1*ALPHA ; Actually: any character from the Unicode categories L or Nl,
+        ///               ; but not the words AND, OR, and NOT
+        ///
+        /// \p{L} means any kind of letter from any language, include [Lo] such as CJK single character.
+        /// </summary>
+        internal static readonly Regex InvalidWordPattern = new Regex(@"([^\p{L}\p{Nl}])");
+
+        /// <summary>
+        /// Escape character used in search query
+        /// </summary>
+        private const char EscapeChar = '\\';
+
+        /// <summary>
+        /// Characters that could be escaped
+        /// </summary>
+        private const string EscapeSequenceSet = "\\\"";
+
+        /// <summary>
+        /// Keeps all keywords can be used in search query.
+        /// </summary>
+        private static readonly HashSet<string> KeyWords = new HashSet<string>(StringComparer.Ordinal) { ExpressionConstants.SearchKeywordAnd, ExpressionConstants.SearchKeywordOr, ExpressionConstants.SearchKeywordNot };
+
+        /// <summary>
+        /// Indicate whether current char is escaped.
+        /// </summary>
+        private bool _isEscape;
+
         public SearchLexer(string expression)
             : base(expression)
         {
@@ -40,19 +71,20 @@ namespace Microsoft.OData.Query.Tokenizors
                 case '"':
                     char quote =_ch.Value;
 
-                    this.AdvanceToNextOccurenceOfWithEscape(quote);
+                    AdvanceToNextOccurenceOfWithEscape(quote);
 
-                    if (this.textPos == this.TextLen)
+                    if (_textPos == _length)
                     {
-                        throw ParseError(Strings.ExpressionLexer_UnterminatedStringLiteral(this.textPos, this.Text));
+                        throw new OException();
+                        //throw ParseError(Strings.ExpressionLexer_UnterminatedStringLiteral(this.textPos, this.Text));
                     }
 
-                    this.NextChar();
+                    NextChar();
 
                     t = ExpressionTokenKind.StringLiteral;
                     break;
                 default:
-                    if (this.textPos == this.TextLen)
+                    if (_textPos == _length)
                     {
                         t = ExpressionTokenKind.End;
                     }
@@ -62,55 +94,66 @@ namespace Microsoft.OData.Query.Tokenizors
                         do
                         {
                             this.NextChar();
-                        } while (this.ch.HasValue && IsValidSearchTermChar(this.ch.Value));
+                        } while (_ch.HasValue && IsValidSearchTermChar(_ch.Value));
                     }
 
                     break;
             }
 
-            this.token.Kind = t;
-            this.token.Text = this.Text.Substring(tokenPos, this.textPos - tokenPos);
-            this.token.Position = tokenPos;
+            _token.Kind = t;
+            _token.Text = RawText.Substring(tokenPos, _textPos - tokenPos);
+            _token.Position = tokenPos;
 
-            if (this.token.Kind == ExpressionTokenKind.StringLiteral)
+            if (_token.Kind == ExpressionTokenKind.StringLiteral)
             {
-                this.token.Text = this.token.Text.Substring(1, this.token.Text.Length - 2).Replace("\\\\", "\\").Replace("\\\"", "\"");
-                if (string.IsNullOrEmpty(this.token.Text))
+                _token.Text = _token.Text.Substring(1, _token.Text.Length - 2).Replace("\\\\", "\\").Replace("\\\"", "\"");
+                if (string.IsNullOrEmpty(_token.Text))
                 {
-                    throw ParseError(Strings.ExpressionToken_IdentifierExpected(this.token.Position));
+                    throw new OException();
+                    //throw ParseError(Strings.ExpressionToken_IdentifierExpected(this.token.Position));
                 }
             }
 
-            if ((this.token.Kind == ExpressionTokenKind.Identifier) && !KeyWords.Contains(this.token.Text))
+            if ((_token.Kind == ExpressionTokenKind.Identifier) && !KeyWords.Contains(_token.Text))
             {
-                Match match = InvalidWordPattern.Match(this.token.Text);
+                Match match = InvalidWordPattern.Match(_token.Text);
                 if (match.Success)
                 {
                     int index = match.Groups[0].Index;
-                    throw ParseError(Strings.ExpressionLexer_InvalidCharacter(this.token.Text[index], this.token.Position + index, this.Text));
+
+                    throw new OException();
+                    //throw ParseError(Strings.ExpressionLexer_InvalidCharacter(this.token.Text[index], this.token.Position + index, this.Text));
                 }
 
-                this.token.Kind = ExpressionTokenKind.StringLiteral;
+                _token.Kind = ExpressionTokenKind.StringLiteral;
             }
 
-            return this.token;
+            return _token;
         }
+
+        /// <summary>
+        /// Evaluate whether the given char is valid for a SearchTerm
+        /// </summary>
+        /// <param name="val">The char to be evaluated on.</param>
+        /// <returns>Whether the given char is valid for a SearchTerm</returns>
+        private static bool IsValidSearchTermChar(char val) => !char.IsWhiteSpace(val) && val != ')';
 
         /// <summary>
         /// Move to next char, with escape char support.
         /// </summary>
         private void NextCharWithEscape()
         {
-            this.isEscape = false;
-            this.NextChar();
-            if (this.ch == EscapeChar)
+            _isEscape = false;
+            NextChar();
+            if (_ch == EscapeChar)
             {
-                this.isEscape = true;
-                this.NextChar();
+                _isEscape = true;
+                NextChar();
 
-                if (!this.ch.HasValue || EscapeSequenceSet.IndexOf(this.ch.Value) < 0)
+                if (!_ch.HasValue || EscapeSequenceSet.IndexOf(_ch.Value) < 0)
                 {
-                    throw ParseError(Strings.ExpressionLexer_InvalidEscapeSequence(this.ch, this.textPos, this.Text));
+                    throw new OException();
+                    //throw ParseError(Strings.ExpressionLexer_InvalidEscapeSequence(this.ch, this.textPos, this.Text));
                 }
             }
         }
@@ -122,7 +165,7 @@ namespace Microsoft.OData.Query.Tokenizors
         private void AdvanceToNextOccurenceOfWithEscape(char endingValue)
         {
             this.NextCharWithEscape();
-            while (_ch.HasValue && !(_ch == endingValue && !this.isEscape))
+            while (_ch.HasValue && !(_ch == endingValue && !_isEscape))
             {
                 this.NextCharWithEscape();
             }
