@@ -13,14 +13,26 @@ namespace Microsoft.OData.Query
     [DebuggerDisplay("{Message}")]
     public class OException : InvalidOperationException
     {
-        /// <summary>Creates a new instance of the <see cref="OException" /> class with an error message.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OException" /> class.
+        /// </summary>
+        public OException()
+            : base()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OException" /> class.
+        /// </summary>
         /// <param name="message">The plain text error message for this exception.</param>
         public OException(string message)
             : this(message, null)
         {
         }
 
-        /// <summary>Creates a new instance of the <see cref="Microsoft.OData.ODataException" /> class with an error message and an inner exception.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OException" /> class.
+        /// </summary>
         /// <param name="message">The plain text error message for this exception.</param>
         /// <param name="innerException">The inner exception that is the cause of this exception to be thrown.</param>
         public OException(string message, Exception innerException)

@@ -9,10 +9,16 @@ namespace Microsoft.OData.Query.Parser
     public enum ExpressionTokenKind
     {
         /// <summary>Unknown.</summary>
-        None = 0,
+        Unknown = 0,
 
         /// <summary>Customized.</summary>
         Customized,
+
+        /// <summary>End of text.</summary>
+        End,
+
+        /// <summary>Identifier.</summary>
+        Identifier,
 
         /// <summary>End of text.</summary>
         TextEnd,
@@ -103,6 +109,9 @@ namespace Microsoft.OData.Query.Parser
 
         /// <summary>SemiColon</summary>
         SemiColon,
+
+        /// <summary>ParameterAlias</summary>
+        ParameterAlias,
 
         /// <summary>A BracedExpression is an expression within braces {}. It contains a JSON object.</summary>
         BracedExpression,

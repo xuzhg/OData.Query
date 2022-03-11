@@ -24,7 +24,7 @@ namespace Microsoft.OData.Query.Tests.Parser
             Assert.False(ExpressionLexerUtils.IsNumeric(ExpressionTokenKind.Colon));
             Assert.False(ExpressionLexerUtils.IsNumeric(ExpressionTokenKind.DateTimeOffsetLiteral));
             Assert.False(ExpressionLexerUtils.IsNumeric(ExpressionTokenKind.StringLiteral));
-            Assert.False(ExpressionLexerUtils.IsNumeric(ExpressionTokenKind.None));
+            Assert.False(ExpressionLexerUtils.IsNumeric(ExpressionTokenKind.Unknown));
         }
 
         [Fact]

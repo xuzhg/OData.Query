@@ -86,5 +86,41 @@ namespace Microsoft.OData.Query {
                 return ResourceManager.GetString("ExpressionLexer_UnbalancedRangeExpression", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for $index query option found. The $index query option requires an integer value..
+        /// </summary>
+        internal static string QueryTokenizator_InvalidIndexQueryOptionValue {
+            get {
+                return ResourceManager.GetString("QueryTokenizator_InvalidIndexQueryOptionValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for $skip query option found. The $skip query option requires a non-negative integer value..
+        /// </summary>
+        internal static string QueryTokenizator_InvalidSkipQueryOptionValue {
+            get {
+                return ResourceManager.GetString("QueryTokenizator_InvalidSkipQueryOptionValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for $top query option found. The $top query option requires a non-negative integer value..
+        /// </summary>
+        internal static string QueryTokenizator_InvalidTopQueryOptionValue {
+            get {
+                return ResourceManager.GetString("QueryTokenizator_InvalidTopQueryOptionValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query option &apos;{0}&apos; was specified more than once, but it must be specified at most once..
+        /// </summary>
+        internal static string QueryTokenizator_QueryOptionMustBeSpecifiedOnce {
+            get {
+                return ResourceManager.GetString("QueryTokenizator_QueryOptionMustBeSpecifiedOnce", resourceCulture);
+            }
+        }
     }
 }

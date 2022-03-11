@@ -13,5 +13,17 @@ namespace Microsoft.OData.Query.Parser
         /// Lexer ignores whitespace
         /// </summary>
         public bool IgnoreWhitespace { get; set; }
+
+        /// <summary>
+        /// flag to indicate whether to delimit on a semicolon.
+        /// The query within $select or $expand are separated using ';'.
+        /// </summary>
+        public bool UseSemicolonDelimiter { get; set; } = false;
+
+        /// <summary>
+        /// Whether the lexer is being used to parse function parameters.
+        /// If true, will allow/recognize parameter aliases and typed nulls.
+        /// </summary>
+        public bool ParsingFunctionParameters { get; set; } = false;
     }
 }

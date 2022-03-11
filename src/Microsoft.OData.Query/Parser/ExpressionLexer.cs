@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.OData.Query.Parser
 {
@@ -30,12 +31,12 @@ namespace Microsoft.OData.Query.Parser
         protected int _length { get; }
 
         /// <summary>Character being processed.</summary>
-        private char? _ch;
+        protected char? _ch;
 
         /// <summary>Position on text being parsed.</summary>
-        private int _textPos;
+        protected int _textPos;
 
-        private ExpressionToken _token;
+        protected ExpressionToken _token;
 
         /// <summary>
         /// Initializes a new <see cref="ExpressionLexer"/>.
@@ -111,7 +112,10 @@ namespace Microsoft.OData.Query.Parser
 
         public virtual bool Next()
         {
-            throw new NotImplementedException();
+            Exception error = null;
+            NextTokenImpl(out error);
+
+            return error != null;
         }
 
         private ExpressionTokenKind ParseOpenParenthesis()
@@ -173,7 +177,7 @@ namespace Microsoft.OData.Query.Parser
                 ParseWhitespace();
             }
 
-            ExpressionTokenKind t = ExpressionTokenKind.None;
+            ExpressionTokenKind t;
 
             int tokenPos = _textPos; // save the current token position
             switch (_ch)
@@ -196,39 +200,55 @@ namespace Microsoft.OData.Query.Parser
                     t = ExpressionTokenKind.Equal;
                     break;
                 case '/':
-                    this.NextChar();
+                    NextChar();
                     t = ExpressionTokenKind.Slash;
                     break;
                 case '?':
-                    this.NextChar();
+                    NextChar();
                     t = ExpressionTokenKind.Question;
                     break;
                 case '.':
-                    this.NextChar();
+                    NextChar();
                     t = ExpressionTokenKind.Dot;
                     break;
                 case '*':
-                    this.NextChar();
+                    NextChar();
                     t = ExpressionTokenKind.Star;
                     break;
                 case ':':
-                    this.NextChar();
+                    NextChar();
                     t = ExpressionTokenKind.Colon;
                     break;
                 case '-':
+                    t = ParseMinus(tokenPos);
                     break;
 
                 case '\'':
+                    char quote = _ch.Value;
+                    do
+                    {
+                        AdvanceToNextOccurenceOf(quote);
+
+                        if (_textPos == _length)
+                        {
+                            // Create error
+                            //error = ParseError(ODataErrorStrings.ExpressionLexer_UnterminatedStringLiteral(this.textPos, this.Text));
+                        }
+
+                        NextChar();
+                    }
+                    while (_ch.HasValue && (_ch.Value == quote));
+                    t = ExpressionTokenKind.StringLiteral;
                     break;
 
                 case '{':
                     NextChar();
-                    //AdvanceThroughBalancedExpression('{', '}');
+                    AdvanceThroughBalancedExpression('{', '}');
                     t = ExpressionTokenKind.BracedExpression;
                     break;
                 case '[':
                     NextChar();
-                    //AdvanceThroughBalancedExpression('[', ']');
+                    AdvanceThroughBalancedExpression('[', ']');
                     t = ExpressionTokenKind.BracketedExpression;
                     break;
 
@@ -239,6 +259,73 @@ namespace Microsoft.OData.Query.Parser
                         t = ExpressionTokenKind.Whitespace;
                         break;
                     }
+
+                    if (IsValidNonStartingCharForIdentifier)
+                    {
+                        ParseIdentifier();
+
+                        // now, the lexer maybe move to hit a '-', so, it could be a GUID
+                        if (_ch == '-' && TryParseGuid(tokenPos))
+                        {
+                            t = ExpressionTokenKind.GuidLiteral;
+                            break;
+                        }
+
+                        t = ExpressionTokenKind.Identifier;
+                        break;
+                    }
+
+                    if (IsValidDigit)
+                    {
+                        t = ParseFromDigit();
+                        break;
+                    }
+
+                    if (_textPos == _length)
+                    {
+                        t = ExpressionTokenKind.End;
+                        break;
+                    }
+
+                    if (Settings.UseSemicolonDelimiter && _ch == ';')
+                    {
+                        NextChar();
+                        t = ExpressionTokenKind.SemiColon;
+                        break;
+                    }
+
+                    if (_ch == '@')
+                    {
+                        NextChar();
+
+                        if (_textPos == _length)
+                        {
+                            // create the error
+                            t = ExpressionTokenKind.Unknown;
+                            break;
+                        }
+
+                        if (!IsValidStartingCharForIdentifier)
+                        {
+                            // create the error
+                            t = ExpressionTokenKind.Unknown;
+                            break;
+                        }
+
+                        int start = _textPos;
+
+                        ParseIdentifier(includingDots: true);
+
+                        string leftToken = RawText.Substring(start, _textPos - start);
+
+                        t = Settings.ParsingFunctionParameters && !leftToken.Contains('.') ?
+                            ExpressionTokenKind.ParameterAlias :
+                            ExpressionTokenKind.Identifier;
+                        break;
+                    }
+
+                    // Create Error
+                    t = ExpressionTokenKind.Unknown;
                     break;
             };
 

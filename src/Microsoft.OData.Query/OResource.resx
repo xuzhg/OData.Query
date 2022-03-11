@@ -126,4 +126,16 @@
   <data name="ExpressionLexer_UnbalancedRangeExpression" xml:space="preserve">
     <value>Found an unbalanced range expression, missing '{0}'.</value>
   </data>
+  <data name="QueryTokenizator_InvalidIndexQueryOptionValue" xml:space="preserve">
+    <value>Invalid value '{0}' for $index query option found. The $index query option requires an integer value.</value>
+  </data>
+  <data name="QueryTokenizator_InvalidSkipQueryOptionValue" xml:space="preserve">
+    <value>Invalid value '{0}' for $skip query option found. The $skip query option requires a non-negative integer value.</value>
+  </data>
+  <data name="QueryTokenizator_InvalidTopQueryOptionValue" xml:space="preserve">
+    <value>Invalid value '{0}' for $top query option found. The $top query option requires a non-negative integer value.</value>
+  </data>
+  <data name="QueryTokenizator_QueryOptionMustBeSpecifiedOnce" xml:space="preserve">
+    <value>Query option '{0}' was specified more than once, but it must be specified at most once.</value>
+  </data>
 </root>
