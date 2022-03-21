@@ -35,14 +35,14 @@ namespace Microsoft.OData.Query.Tokenizors
         public int MaxDepth { get; }
 
 
-        public QueryToken TokenizeSearch(string search)
+        public SearchToken TokenizeSearch(string search)
         {
             _recursionDepth = 0;
-            lexer = new ExpressionLexer(search);
+            lexer = new SearchLexer(search);
             QueryToken token = ParseExpression();
             ValidateToken(ExpressionTokenKind.End);
 
-            return token;
+            return new SearchToken(token);
         }
 
         private QueryToken ParseExpression()

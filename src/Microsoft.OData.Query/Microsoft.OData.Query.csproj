@@ -24,5 +24,9 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Clauses\" />
+  </ItemGroup>
+
 </Project>
  

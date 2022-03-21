@@ -12,6 +12,19 @@ namespace Microsoft.OData.Query.Tests.Tokenizors
     public class SearchTokenizorTests
     {
         [Fact]
+        public void SearchParenthesesTest()
+        {
+            ISearchTokenizor searchTokenizor = new SearchTokenizor(50);
+            QueryToken token = searchTokenizor.TokenizeSearch("(A  OR BC) AND DEF");
+
+            //var binaryToken1 = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.And);
+            //var binaryToken11 = binaryToken1.Left.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.Or);
+            //binaryToken11.Left.ShouldBeStringLiteralToken("A");
+            //binaryToken11.Right.ShouldBeStringLiteralToken("BC");
+            //binaryToken1.Right.ShouldBeStringLiteralToken("DEF");
+        }
+
+        [Fact]
         public void SearchCombinedTest()
         {
             ISearchTokenizor searchTokenizor = new SearchTokenizor(50);

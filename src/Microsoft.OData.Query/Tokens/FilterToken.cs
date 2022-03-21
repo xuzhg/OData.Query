@@ -6,21 +6,21 @@
 namespace Microsoft.OData.Query.Tokens
 {
     /// <summary>
-    /// Lexical token representing a $search query.
+    /// Lexical token representing a $filter query.
     /// </summary>
-    public class SearchToken : QueryToken
+    public class FilterToken : QueryToken
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SearchToken" /> class.
+        /// Initializes a new instance of the <see cref="FilterToken" /> class.
         /// </summary>
-        /// <param name="searchExpression">The search expression.</param>
-        public SearchToken(QueryToken searchExpression)
+        /// <param name="filterExpression">The filter expression.</param>
+        public FilterToken(QueryToken filterExpression)
         {
-            Expression = searchExpression ?? throw new ArgumentNullException(nameof(searchExpression));
+            Expression = filterExpression ?? throw new ArgumentNullException(nameof(filterExpression));
         }
 
         /// <summary>
-        /// The expression according to which to search the results.
+        /// The expression according to which to filter the results.
         /// </summary>
         public QueryToken Expression { get; }
     }

@@ -348,6 +348,7 @@ namespace Microsoft.OData.Query.Parser
                 if (_textPos < _length)
                 {
                     _ch = RawText[_textPos];
+                    return;
                 }
             }
 

@@ -1,10 +1,10 @@
-﻿using Microsoft.OData.Query.Parser;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿//-----------------------------------------------------------------------
+// Copyright (c) .NET Foundation and Contributors. All rights reserved.
+// See License.txt in the project root for license information.
+//-----------------------------------------------------------------------
+
+using Microsoft.OData.Query.Parser;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Microsoft.OData.Query.Tokenizors
 {

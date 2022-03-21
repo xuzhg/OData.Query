@@ -9,6 +9,6 @@ namespace Microsoft.OData.Query.Tokenizors
 {
     public interface ISearchTokenizor
     {
-        QueryToken TokenizeSearch(string search);
+        SearchToken TokenizeSearch(string search);
     }
 }
