@@ -5,11 +5,56 @@
 
 namespace Microsoft.OData.Query.Tokenization;
 
+public ref struct OToken1 {
+
+
+    /// <summary>
+    /// Token kind.
+    /// </summary>
+    public OTokenKind Kind;
+
+    /// <summary>
+    /// Token text.
+    /// </summary>
+    public ReadOnlySpan<char> Text;
+
+    /// <summary>
+    /// Starting Position of token.
+    /// </summary>
+    public int Position;
+}
+
 /// <summary>
 /// Represents a lexical expression token.
 /// </summary>
 public struct OToken
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OToken" /> class.
+    /// </summary>
+    /// <param name="kind">The OTokenKind.</param>
+    /// <param name="text">The Token Text, it can be 'null'.</param>
+    /// <param name="position">The Token starting positing.</param>
+    public OToken(OTokenKind kind, string text, int position)
+    {
+        Kind = kind;
+        Text = text;
+        Position = position;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OToken" /> class.
+    /// </summary>
+    /// <param name="kind">The OTokenKind.</param>
+    /// <param name="text">The Token Text, it can be empty.</param>
+    /// <param name="position">The Token starting positing.</param>
+    public OToken(OTokenKind kind, ReadOnlySpan<char> text, int position)
+    {
+        Kind = kind;
+        Text = text.IsEmpty ? null : text.ToString();
+        Position = position;
+    }
+
     /// <summary>
     /// Token kind.
     /// </summary>
@@ -19,25 +64,11 @@ public struct OToken
     /// Token text.
     /// </summary>
     public string Text;
-    // public ReadOnlySpan<char> Text;
 
     /// <summary>
     /// Starting Position of token.
     /// </summary>
     public int Position;
-
-    /// <summary>
-    /// Reset the token fields.
-    /// </summary>
-    /// <param name="kind">The new TokenKind.</param>
-    /// <param name="text">The new Token Text, it can be 'null'.</param>
-    /// <param name="position">The new Token starting positing.</param>
-    internal void Reset(OTokenKind kind, string text, int position)
-    {
-        Kind = kind;
-        Text = text;
-        Position = position;
-    }
 
     public override string ToString()
     {

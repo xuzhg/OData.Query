@@ -10,7 +10,7 @@ namespace Microsoft.OData.Query.Tokenization;
 /// </summary>
 public class OTokenizerContext
 {
-    internal static OTokenizerContext Default = new OTokenizerContext();
+    internal static OTokenizerContext Default = new ();
 
     /// <summary>
     /// Ignores whitespace.

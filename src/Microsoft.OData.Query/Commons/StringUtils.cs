@@ -25,17 +25,16 @@ internal static class StringUtils
             string trimmedText = text.Trim();
             if (trimmedText.Length != 36 || trimmedText.IndexOf('-') != 8)
             {
-                targetValue = default(Guid);
+                targetValue = default;
                 return false;
             }
-
 
             targetValue = XmlConvert.ToGuid(text);
             return true;
         }
         catch (FormatException)
         {
-            targetValue = default(Guid);
+            targetValue = default;
             return false;
         }
     }

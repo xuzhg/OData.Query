@@ -12,11 +12,9 @@ namespace Microsoft.OData.Query.Tokenization;
 /// <summary>
 /// Default Lexical tokenizer to convert a text into meaningful lexical tokens.
 /// </summary>
-[DebuggerDisplay("{CurrPos}, '{CurrChar}', [{_token}])")]
+[DebuggerDisplay("{DebuggerToString(),nq}")]
 public class OTokenizer : IOTokenizer
 {
-    protected OToken _token; // Token being processed
-
     /// <summary>
     /// Initializes a new instance of the <see cref="OTokenizer" /> class.
     /// </summary>
@@ -41,6 +39,10 @@ public class OTokenizer : IOTokenizer
         Text = text;
         TextLen = text.Length;
         Context = context ?? throw new ArgumentNullException(nameof(context));
+
+        CurrentTokenKind = OTokenKind.Unknown;
+        CurrentTokenPosition = 0;
+        CurrentTokenEndPosition = 0;
         SetTextPos(0);
     }
 
@@ -60,9 +62,33 @@ public class OTokenizer : IOTokenizer
     public OTokenizerContext Context { get; }
 
     /// <summary>
-    /// Current token being processed.
+    /// Gets the current token kind.
     /// </summary>
-    public OToken CurrentToken => _token;
+    public OTokenKind CurrentTokenKind { get; protected set; }
+
+    /// <summary>
+    /// Gets the current token text.
+    /// </summary>
+    public ReadOnlySpan<char> CurrentTokenText => Text.AsSpan()[CurrentTokenPosition..CurrentTokenEndPosition];
+
+    public OToken1 CurrentToken => new OToken1
+    {
+        Kind = _kind,
+        Text = Text.AsSpan()[_currPos..CurrPos]
+    };
+
+    private OTokenKind _kind;
+    private int _currPos;
+
+    /// <summary>
+    /// Gets the current token starting position.
+    /// </summary>
+    public int CurrentTokenPosition { get; protected set; }
+
+    /// <summary>
+    /// Gets/set the current token ending position. "]"
+    /// </summary>
+    protected int CurrentTokenEndPosition { get; set; }
 
     /// <summary>
     /// Position on text being processed.
@@ -85,8 +111,6 @@ public class OTokenizer : IOTokenizer
     /// <returns>Boolean value indicating read the next token succussed or not, and there maybe more tokens.</returns>
     public virtual bool NextToken()
     {
-        _token.Reset(OTokenKind.Unknown, string.Empty, -1);
-
         // If ignore whitespace, skip the whitespace at the beginning.
         if (Context.IgnoreWhitespace)
         {
@@ -99,7 +123,7 @@ public class OTokenizer : IOTokenizer
 
         if (CurrPos == TextLen)
         {
-            _token.Reset(OTokenKind.EndOfInput, "\0", CurrPos);
+            SetCurrentTokenState(OTokenKind.EndOfInput, CurrPos, CurrPos);
             return false;
         }
 
@@ -146,7 +170,7 @@ public class OTokenizer : IOTokenizer
 
             if (CurrPos == TextLen)
             {
-                _token.Reset(OTokenKind.At, "@", tokenPos);
+                SetCurrentTokenState(OTokenKind.At, tokenPos, CurrPos);
                 return true;
             }
 
@@ -161,13 +185,13 @@ public class OTokenizer : IOTokenizer
             this.ParseIdentifier(true /*includingDots*/);
 
             // Extract the identifier from expression.
-            ReadOnlySpan<char> leftToken = Text.AsSpan().Slice(start, CurrPos - start);
+            ReadOnlySpan<char> leftToken = Text.AsSpan()[start..CurrPos];
 
             OTokenKind t = Context.ParsingFunctionParameters && !leftToken.Contains(".", StringComparison.Ordinal)
                 ? OTokenKind.ParameterAlias
                 : OTokenKind.Identifier;
 
-            _token.Reset(t, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+            SetCurrentTokenState(t, tokenPos, CurrPos);
             return true;
         }
 
@@ -180,7 +204,7 @@ public class OTokenizer : IOTokenizer
         if (char.IsDigit(CurrChar))
         {
             OTokenKind kind = ParseFromDigit();
-            _token.Reset(kind, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+            SetCurrentTokenState(kind, tokenPos, CurrPos);
             return true;
         }
 
@@ -199,11 +223,11 @@ public class OTokenizer : IOTokenizer
             // guidValue = 8HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 12HEXDIG
             if (CurrChar == '-' && TryParseGuid(tokenPos))
             {
-                _token.Reset(OTokenKind.GuidLiteral, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+                SetCurrentTokenState(OTokenKind.GuidLiteral, tokenPos, CurrPos);
                 return true;
             }
 
-            _token.Reset(OTokenKind.Identifier, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+            SetCurrentTokenState(OTokenKind.Identifier, tokenPos, CurrPos);
             return true;
         }
 
@@ -225,19 +249,115 @@ public class OTokenizer : IOTokenizer
             }
             while (char.IsWhiteSpace(CurrChar));
 
-            string whitespaces = Text.Substring(startPos, CurrPos - startPos);
-
-            _token.Reset(OTokenKind.Whitespace, whitespaces, startPos);
+            SetCurrentTokenState(OTokenKind.Whitespace, startPos, CurrPos);
             return true;
         }
 
         return false;
     }
 
+    private void SetCurrentTokenState(OTokenKind kind, int start, int end)
+    {
+        HandleTypePrefixedLiterals(ref kind, start, ref end);
+
+        CurrentTokenKind = kind;
+        CurrentTokenPosition = start;
+        CurrentTokenEndPosition = end;
+    }
+
+    private void HandleTypePrefixedLiterals(ref OTokenKind kind, int start, ref int end)
+    {
+        if (kind != OTokenKind.Identifier)
+        {
+            return;
+        }
+
+        ReadOnlySpan<char> tokenText = Text.AsSpan()[start..end];
+
+        // Get literal of quoted values
+        if (CurrChar == '\'')
+        {
+            kind = GetBuiltInTokenKind(tokenText);
+
+            int tokenPos = CurrPos;
+            do
+            {
+                do
+                {
+                    this.NextChar();
+                }
+                while (CurrChar != '\'');
+
+                if (CurrPos == TextLen)
+                {
+                    throw new OTokenizationException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, this.Text));
+                }
+
+                this.NextChar();
+            }
+            while (CurrChar == '\'');
+            end = CurrPos;
+            return;
+        }
+
+        if (OTokenizationUtils.IsInfinityOrNaN(tokenText))
+        {
+            kind = OTokenKind.DoubleLiteral;
+        }
+        else if (OTokenizationUtils.IsSingleInfinityOrNaN(tokenText))
+        {
+            kind = OTokenKind.SingleLiteral;
+        }
+        else if (OTokenizationUtils.IsBoolean(tokenText))
+        {
+            kind = OTokenKind.BooleanLiteral;
+        }
+        else if (OTokenizationUtils.IsNull(tokenText))
+        {
+            kind = OTokenKind.NullLiteral;
+        }
+    }
+
+    /// <summary>
+    /// Get type-prefixed literals with quoted values duration, binary and spatial types.
+    /// </summary>
+    /// <param name="tokenText">Token text</param>
+    /// <returns>ExpressionTokenKind</returns>
+    /// <example>geometry'POINT (79 84)'. 'geometry' is the tokenText </example>
+    private OTokenKind GetBuiltInTokenKind(ReadOnlySpan<char> tokenText)
+    {
+        if (tokenText.Equals("duration", StringComparison.Ordinal))
+        {
+            return OTokenKind.DurationLiteral;
+        }
+        else if (tokenText.Equals("binary", StringComparison.Ordinal))
+        {
+            return OTokenKind.BinaryLiteral;
+        }
+        else if (tokenText.Equals("geography", StringComparison.Ordinal))
+        {
+            return OTokenKind.GeographyLiteral;
+        }
+        else if (tokenText.Equals("geometry", StringComparison.Ordinal))
+        {
+            return OTokenKind.GeometryLiteral;
+        }
+        else if (tokenText.Equals("null", StringComparison.Ordinal))
+        {
+            // typed null literals are not supported.
+            throw new OTokenizationException(Error.Format(SRResources.Tokenization_SyntaxError, CurrPos, Text));
+        }
+        else
+        {
+            // treat as quoted literal
+            return OTokenKind.QuotedLiteral;
+        }
+    }
+
     /// <summary>
     /// Special characters;
     /// </summary>
-    private static IDictionary<char, OTokenKind> SpecialCharacters = new Dictionary<char, OTokenKind>
+    private static readonly IDictionary<char, OTokenKind> SpecialCharacters = new Dictionary<char, OTokenKind>
     {
         { '(', OTokenKind.OpenParen },
         { ')', OTokenKind.CloseParen },
@@ -261,9 +381,9 @@ public class OTokenizer : IOTokenizer
     {
         if (SpecialCharacters.TryGetValue(CurrChar, out OTokenKind kind))
         {
-            // Consider: Maybe we don't need to set the Token.Text since it's special character?
-            _token.Reset(kind, null, CurrPos);
+            int startPos = CurrPos;
             NextChar();
+            SetCurrentTokenState(kind, startPos, CurrPos);
             return true;
         }
 
@@ -282,7 +402,7 @@ public class OTokenizer : IOTokenizer
                 OTokenKind t = this.ParseFromDigit();
                 if (OTokenizationUtils.IsNumericTokenKind(t))
                 {
-                    _token.Reset(t, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+                    SetCurrentTokenState(t, tokenPos, CurrPos);
                     return true;
                 }
 
@@ -296,14 +416,14 @@ public class OTokenizer : IOTokenizer
                 ParseIdentifier();
                 ReadOnlySpan<char> currentIdentifier = Text.AsSpan().Slice(tokenPos + 1, CurrPos - tokenPos - 1);
 
-                if (OTokenizationUtils.IsInfinityLiteralDouble(currentIdentifier))
+                if (OTokenizationUtils.IsInfinity(currentIdentifier))
                 {
-                    _token.Reset(OTokenKind.DoubleLiteral, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+                    SetCurrentTokenState(OTokenKind.DoubleLiteral, tokenPos, CurrPos);
                     return true;
                 }
-                else if (OTokenizationUtils.IsInfinityLiteralSingle(currentIdentifier))
+                else if (OTokenizationUtils.IsSingleInfinity(currentIdentifier))
                 {
-                    _token.Reset(OTokenKind.SingleLiteral, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+                    SetCurrentTokenState(OTokenKind.SingleLiteral, tokenPos, CurrPos);
                     return true;
                 }
 
@@ -312,7 +432,7 @@ public class OTokenizer : IOTokenizer
             }
 
             NextChar();
-            _token.Reset(OTokenKind.Minus, "-", tokenPos);
+            SetCurrentTokenState(OTokenKind.Minus, tokenPos, CurrPos);
             return true;
         }
 
@@ -339,7 +459,7 @@ public class OTokenizer : IOTokenizer
             }
             while (CurrChar == quote);
 
-            _token.Reset(OTokenKind.StringLiteral, Text.Substring(tokenPos, CurrPos - tokenPos), tokenPos);
+            SetCurrentTokenState(OTokenKind.StringLiteral, tokenPos, CurrPos);
             return true;
         }
 
@@ -384,8 +504,8 @@ public class OTokenizer : IOTokenizer
     /// For an identifier, EMD supports chars that match the regex  [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]
     /// IsLetterOrDigit covers Ll, Lu, Lt, Lo, Lm, Nd, this set covers the rest
     /// </summary>
-    private static readonly HashSet<UnicodeCategory> AdditionalUnicodeCategoriesForIdentifier = new HashSet<UnicodeCategory>
-        {
+    private static readonly HashSet<UnicodeCategory> AdditionalUnicodeCategoriesForIdentifier = new()
+    {
             UnicodeCategory.LetterNumber,
             UnicodeCategory.NonSpacingMark,
             UnicodeCategory.SpacingCombiningMark,
@@ -522,7 +642,7 @@ public class OTokenizer : IOTokenizer
             }
             else
             {
-                ReadOnlySpan<char> valueStr = Text.AsSpan().Slice(tokenPos, CurrPos - tokenPos);
+                ReadOnlySpan<char> valueStr = Text.AsSpan()[tokenPos..CurrPos];
                 result = MakeBestGuessOnNoSuffixStr(valueStr, result);
             }
         }
@@ -660,42 +780,15 @@ public class OTokenizer : IOTokenizer
         }
     }
 
-    /// <summary>
-    /// Parses a literal be checking for delimiting characters '\0', ',',')' and ' '
-    /// </summary>
-    /// <param name="tokenPos">Index from which the substring starts</param>
-    /// <returns>Substring from this.text that has parsed the literal and ends in one of above delimiting characters</returns>
-    private string ParseLiteral1(int tokenPos)
-    {
-        do
-        {
-            NextChar();
-        }
-        while (CurrPos != '\0' && CurrPos != ',' && CurrPos != ')' && CurrPos != ' ');
-
-        if (CurrPos == CurrPos)
-        {
-            NextChar();
-        }
-
-        string numericStr = Text.Substring(tokenPos, CurrPos - tokenPos);
-        return numericStr;
-    }
-
     private ReadOnlySpan<char> ParseLiteral(int tokenPos)
     {
         do
         {
             NextChar();
         }
-        while (CurrPos != '\0' && CurrPos != ',' && CurrPos != ')' && CurrPos != ' ');
+        while (CurrChar != '\0' && CurrChar != ',' && CurrChar != ')' && CurrChar != ' ');
 
-        if (CurrPos == CurrPos)
-        {
-            NextChar();
-        }
-
-        var numericStr = Text.AsSpan().Slice(tokenPos, CurrPos - tokenPos);
+        var numericStr = Text.AsSpan()[tokenPos..CurrPos];
         return numericStr;
     }
 
@@ -712,40 +805,31 @@ public class OTokenizer : IOTokenizer
         // look at value:       "2147483647" may be Int32/long, "2147483649" must be long.
         // look at precision:   "3258.67876576549" may be single/double/decimal, "3258.678765765489753678965390" must be decimal.
         // (2) then let MetadataUtilsCommon.CanConvertPrimitiveTypeTo() method does further promotion when knowing expected semantics type.
-        int tmpInt = 0;
-        long tmpLong = 0;
-        float tmpFloat = 0;
-        double tmpDouble = 0;
-        decimal tmpDecimal = 0;
-
         if (guessedKind == OTokenKind.IntegerLiteral)
         {
-            if (int.TryParse(numericStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out tmpInt))
+            if (int.TryParse(numericStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
             {
                 return OTokenKind.IntegerLiteral;
             }
 
-            if (long.TryParse(numericStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out tmpLong))
+            if (long.TryParse(numericStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
             {
                 return OTokenKind.Int64Literal;
             }
         }
 
-        bool canBeSingle = float.TryParse(numericStr, NumberStyles.Float, CultureInfo.InvariantCulture, out tmpFloat);
-        bool canBeDouble = double.TryParse(numericStr, NumberStyles.Float, CultureInfo.InvariantCulture, out tmpDouble);
-        bool canBeDecimal = decimal.TryParse(numericStr, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out tmpDecimal);
+        bool canBeSingle = float.TryParse(numericStr, NumberStyles.Float, CultureInfo.InvariantCulture, out float tmpFloat);
+        bool canBeDouble = double.TryParse(numericStr, NumberStyles.Float, CultureInfo.InvariantCulture, out double tmpDouble);
+        bool canBeDecimal = decimal.TryParse(numericStr, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal tmpDecimal);
 
         // 1. try high precision -> low precision
         if (canBeDouble && canBeDecimal)
         {
-            decimal doubleToDecimalR;
-            decimal doubleToDecimalN;
-
             // To keep the full precision of the current value, which if necessary is all 17 digits of precision supported by the Double type.
-            bool doubleCanBeDecimalR = decimal.TryParse(tmpDouble.ToString("R", CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out doubleToDecimalR);
+            bool doubleCanBeDecimalR = decimal.TryParse(tmpDouble.ToString("R", CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out decimal doubleToDecimalR);
 
             // To cover the scientific notation case, such as 1e+19 in the tmpDouble
-            bool doubleCanBeDecimalN = decimal.TryParse(tmpDouble.ToString("N29", CultureInfo.InvariantCulture), NumberStyles.Number, CultureInfo.InvariantCulture, out doubleToDecimalN);
+            bool doubleCanBeDecimalN = decimal.TryParse(tmpDouble.ToString("N29", CultureInfo.InvariantCulture), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal doubleToDecimalN);
 
             if ((doubleCanBeDecimalR && doubleToDecimalR != tmpDecimal) || (!doubleCanBeDecimalR && doubleCanBeDecimalN && doubleToDecimalN != tmpDecimal))
             {
@@ -785,5 +869,11 @@ public class OTokenizer : IOTokenizer
         {
             throw new OTokenizationException(Error.Format(SRResources.Tokenization_DigitExpected, CurrPos, Text));
         }
+    }
+
+    private string DebuggerToString()
+    {
+        string currentChar = CurrChar == '\0' ? "\\0" : CurrChar.ToString();
+        return $"{CurrentTokenKind}: \"{CurrentTokenText.ToString()}\" at {CurrentTokenPosition}. Next => '{currentChar}' at {CurrPos} on {Text}";
     }
 }

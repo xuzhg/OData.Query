@@ -35,10 +35,18 @@ while (true)
 
     IOTokenizer tokenizer = new OTokenizer(line, context);
 
-    while (tokenizer.NextToken())
+    try
     {
-        OToken token = tokenizer.CurrentToken;
-        Console.WriteLine(" ├──" + token.ToString());
+        while (tokenizer.NextToken())
+        {
+            OToken token = tokenizer.GetCurrentToken();
+            Console.WriteLine(" ├──" + token.ToString());
+        }
+    }
+    catch (OTokenizationException ex)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(ex.Message);
     }
 
     Console.ForegroundColor = color;

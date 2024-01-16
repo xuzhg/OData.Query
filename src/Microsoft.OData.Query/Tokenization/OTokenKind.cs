@@ -61,6 +61,12 @@ public enum OTokenKind
     /// <summary>IntegerLiteral.</summary>
     IntegerLiteral,
 
+    /// <summary>NullLiteral.</summary>
+    NullLiteral,
+
+    /// <summary>BooleanLiteral.</summary>
+    BooleanLiteral,
+
     /// <summary>Binary literal.</summary>
     BinaryLiteral,
 
@@ -90,6 +96,18 @@ public enum OTokenKind
 
     /// <summary>StringLiteral.</summary>
     StringLiteral,
+
+    /// <summary>Duration literal.</summary>
+    DurationLiteral,
+
+    /// <summary>Geography literal.</summary>
+    GeographyLiteral,
+
+    /// <summary>Geometry literal.</summary>
+    GeometryLiteral,
+
+    /// <summary>Quoted</summary>
+    QuotedLiteral,
 
     /// <summary>Identifier.</summary>
     Identifier,

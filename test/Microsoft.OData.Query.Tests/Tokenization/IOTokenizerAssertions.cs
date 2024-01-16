@@ -19,10 +19,10 @@ public static class IOTokenizerAssertions
         IList<OToken> tokens = new List<OToken>();
         while (tokenizer.NextToken())
         {
-            tokens.Add(tokenizer.CurrentToken);
+            tokens.Add(tokenizer.GetCurrentToken());
         }
 
-        Assert.Equal(OTokenKind.EndOfInput, tokenizer.CurrentToken.Kind);
+        Assert.Equal(OTokenKind.EndOfInput, tokenizer.CurrentTokenKind);
         return tokens.ToArray();
     }
 }

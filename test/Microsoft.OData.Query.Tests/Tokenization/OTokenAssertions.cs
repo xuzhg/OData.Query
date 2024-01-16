@@ -13,14 +13,14 @@ public static class OTokenAssertions
     public static void ShouldBeToken(this OToken token, OTokenKind kind, int startingPosition)
     {
         Assert.Equal(kind, token.Kind);
-        Assert.Null(token.Text);
+        Assert.Empty(token.Text.ToString());
         Assert.Equal(startingPosition, token.Position);
     }
 
     public static void ShouldBeToken(this OToken token, OTokenKind kind, string text, int startingPosition)
     {
         Assert.Equal(kind, token.Kind);
-        Assert.Equal(text, token.Text);
+        Assert.Equal(text, token.Text.ToString());
         Assert.Equal(startingPosition, token.Position);
     }
 }
