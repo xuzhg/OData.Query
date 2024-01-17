@@ -16,13 +16,14 @@ public static class IOTokenizerExtensions
     /// <remarks>
     /// It retrieves the characters from span and create the string.
     /// </remarks>
-    public static OToken GetCurrentToken(this IOTokenizer tokenizer)
-    {
-        if (tokenizer == null)
-        {
-            throw new ArgumentNullException(nameof(tokenizer));
-        }
+    //public static OTokenWithValue GetCurrentToken(this IOTokenizer tokenizer)
+    //{
+    //    if (tokenizer == null)
+    //    {
+    //        throw new ArgumentNullException(nameof(tokenizer));
+    //    }
 
-        return new (tokenizer.CurrentTokenKind, tokenizer.CurrentTokenText, tokenizer.CurrentTokenPosition);
-    }
+    //    OToken token = tokenizer.CurrentToken;
+    //    return token;
+    //}
 }

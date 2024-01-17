@@ -15,6 +15,12 @@ namespace Microsoft.OData.Query.Tokenization;
 [DebuggerDisplay("{DebuggerToString(),nq}")]
 public class OTokenizer : IOTokenizer
 {
+    /// <summary>Token kind being processed.</summary>
+    private OTokenKind _tokenKind;
+
+    /// <summary>Starting position of token being processed.</summary>
+    private int _tokenPosition;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="OTokenizer" /> class.
     /// </summary>
@@ -40,9 +46,8 @@ public class OTokenizer : IOTokenizer
         TextLen = text.Length;
         Context = context ?? throw new ArgumentNullException(nameof(context));
 
-        CurrentTokenKind = OTokenKind.Unknown;
-        CurrentTokenPosition = 0;
-        CurrentTokenEndPosition = 0;
+        _tokenKind = OTokenKind.Unknown;
+        _tokenPosition = 0;
         SetTextPos(0);
     }
 
@@ -62,33 +67,11 @@ public class OTokenizer : IOTokenizer
     public OTokenizerContext Context { get; }
 
     /// <summary>
-    /// Gets the current token kind.
+    /// Gets the current token processed.
+    /// Since OToken is ref struct, it's stack-only instance and do the member copy if customer calls this property.
     /// </summary>
-    public OTokenKind CurrentTokenKind { get; protected set; }
-
-    /// <summary>
-    /// Gets the current token text.
-    /// </summary>
-    public ReadOnlySpan<char> CurrentTokenText => Text.AsSpan()[CurrentTokenPosition..CurrentTokenEndPosition];
-
-    public OToken1 CurrentToken => new OToken1
-    {
-        Kind = _kind,
-        Text = Text.AsSpan()[_currPos..CurrPos]
-    };
-
-    private OTokenKind _kind;
-    private int _currPos;
-
-    /// <summary>
-    /// Gets the current token starting position.
-    /// </summary>
-    public int CurrentTokenPosition { get; protected set; }
-
-    /// <summary>
-    /// Gets/set the current token ending position. "]"
-    /// </summary>
-    protected int CurrentTokenEndPosition { get; set; }
+    public OToken CurrentToken
+        => new OToken(_tokenKind, Text.AsSpan()[_tokenPosition..CurrPos], _tokenPosition);
 
     /// <summary>
     /// Position on text being processed.
@@ -123,115 +106,51 @@ public class OTokenizer : IOTokenizer
 
         if (CurrPos == TextLen)
         {
-            SetCurrentTokenState(OTokenKind.EndOfInput, CurrPos, CurrPos);
+            SetCurrentTokenState(OTokenKind.EndOfInput, CurrPos);
             return false;
         }
 
+        // Try the special characters, for example: '(', ')' ...
         if (TrySpecialCharToken())
         {
             return true;
         }
 
+        // Try the '-' starting
         if (TryMinusToken())
         {
             return true;
         }
 
+        // Try the string literal, a string literal is wrapped using single quote or double quote
         if (TryStringLiteralToken())
         {
             return true;
         }
 
+        // Try the simple identifier
         if (TryIdentifierToken())
         {
             return true;
         }
 
+        // Try the digit
         if (TryDigitToken())
         {
             return true;
         }
 
-        if (TryParseAnnotation())
+        if (TryAnnotationToken())
+        {
+            return true;
+        }
+
+        if (TryOtherToken())
         {
             return true;
         }
 
         throw new OTokenizationException(Error.Format(SRResources.Tokenization_InvalidCharacter, CurrChar, CurrPos, Text));
-    }
-
-    private bool TryParseAnnotation()
-    {
-        int tokenPos = CurrPos;
-
-        if (CurrChar == '@')
-        {
-            NextChar();
-
-            if (CurrPos == TextLen)
-            {
-                SetCurrentTokenState(OTokenKind.At, tokenPos, CurrPos);
-                return true;
-            }
-
-            if (!this.IsValidStartingCharForIdentifier)
-            {
-                throw new OTokenizationException(Error.Format(SRResources.Tokenization_InvalidCharacter, CurrChar, CurrPos, Text));
-            }
-
-            int start = CurrPos;
-
-            // Include dots for the case of annotation.
-            this.ParseIdentifier(true /*includingDots*/);
-
-            // Extract the identifier from expression.
-            ReadOnlySpan<char> leftToken = Text.AsSpan()[start..CurrPos];
-
-            OTokenKind t = Context.ParsingFunctionParameters && !leftToken.Contains(".", StringComparison.Ordinal)
-                ? OTokenKind.ParameterAlias
-                : OTokenKind.Identifier;
-
-            SetCurrentTokenState(t, tokenPos, CurrPos);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool TryDigitToken()
-    {
-        int tokenPos = CurrPos;
-        if (char.IsDigit(CurrChar))
-        {
-            OTokenKind kind = ParseFromDigit();
-            SetCurrentTokenState(kind, tokenPos, CurrPos);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool TryIdentifierToken()
-    {
-        int tokenPos = CurrPos;
-
-        if (IsValidStartingCharForIdentifier)
-        {
-            ParseIdentifier();
-
-            // Guids will have '-' in them
-            // guidValue = 8HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 12HEXDIG
-            if (CurrChar == '-' && TryParseGuid(tokenPos))
-            {
-                SetCurrentTokenState(OTokenKind.GuidLiteral, tokenPos, CurrPos);
-                return true;
-            }
-
-            SetCurrentTokenState(OTokenKind.Identifier, tokenPos, CurrPos);
-            return true;
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -249,29 +168,266 @@ public class OTokenizer : IOTokenizer
             }
             while (char.IsWhiteSpace(CurrChar));
 
-            SetCurrentTokenState(OTokenKind.Whitespace, startPos, CurrPos);
+            SetCurrentTokenState(OTokenKind.Whitespace, startPos);
             return true;
         }
 
         return false;
     }
 
-    private void SetCurrentTokenState(OTokenKind kind, int start, int end)
+    /// <summary>
+    /// Special characters;
+    /// </summary>
+    private static readonly IDictionary<char, OTokenKind> SpecialCharacters = new Dictionary<char, OTokenKind>
     {
-        HandleTypePrefixedLiterals(ref kind, start, ref end);
+        { '(', OTokenKind.OpenParen },
+        { ')', OTokenKind.CloseParen },
+        { '[', OTokenKind.OpenBracket },
+        { ']', OTokenKind.CloseBracket },
+        { '{', OTokenKind.OpenCurly },
+        { '}', OTokenKind.CloseCurly },
+        { ',', OTokenKind.Comma },
+        { '=', OTokenKind.Equal },
+        { '/', OTokenKind.Slash },
+        { '?', OTokenKind.Question },
+        { '.', OTokenKind.Dot },
+        { '*', OTokenKind.Star },
+        { ':', OTokenKind.Colon },
+        { '&', OTokenKind.Ampersand },
+        { ';', OTokenKind.SemiColon },
+        { '$', OTokenKind.Dollar },
+    };
 
-        CurrentTokenKind = kind;
-        CurrentTokenPosition = start;
-        CurrentTokenEndPosition = end;
+    /// <summary>
+    /// Try to tokenize the special characters, for example, '(', ')', ',', '*', etc.
+    /// </summary>
+    /// <returns>true means parsed, false means doesn't parse.</returns>
+    protected virtual bool TrySpecialCharToken()
+    {
+        if (SpecialCharacters.TryGetValue(CurrChar, out OTokenKind kind))
+        {
+            int startPos = CurrPos;
+            NextChar();
+            SetCurrentTokenState(kind, startPos);
+            return true;
+        }
+
+        return false;
     }
 
-    private void HandleTypePrefixedLiterals(ref OTokenKind kind, int start, ref int end)
+    /// <summary>
+    /// Try to tokenize the minus token, for example '-', or -3.14
+    /// </summary>
+    /// <returns>true means parsed, false means doesn't parse.</returns>
+    protected virtual bool TryMinusToken()
+    {
+        if (CurrChar == '-')
+        {
+            int tokenPos = CurrPos;
+            bool hasNext = CurrPos + 1 < TextLen;
+            if (hasNext && char.IsDigit(Text[CurrPos + 1]))
+            {
+                // don't separate '-' and its following digits : -2147483648 is valid int.MinValue, but 2147483648 is long.
+                OTokenKind t = ParseFromDigit();
+                if (OTokenizationUtils.IsNumericTokenKind(t))
+                {
+                    SetCurrentTokenState(t, tokenPos);
+                    return true;
+                }
+
+                // If it looked like a numeric but wasn't, let's rewind and fall through to a simple '-' token.
+                SetTextPos(tokenPos);
+            }
+            else if (hasNext && Text[CurrPos + 1] == 'I') // could be -INF
+            {
+                NextChar();
+                ParseIdentifier();
+                ReadOnlySpan<char> currentIdentifier = Text.AsSpan().Slice(tokenPos + 1, CurrPos - tokenPos - 1);
+
+                if (OTokenizationUtils.IsInfinity(currentIdentifier))
+                {
+                    SetCurrentTokenState(OTokenKind.DoubleLiteral, tokenPos);
+                    return true;
+                }
+                else if (OTokenizationUtils.IsSingleInfinity(currentIdentifier))
+                {
+                    SetCurrentTokenState(OTokenKind.SingleLiteral, tokenPos);
+                    return true;
+                }
+
+                // If it looked like '-INF' but wasn't we'll rewind and fall through to a simple '-' token.
+                SetTextPos(tokenPos);
+            }
+
+            NextChar();
+            SetCurrentTokenState(OTokenKind.Minus, tokenPos);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Try to tokenize the string literal token, for example: 'any string value'
+    /// String literal can be: Single quoted, or Double quoted.
+    /// For single quoted: double quote between is allowed, and single quoted between should be escaped as "\\'"
+    /// For double quoted: single quote between is allowed, and double quoted between should be escaped as "\\""
+    /// </summary>
+    /// <returns>true means parsed, false means doesn't parse.</returns>
+    protected virtual bool TryStringLiteralToken()
+    {
+        if (CurrChar == '\'' || CurrChar == '"')
+        {
+            int tokenPos = CurrPos;
+            char quote = CurrChar;
+            char previous;
+
+            do
+            {
+                previous = CurrChar;
+                NextChar();
+            }
+            while (CurrPos < TextLen && (CurrChar != quote || previous == '\\' ));
+
+            if (CurrPos == TextLen)
+            {
+                throw new OTokenizationException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, Text));
+            }
+
+            NextChar(); // remember to read the ending quote
+            SetCurrentTokenState(OTokenKind.StringLiteral, tokenPos);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Try to tokenize the identifier token, for example 'select'
+    /// </summary>
+    /// <returns>true means parsed, false means doesn't parse.</returns>
+    protected virtual bool TryIdentifierToken()
+    {
+        if (IsValidStartingCharForIdentifier)
+        {
+            int tokenPos = CurrPos;
+            ParseIdentifier(includingDots: false);
+
+            // Guids will have '-' in them
+            // guidValue = 8HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 12HEXDIG
+            if (CurrChar == '-' && TryParseGuid(tokenPos))
+            {
+                SetCurrentTokenState(OTokenKind.GuidLiteral, tokenPos);
+                return true;
+            }
+
+            SetCurrentTokenState(OTokenKind.Identifier, tokenPos);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Try to tokenize the digit token, for example '3.14'
+    /// </summary>
+    /// <returns>true means parsed, false means doesn't parse.</returns>
+    protected virtual bool TryDigitToken()
+    {
+        if (char.IsDigit(CurrChar))
+        {
+            int tokenPos = CurrPos;
+            OTokenKind kind = ParseFromDigit();
+            SetCurrentTokenState(kind, tokenPos);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Try to tokenize the "@" starting token, for example '@my.name'
+    /// </summary>
+    /// <returns>true means parsed, false means doesn't parse.</returns>
+    protected virtual bool TryAnnotationToken()
+    {
+        if (CurrChar == '@')
+        {
+            int tokenPos = CurrPos;
+            NextChar();
+
+            if (CurrPos == TextLen)
+            {
+                SetCurrentTokenState(OTokenKind.At, tokenPos);
+                return true;
+            }
+
+            if (!IsValidStartingCharForIdentifier)
+            {
+                throw new OTokenizationException(Error.Format(SRResources.Tokenization_InvalidCharacter, CurrChar, CurrPos, Text));
+            }
+
+            // Include dots for the case of annotation.
+            ParseIdentifier(includingDots: true);
+
+            SetCurrentTokenState(OTokenKind.AnnotationIdentifier, tokenPos);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Try to tokenize other token. It's for derived type to override
+    /// </summary>
+    /// <returns>true means parsed, false means doesn't parse.</returns>
+    protected virtual bool TryOtherToken()
+    {
+        return false;
+    }
+
+    /// <summary>
+    /// Is the current char a valid starting char for an identifier.
+    /// Valid starting chars for identifier include all that are supported by EDM ([\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}]) and '_'.
+    /// </summary>
+    private bool IsValidStartingCharForIdentifier =>
+        char.IsLetter(CurrChar) ||       // IsLetter covers: Ll, Lu, Lt, Lo, Lm
+        CurrChar == '_' ||
+        CurrChar == '$' ||
+        CharUnicodeInfo.GetUnicodeCategory(CurrChar) == UnicodeCategory.LetterNumber;
+
+    /// <summary>
+    /// Is the current char a valid non-starting char for an identifier.
+    /// Valid non-starting chars for identifier include all that are supported
+    /// by EDM  [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}].
+    /// This list includes '_', which is ConnectorPunctuation (Pc)
+    /// </summary>
+    private bool IsValidNonStartingCharForIdentifier
+        =>
+        char.IsLetterOrDigit(CurrChar) ||    // covers: Ll, Lu, Lt, Lo, Lm, Nd
+        AdditionalUnicodeCategoriesForIdentifier.Contains(CharUnicodeInfo.GetUnicodeCategory(CurrChar));  // covers the rest
+
+    /// <summary>
+    /// For an identifier, EMD supports chars that match the regex  [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]
+    /// IsLetterOrDigit covers Ll, Lu, Lt, Lo, Lm, Nd, this set covers the rest
+    /// </summary>
+    private static readonly HashSet<UnicodeCategory> AdditionalUnicodeCategoriesForIdentifier = new()
+    {
+            UnicodeCategory.LetterNumber,
+            UnicodeCategory.NonSpacingMark,
+            UnicodeCategory.SpacingCombiningMark,
+            UnicodeCategory.ConnectorPunctuation, // covers "_"
+            UnicodeCategory.Format
+    };
+
+    private void HandleTypePrefixedLiterals(ref OTokenKind kind, int start)
     {
         if (kind != OTokenKind.Identifier)
         {
             return;
         }
 
+        int end = CurrPos;
         ReadOnlySpan<char> tokenText = Text.AsSpan()[start..end];
 
         // Get literal of quoted values
@@ -296,7 +452,6 @@ public class OTokenizer : IOTokenizer
                 this.NextChar();
             }
             while (CurrChar == '\'');
-            end = CurrPos;
             return;
         }
 
@@ -352,179 +507,6 @@ public class OTokenizer : IOTokenizer
             // treat as quoted literal
             return OTokenKind.QuotedLiteral;
         }
-    }
-
-    /// <summary>
-    /// Special characters;
-    /// </summary>
-    private static readonly IDictionary<char, OTokenKind> SpecialCharacters = new Dictionary<char, OTokenKind>
-    {
-        { '(', OTokenKind.OpenParen },
-        { ')', OTokenKind.CloseParen },
-        { ',', OTokenKind.Comma },
-        { '=', OTokenKind.Equal },
-        { '/', OTokenKind.Slash },
-        { '?', OTokenKind.Question },
-        { '.', OTokenKind.Dot },
-        { '*', OTokenKind.Star },
-        { ':', OTokenKind.Colon },
-        { '&', OTokenKind.Ampersand },
-        { ';', OTokenKind.SemiColon },
-        { '$', OTokenKind.Dollar },
-    };
-
-    /// <summary>
-    /// Try to tokenize the special characters, for example, '(', ')', ',', '*', etc.
-    /// </summary>
-    /// <returns>true means parsed, false means doesn't parse</returns>
-    protected virtual bool TrySpecialCharToken()
-    {
-        if (SpecialCharacters.TryGetValue(CurrChar, out OTokenKind kind))
-        {
-            int startPos = CurrPos;
-            NextChar();
-            SetCurrentTokenState(kind, startPos, CurrPos);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool TryMinusToken()
-    {
-        int tokenPos = CurrPos;
-        if (CurrChar == '-')
-        {
-            bool hasNext = CurrPos + 1 < this.TextLen;
-            if (hasNext && char.IsDigit(this.Text[CurrPos + 1]))
-            {
-                // don't separate '-' and its following digits : -2147483648 is valid int.MinValue, but 2147483648 is long.
-                OTokenKind t = this.ParseFromDigit();
-                if (OTokenizationUtils.IsNumericTokenKind(t))
-                {
-                    SetCurrentTokenState(t, tokenPos, CurrPos);
-                    return true;
-                }
-
-                // If it looked like a numeric but wasn't (because it was a binary 0x... value for example),
-                // we'll rewind and fall through to a simple '-' token.
-                this.SetTextPos(tokenPos);
-            }
-            else if (hasNext && Text[CurrPos + 1] == 'I') // could be -INF
-            {
-                NextChar();
-                ParseIdentifier();
-                ReadOnlySpan<char> currentIdentifier = Text.AsSpan().Slice(tokenPos + 1, CurrPos - tokenPos - 1);
-
-                if (OTokenizationUtils.IsInfinity(currentIdentifier))
-                {
-                    SetCurrentTokenState(OTokenKind.DoubleLiteral, tokenPos, CurrPos);
-                    return true;
-                }
-                else if (OTokenizationUtils.IsSingleInfinity(currentIdentifier))
-                {
-                    SetCurrentTokenState(OTokenKind.SingleLiteral, tokenPos, CurrPos);
-                    return true;
-                }
-
-                // If it looked like '-INF' but wasn't we'll rewind and fall through to a simple '-' token.
-                this.SetTextPos(tokenPos);
-            }
-
-            NextChar();
-            SetCurrentTokenState(OTokenKind.Minus, tokenPos, CurrPos);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool TryStringLiteralToken()
-    {
-        int tokenPos = CurrPos;
-        if (CurrChar == '\'')
-        {
-            char quote = CurrChar;
-
-            do
-            {
-                AdvanceToNextOccurrenceOf(quote);
-
-                if (CurrPos == TextLen)
-                {
-                    throw new OTokenizationException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, Text));
-                }
-
-                NextChar();
-            }
-            while (CurrChar == quote);
-
-            SetCurrentTokenState(OTokenKind.StringLiteral, tokenPos, CurrPos);
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Advance the pointer to the next occurrence of the given value, swallowing all characters in between.
-    /// </summary>
-    /// <param name="endingValue">the ending delimiter.</param>
-    private void AdvanceToNextOccurrenceOf(char endingValue)
-    {
-        NextChar();
-        while (CurrChar != endingValue)
-        {
-            NextChar();
-        }
-    }
-
-    /// <summary>
-    /// Is the current char a valid starting char for an identifier.
-    /// Valid starting chars for identifier include all that are supported by EDM ([\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}]) and '_'.
-    /// </summary>
-    private bool IsValidStartingCharForIdentifier =>
-        char.IsLetter(CurrChar) ||       // IsLetter covers: Ll, Lu, Lt, Lo, Lm
-        CurrChar == '_' ||
-        CurrChar == '$' ||
-        CharUnicodeInfo.GetUnicodeCategory(CurrChar) == UnicodeCategory.LetterNumber;
-
-    /// <summary>
-    /// Is the current char a valid non-starting char for an identifier.
-    /// Valid non-starting chars for identifier include all that are supported
-    /// by EDM  [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}].
-    /// This list includes '_', which is ConnectorPunctuation (Pc)
-    /// </summary>
-    private bool IsValidNonStartingCharForIdentifier
-        =>
-        char.IsLetterOrDigit(CurrChar) ||    // covers: Ll, Lu, Lt, Lo, Lm, Nd
-        AdditionalUnicodeCategoriesForIdentifier.Contains(CharUnicodeInfo.GetUnicodeCategory(CurrChar));  // covers the rest
-
-    /// <summary>
-    /// For an identifier, EMD supports chars that match the regex  [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]
-    /// IsLetterOrDigit covers Ll, Lu, Lt, Lo, Lm, Nd, this set covers the rest
-    /// </summary>
-    private static readonly HashSet<UnicodeCategory> AdditionalUnicodeCategoriesForIdentifier = new()
-    {
-            UnicodeCategory.LetterNumber,
-            UnicodeCategory.NonSpacingMark,
-            UnicodeCategory.SpacingCombiningMark,
-            UnicodeCategory.ConnectorPunctuation, // covers "_"
-            UnicodeCategory.Format
-        };
-
-    /// <summary>
-    /// Parses an identifier by advancing the current character.
-    /// </summary>
-    /// <param name="includingDots">Optional flag for whether to include dots as part of the identifier.</param>
-    private void ParseIdentifier(bool includingDots = false)
-    {
-        Debug.Assert(this.IsValidStartingCharForIdentifier || CurrChar == '@', "Expected valid starting char for identifier");
-        do
-        {
-            this.NextChar();
-        }
-        while (this.IsValidNonStartingCharForIdentifier || (includingDots && CurrChar == '.'));
     }
 
     /// <summary>
@@ -653,7 +635,7 @@ public class OTokenizer : IOTokenizer
     /// <summary>
     /// Read and skip white spaces
     /// </summary>
-    protected void SkipWhitespace()
+    protected virtual void SkipWhitespace()
     {
         while (char.IsWhiteSpace(CurrChar))
         {
@@ -664,7 +646,7 @@ public class OTokenizer : IOTokenizer
     /// <summary>
     /// Advanced to the next character.
     /// </summary>
-    protected void NextChar()
+    protected virtual void NextChar()
     {
         if (CurrPos < TextLen)
         {
@@ -677,6 +659,19 @@ public class OTokenizer : IOTokenizer
         }
 
         CurrChar = '\0';
+    }
+
+    /// <summary>
+    /// Set current token state.
+    /// </summary>
+    /// <param name="kind">The current token kind.</param>
+    /// <param name="start">The starting position of current token.</param>
+    protected virtual void SetCurrentTokenState(OTokenKind kind, int start)
+    {
+        HandleTypePrefixedLiterals(ref kind, start);
+
+        _tokenKind = kind;
+        _tokenPosition = start;
     }
 
     /// <summary>
@@ -861,6 +856,20 @@ public class OTokenizer : IOTokenizer
     }
 
     /// <summary>
+    /// Parses an identifier by advancing the current character.
+    /// </summary>
+    /// <param name="includingDots">Optional flag for whether to include dots as part of the identifier.</param>
+    private void ParseIdentifier(bool includingDots = false)
+    {
+        Debug.Assert(IsValidStartingCharForIdentifier || CurrChar == '@', "Expected valid starting char for identifier");
+        do
+        {
+            NextChar();
+        }
+        while (IsValidNonStartingCharForIdentifier || (includingDots && CurrChar == '.'));
+    }
+
+    /// <summary>
     /// Validates the current character is a digit.
     /// </summary>
     private void ValidateDigit()
@@ -874,6 +883,6 @@ public class OTokenizer : IOTokenizer
     private string DebuggerToString()
     {
         string currentChar = CurrChar == '\0' ? "\\0" : CurrChar.ToString();
-        return $"{CurrentTokenKind}: \"{CurrentTokenText.ToString()}\" at {CurrentTokenPosition}. Next => '{currentChar}' at {CurrPos} on {Text}";
+        return $"Current: {CurrentToken.ToString()}, Next: {CurrPos}: \"{currentChar}\" at {Text}.";
     }
 }

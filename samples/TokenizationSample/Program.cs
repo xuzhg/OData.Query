@@ -39,7 +39,7 @@ while (true)
     {
         while (tokenizer.NextToken())
         {
-            OToken token = tokenizer.GetCurrentToken();
+            OToken token = tokenizer.CurrentToken;
             Console.WriteLine(" ├──" + token.ToString());
         }
     }

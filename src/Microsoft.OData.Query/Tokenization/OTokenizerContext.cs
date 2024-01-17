@@ -30,6 +30,4 @@ public class OTokenizerContext
     /// flag to indicate whether to delimit on a semicolon.
     /// </summary>
     public bool UseSemicolonDelimiter { get; set; } = false;
-
-    public bool ParsingFunctionParameters { get; set; } = false;
 }

@@ -11,23 +11,12 @@ namespace Microsoft.OData.Query.Tokenization;
 public interface IOTokenizer
 {
     /// <summary>
-    /// Gets the token kind processed.
+    /// Gets the token processed.
     /// </summary>
-    public OTokenKind CurrentTokenKind { get; }
+    OToken CurrentToken { get; }
 
     /// <summary>
-    /// Gets the token text processed, It's partial view of original text expression.
-    /// </summary>
-    ReadOnlySpan<char> CurrentTokenText { get; }
-
-    /// <summary>
-    /// Gets the starting position of token processed.
-    /// </summary>
-    public int CurrentTokenPosition { get; }
-
-    /// <summary>
-    /// Reads the next token, advancing the tokenization Lexer, updating the token processed,
-    /// refreshing the processed token from the properties (CurrentTokenKind, CurrentTokenText, CurrentTokenPosition).
+    /// Reads the next token, advancing the tokenization Lexer, refreshing the processed token.
     /// </summary>
     /// <returns>Boolean value indicating reading the next token succussed or not.</returns>
     bool NextToken();

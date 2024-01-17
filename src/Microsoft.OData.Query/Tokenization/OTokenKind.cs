@@ -19,6 +19,18 @@ public enum OTokenKind
     /// <summary>Character: ')'.</summary>
     CloseParen,
 
+    /// <summary>Character: '['.</summary>
+    OpenBracket,
+
+    /// <summary>Character: ']'.</summary>
+    CloseBracket,
+
+    /// <summary>Character: '{'.</summary>
+    OpenCurly,
+
+    /// <summary>Character: '}'.</summary>
+    CloseCurly,
+
     /// <summary>Character: ,</summary>
     Comma,
 
@@ -111,6 +123,9 @@ public enum OTokenKind
 
     /// <summary>Identifier.</summary>
     Identifier,
+
+    /// <summary>"@" starting identifier, could contain '.'.</summary>
+    AnnotationIdentifier,
 
     /// <summary>End of input</summary>
     EndOfInput,

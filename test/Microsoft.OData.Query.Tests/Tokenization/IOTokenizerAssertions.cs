@@ -12,17 +12,19 @@ namespace Microsoft.OData.Query.Tests.Tokenization;
 
 public static class IOTokenizerAssertions
 {
-    public static OToken[] GetTokens(this IOTokenizer tokenizer)
+    public static (OTokenKind, string, int)[] GetTokens(this IOTokenizer tokenizer)
     {
         Assert.NotNull(tokenizer);
 
-        IList<OToken> tokens = new List<OToken>();
+        IList<(OTokenKind, string, int)> tokens = new List<(OTokenKind, string, int)>();
         while (tokenizer.NextToken())
         {
-            tokens.Add(tokenizer.GetCurrentToken());
+            OToken token = tokenizer.CurrentToken;
+
+            tokens.Add((token.Kind, token.Text.ToString(), token.Position));
         }
 
-        Assert.Equal(OTokenKind.EndOfInput, tokenizer.CurrentTokenKind);
+        Assert.Equal(OTokenKind.EndOfInput, tokenizer.CurrentToken.Kind);
         return tokens.ToArray();
     }
 }

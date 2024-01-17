@@ -5,8 +5,23 @@
 
 namespace Microsoft.OData.Query.Tokenization;
 
-public ref struct OToken1 {
-
+/// <summary>
+/// Represents a lexical expression token.
+/// </summary>
+public ref struct OToken
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OToken" /> class.
+    /// </summary>
+    /// <param name="kind">The OTokenKind.</param>
+    /// <param name="text">The Token Text.</param>
+    /// <param name="position">The Token starting positing.</param>
+    public OToken(OTokenKind kind, ReadOnlySpan<char> text, int position)
+    {
+        Kind = kind;
+        Text = text;
+        Position = position;
+    }
 
     /// <summary>
     /// Token kind.
@@ -22,57 +37,11 @@ public ref struct OToken1 {
     /// Starting Position of token.
     /// </summary>
     public int Position;
-}
 
-/// <summary>
-/// Represents a lexical expression token.
-/// </summary>
-public struct OToken
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OToken" /> class.
-    /// </summary>
-    /// <param name="kind">The OTokenKind.</param>
-    /// <param name="text">The Token Text, it can be 'null'.</param>
-    /// <param name="position">The Token starting positing.</param>
-    public OToken(OTokenKind kind, string text, int position)
-    {
-        Kind = kind;
-        Text = text;
-        Position = position;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OToken" /> class.
-    /// </summary>
-    /// <param name="kind">The OTokenKind.</param>
-    /// <param name="text">The Token Text, it can be empty.</param>
-    /// <param name="position">The Token starting positing.</param>
-    public OToken(OTokenKind kind, ReadOnlySpan<char> text, int position)
-    {
-        Kind = kind;
-        Text = text.IsEmpty ? null : text.ToString();
-        Position = position;
-    }
-
-    /// <summary>
-    /// Token kind.
-    /// </summary>
-    public OTokenKind Kind;
-
-    /// <summary>
-    /// Token text.
-    /// </summary>
-    public string Text;
-
-    /// <summary>
-    /// Starting Position of token.
-    /// </summary>
-    public int Position;
-
+    /// <inheritdoc />
     public override string ToString()
     {
-        if (Text == null)
+        if (Text.IsEmpty)
         {
             return $"{Kind} at {Position}";
         }
