@@ -3,10 +3,11 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+namespace Microsoft.OData.Query.Ast;
 
-namespace Microsoft.OData.Query.Ast
+/// <summary>
+/// Base class for all semantic metadata bound nodes which represent a single composable value.
+/// </summary>
+public abstract class SingleValueNode : QueryNode
 {
-    public abstract class SingleValueNode : QueryNode
-    {
-    }
 }

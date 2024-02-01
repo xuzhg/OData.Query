@@ -11,6 +11,12 @@ namespace Microsoft.OData.Query.Tokenization;
 public interface IOTokenizer
 {
     /// <summary>
+    /// Gets the text being tokenized.
+    /// </summary>
+    // ReadOnlySpan<char> Text { get; }
+    string Text { get; }
+
+    /// <summary>
     /// Gets the token processed.
     /// </summary>
     OToken CurrentToken { get; }

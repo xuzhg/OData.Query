@@ -61,6 +61,42 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;)&apos; or &apos;,&apos; expected at position {0} in &apos;{1}&apos;..
+        /// </summary>
+        internal static string QueryOptionParser_CloseParenOrCommaExpected {
+            get {
+                return ResourceManager.GetString("QueryOptionParser_CloseParenOrCommaExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;(&apos; expected at position {0} in &apos;{1}&apos;..
+        /// </summary>
+        internal static string QueryOptionParser_OpenParenExpected {
+            get {
+                return ResourceManager.GetString("QueryOptionParser_OpenParenExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; has already been declared..
+        /// </summary>
+        internal static string QueryOptionParser_RangeVariableAlreadyDeclared {
+            get {
+                return ResourceManager.GetString("QueryOptionParser_RangeVariableAlreadyDeclared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Token kind &apos;{0}&apos; expected, but kind &apos;{1}&apos; presented..
+        /// </summary>
+        internal static string QueryOptionParser_TokenKindExpected {
+            get {
+                return ResourceManager.GetString("QueryOptionParser_TokenKindExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A digit was expected at position {0} in &apos;{1}&apos;..
         /// </summary>
         internal static string Tokenization_DigitExpected {

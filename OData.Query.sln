@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Query.Tests
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{8C6B3CB5-B464-4DA4-82DC-9D58E473C2D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TokenizationSample", "samples\TokenizationSample\TokenizationSample.csproj", "{A9542659-9B4A-43E3-A076-7E5B39DED54A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TokenizationSample", "samples\TokenizationSample\TokenizationSample.csproj", "{A9542659-9B4A-43E3-A076-7E5B39DED54A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

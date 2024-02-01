@@ -3,9 +3,17 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query.Ast
+using Microsoft.OData.Query.Nodes;
+
+namespace Microsoft.OData.Query.Ast;
+
+/// <summary>
+/// Base class for all semantic metadata bound nodes.
+/// </summary>
+public abstract class QueryNode
 {
-    public abstract class QueryNode
-    {
-    }
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
+    public abstract QueryNodeKind Kind { get; }
 }

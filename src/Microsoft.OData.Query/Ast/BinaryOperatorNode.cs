@@ -3,114 +3,124 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query.Ast
+using Microsoft.OData.Query.Nodes;
+
+namespace Microsoft.OData.Query.Ast;
+
+/// <summary>
+/// Query node representing a binary operator.
+/// </summary>
+public sealed class BinaryOperatorNode : SingleValueNode
 {
-    public enum BinaryOperatorKind
+    /// <summary>
+    /// The operator represented by this node.
+    /// </summary>
+    private readonly BinaryOperatorKind operatorKind;
+
+    /// <summary>
+    /// The left operand.
+    /// </summary>
+    private readonly SingleValueNode left;
+
+    /// <summary>
+    /// The right operand.
+    /// </summary>
+    private readonly SingleValueNode right;
+
+    /// <summary>
+    /// Cache for the TypeReference after it has been calculated for the current state of the node.
+    /// This can be an expensive calculation so we want to avoid doing it repeatedly.
+    /// </summary>
+    private Type typeReference;
+
+    /// <summary>
+    /// Create a BinaryOperatorNode
+    /// </summary>
+    /// <param name="operatorKind">The binary operator type.</param>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <exception cref="System.ArgumentNullException">Throws if the left or right inputs are null.</exception>
+    /// <exception cref="ODataException">Throws if the two operands don't have the same type.</exception>
+    public BinaryOperatorNode(BinaryOperatorKind operatorKind, SingleValueNode left, SingleValueNode right)
+        : this(operatorKind, left, right, /*typeReference*/ null)
     {
-        /// <summary>
-        /// The logical or operator.
-        /// </summary>
-        Or = 0,
-
-        /// <summary>
-        /// The logical and operator.
-        /// </summary>
-        And = 1,
-
-        /// <summary>
-        /// The eq operator.
-        /// </summary>
-        Equal = 2,
-
-        /// <summary>
-        /// The ne operator.
-        /// </summary>
-        NotEqual = 3,
-
-        /// <summary>
-        /// The gt operator.
-        /// </summary>
-        GreaterThan = 4,
-
-        /// <summary>
-        /// The ge operator.
-        /// </summary>
-        GreaterThanOrEqual = 5,
-
-        /// <summary>
-        /// The lt operator.
-        /// </summary>
-        LessThan = 6,
-
-        /// <summary>
-        /// The le operator.
-        /// </summary>
-        LessThanOrEqual = 7,
-
-        /// <summary>
-        /// The add operator.
-        /// </summary>
-        Add = 8,
-
-        /// <summary>
-        /// The sub operator.
-        /// </summary>
-        Subtract = 9,
-
-        /// <summary>
-        /// The mul operator.
-        /// </summary>
-        Multiply = 10,
-
-        /// <summary>
-        /// The div operator.
-        /// </summary>
-        Divide = 11,
-
-        /// <summary>
-        /// The mod operator.
-        /// </summary>
-        Modulo = 12,
-
-        /// <summary>
-        /// The has operator.
-        /// </summary>
-        Has = 13,
-
-        /// <summary>
-        /// The customized operator for extend.
-        /// </summary>
-        Customized
     }
 
-    public class BinaryOperatorNode : SingleValueNode
+    /// <summary>
+    /// Create a BinaryOperatorNode
+    /// </summary>
+    /// <param name="operatorKind">The binary operator type.</param>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <param name="typeReference">The result typeReference.</param>
+    /// <exception cref="System.ArgumentNullException">Throws if the left or right inputs are null.</exception>
+    internal BinaryOperatorNode(BinaryOperatorKind operatorKind, SingleValueNode left, SingleValueNode right, Type typeReference)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BinaryOperatorNode" /> class.
-        /// </summary>
-        /// <param name="operatorKind"></param>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        public BinaryOperatorNode(BinaryOperatorKind operatorKind, SingleValueNode left, SingleValueNode right)
+        //ExceptionUtils.CheckArgumentNotNull(left, "left");
+        //ExceptionUtils.CheckArgumentNotNull(right, "right");
+        this.operatorKind = operatorKind;
+        this.left = left;
+        this.right = right;
+
+        // set the TypeReference if explicitly given, otherwise based on the Operands.
+        //if (typeReference != null)
+        //{
+            this.typeReference = typeReference;
+        //}
+        //else if (this.Left == null || this.Right == null || this.Left.TypeReference == null || this.Right.TypeReference == null)
+        //{
+        //    this.typeReference = null;
+        //}
+        //else
+        //{
+        //    // Get a primitive type reference; this must not fail since we checked that the type is of kind 'primitive'.
+        //    IEdmPrimitiveTypeReference leftType = this.Left.TypeReference.AsPrimitive();
+        //    IEdmPrimitiveTypeReference rightType = this.Right.TypeReference.AsPrimitive();
+
+        //    this.typeReference = QueryNodeUtils.GetBinaryOperatorResultType(leftType, rightType, this.OperatorKind);
+        //}
+    }
+
+    /// <summary>
+    /// Gets the operator represented by this node.
+    /// </summary>
+    public BinaryOperatorKind OperatorKind => this.operatorKind;
+
+    /// <summary>
+    /// Gets the left operand.
+    /// </summary>
+    public SingleValueNode Left
+    {
+        get
         {
-            OperatorKind = operatorKind;
-            Left = left;
-            Right = right;
+            return this.left;
         }
-
-        /// <summary>
-        /// Gets the operator kind.
-        /// </summary>
-        public BinaryOperatorKind OperatorKind { get; }
-
-        /// <summary>
-        /// Gets the left operand.
-        /// </summary>
-        public SingleValueNode Left { get; }
-
-        /// <summary>
-        /// Gets the right operand.
-        /// </summary>
-        public SingleValueNode Right { get; }
     }
+
+    /// <summary>
+    /// Gets the right operand.
+    /// </summary>
+    public SingleValueNode Right
+    {
+        get
+        {
+            return this.right;
+        }
+    }
+
+    /// <summary>
+    /// Gets the resource type of the single value this node represents.
+    /// </summary>
+    public Type TypeReference
+    {
+        get
+        {
+            return this.typeReference;
+        }
+    }
+
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
+    public override QueryNodeKind Kind => QueryNodeKind.BinaryOperator;
 }

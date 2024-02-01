@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="QueryOptionParser_CloseParenOrCommaExpected" xml:space="preserve">
+    <value>')' or ',' expected at position {0} in '{1}'.</value>
+  </data>
+  <data name="QueryOptionParser_OpenParenExpected" xml:space="preserve">
+    <value>'(' expected at position {0} in '{1}'.</value>
+  </data>
+  <data name="QueryOptionParser_RangeVariableAlreadyDeclared" xml:space="preserve">
+    <value>The range variable '{0}' has already been declared.</value>
+  </data>
+  <data name="QueryOptionParser_TokenKindExpected" xml:space="preserve">
+    <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
+  </data>
   <data name="Tokenization_DigitExpected" xml:space="preserve">
     <value>A digit was expected at position {0} in '{1}'.</value>
   </data>

@@ -4,9 +4,14 @@
 //-----------------------------------------------------------------------
 
 
-namespace Microsoft.OData.Query.Ast
+using Microsoft.OData.Query.Nodes;
+
+namespace Microsoft.OData.Query.Ast;
+
+public class CollectionPropertyAccessNode : CollectionValueNode
 {
-    public class CollectionPropertyAccessNode : CollectionNode
-    {
-    }
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
+    public override QueryNodeKind Kind => QueryNodeKind.CollectionValuePropertyAccess;
 }
