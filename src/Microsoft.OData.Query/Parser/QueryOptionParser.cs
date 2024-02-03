@@ -14,7 +14,7 @@ namespace Microsoft.OData.Query.Parser;
 public abstract class QueryOptionParser
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="OQueryOptionParser" /> class.
+    /// Initializes a new instance of the <see cref="QueryOptionParser" /> class.
     /// </summary>
     protected QueryOptionParser()
     {

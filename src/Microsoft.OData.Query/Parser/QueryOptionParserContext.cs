@@ -9,9 +9,16 @@ namespace Microsoft.OData.Query.Parser;
 
 public class QueryOptionParserContext
 {
+    public bool IgnoreUnknownQuery { get; set; }
+
     public bool EnableIdentifierCaseSensitive { get; set; } = true;
 
     public bool EnableNoDollarSignOption { get; set; } = true;
+
+    /// <summary>
+    /// The element type of the odata query.
+    /// </summary>
+    public Type ElementType { get; set; }
 
     /// <summary>
     /// Set of parsed parameters

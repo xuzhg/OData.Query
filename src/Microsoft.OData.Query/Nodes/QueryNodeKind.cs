@@ -16,6 +16,11 @@ public enum QueryNodeKind
     None,
 
     /// <summary>
+    /// Node used to represent the OData query.
+    /// </summary>
+    ODataQuery,
+
+    /// <summary>
     /// A constant value.
     /// </summary>
     Constant,

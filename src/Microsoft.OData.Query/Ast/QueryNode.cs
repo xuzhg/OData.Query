@@ -17,3 +17,28 @@ public abstract class QueryNode
     /// </summary>
     public abstract QueryNodeKind Kind { get; }
 }
+
+public class ODataQueryOptionNode : QueryNode
+{
+    public override QueryNodeKind Kind => QueryNodeKind.ODataQuery;
+}
+
+public class SearchClause
+{
+
+}
+
+public class SelectClause
+{
+
+}
+
+public class ExpandClause
+{
+
+}
+
+public class OrderByClause
+{
+
+}
