@@ -5,11 +5,10 @@
 
 using Microsoft.OData.Query.SyntacticAst;
 using Microsoft.OData.Query.Tokenization;
-using System.Globalization;
 
 namespace Microsoft.OData.Query.Parser;
 
-public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
+public class ExpandOptionParser : SelectExpandOptionParser, IExpandOptionParser
 {
     private IOTokenizerFactory _tokenizerFactory;
 

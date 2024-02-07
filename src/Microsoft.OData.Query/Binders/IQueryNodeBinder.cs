@@ -3,7 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Nodes;
 using System.Linq.Expressions;
 
 namespace Microsoft.OData.Query.Binders;

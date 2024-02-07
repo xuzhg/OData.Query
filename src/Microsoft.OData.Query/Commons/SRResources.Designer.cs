@@ -61,6 +61,15 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Syntax error: character &apos;{0}&apos; is not valid at position {1} in &apos;{2}&apos;..
+        /// </summary>
+        internal static string ExpressionLexer_InvalidCharacter {
+            get {
+                return ResourceManager.GetString("ExpressionLexer_InvalidCharacter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;)&apos; or &apos;,&apos; expected at position {0} in &apos;{1}&apos;..
         /// </summary>
         internal static string QueryOptionParser_CloseParenOrCommaExpected {
@@ -93,6 +102,15 @@ namespace Microsoft.OData.Query.Commons {
         internal static string QueryOptionParser_TokenKindExpected {
             get {
                 return ResourceManager.GetString("QueryOptionParser_TokenKindExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Token kind &apos;{0}&apos; expected, but kind &apos;{1}&apos; presented..
+        /// </summary>
+        internal static string QueryTokenizer_TokenKindExpected {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_TokenKindExpected", resourceCulture);
             }
         }
         

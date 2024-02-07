@@ -129,6 +129,9 @@
   <data name="QueryOptionParser_TokenKindExpected" xml:space="preserve">
     <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
   </data>
+  <data name="QueryTokenizer_TokenKindExpected" xml:space="preserve">
+    <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
+  </data>
   <data name="Tokenization_DigitExpected" xml:space="preserve">
     <value>A digit was expected at position {0} in '{1}'.</value>
   </data>
@@ -143,5 +146,8 @@
   </data>
   <data name="Tokenization_UnterminatedStringLiteral" xml:space="preserve">
     <value>An unterminated string literal at position {0} in '{1}'.</value>
+  </data>
+  <data name="ExpressionLexer_InvalidCharacter" xml:space="preserve">
+    <value>Syntax error: character '{0}' is not valid at position {1} in '{2}'.</value>
   </data>
 </root>

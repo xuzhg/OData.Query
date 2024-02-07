@@ -3,7 +3,14 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using System.Collections.ObjectModel;
+using System.Data;
 using System.Diagnostics;
+using System.Dynamic;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Reflection.Metadata;
+using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
@@ -21,590 +28,387 @@ public abstract class QueryOptionParser
     }
 
     /// <summary>
-    /// Parses the expression.
+    /// Visits a <see cref="QueryToken"/> in the lexical tree and binds it to metadata producing a semantic <see cref="QueryNode"/>.
     /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    protected virtual QueryToken ParseExpression(IOTokenizer tokenizer, QueryOptionParserContext context)
+    /// <param name="token">The query token on the input.</param>
+    /// <returns>The bound query node output.</returns>
+    protected virtual QueryNode Bind(QueryToken token, QueryOptionParserContext context)
     {
+        //ExceptionUtils.CheckArgumentNotNull(token, "token");
         context.EnterRecurse();
-        QueryToken result = ParseLogicalOr(tokenizer, context);
-        context.LeaveRecurse();
-        return result;
-    }
-
-    /// <summary>
-    /// Parses the or operator.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    protected QueryToken ParseLogicalOr(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        context.EnterRecurse();
-        QueryToken left = ParseLogicalAnd(tokenizer, context);
-        while (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordOr, context.EnableIdentifierCaseSensitive))
+        QueryNode result;
+        switch (token.Kind)
         {
-            tokenizer.NextToken();
-            QueryToken right = this.ParseLogicalAnd(tokenizer, context);
-            left = new BinaryOperatorToken(BinaryOperatorKind.Or, left, right);
-        }
-
-        context.LeaveRecurse();
-        return left;
-    }
-
-    /// <summary>
-    /// Parses the and operator.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseLogicalAnd(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        context.EnterRecurse();
-        QueryToken left = this.ParseComparison(tokenizer, context);
-        while (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAnd, context.EnableIdentifierCaseSensitive))
-        {
-            tokenizer.NextToken();
-            QueryToken right = ParseComparison(tokenizer, context);
-            left = new BinaryOperatorToken(BinaryOperatorKind.And, left, right);
-        }
-
-        context.LeaveRecurse();
-        return left;
-    }
-
-    /// <summary>
-    /// Parses the eq, ne, lt, gt, le, and ge operators.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseComparison(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        context.EnterRecurse();
-        QueryToken left = ParseAdditive(tokenizer, context);
-        while (true)
-        {
-            BinaryOperatorKind binaryOperatorKind;
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordEqual, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.Equal;
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordNotEqual, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.NotEqual;
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordGreaterThan, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.GreaterThan;
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordGreaterThanOrEqual, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual;
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordLessThan, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.LessThan;
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordLessThanOrEqual, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.LessThanOrEqual;
-            }
-            else
-            {
+            case QueryTokenKind.Any:
+                result = this.BindAnyAll((AnyToken)token, context);
                 break;
-            }
-
-            tokenizer.NextToken();
-            QueryToken right = ParseAdditive(tokenizer, context);
-            left = new BinaryOperatorToken(binaryOperatorKind, left, right);
-        }
-
-        context.LeaveRecurse();
-        return left;
-    }
-
-    /// <summary>
-    /// Parses the add, sub operators.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseAdditive(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        context.EnterRecurse();
-        QueryToken left = ParseMultiplicative(tokenizer, context);
-        while (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAdd, context.EnableIdentifierCaseSensitive) ||
-            tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordSub, context.EnableIdentifierCaseSensitive))
-        {
-            BinaryOperatorKind binaryOperatorKind;
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAdd, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.Add;
-            }
-            else
-            {
-                Debug.Assert(tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordSub, context.EnableIdentifierCaseSensitive), "Was a new binary operator added?");
-                binaryOperatorKind = BinaryOperatorKind.Subtract;
-            }
-
-            tokenizer.NextToken();
-            QueryToken right = ParseMultiplicative(tokenizer, context);
-            left = new BinaryOperatorToken(binaryOperatorKind, left, right);
-        }
-
-        context.LeaveRecurse();
-        return left;
-    }
-
-    /// <summary>
-    /// Parses the -, not unary operators.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseUnary(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        context.EnterRecurse();
-
-        if (tokenizer.CurrentToken.Kind == OTokenKind.Minus || tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordNot, context.EnableIdentifierCaseSensitive))
-        {
-            OToken operatorToken = tokenizer.CurrentToken;
-            tokenizer.NextToken();
-            if (operatorToken.Kind == OTokenKind.Minus && (OTokenizationUtils.IsNumericTokenKind(tokenizer.CurrentToken.Kind)))
-            {
-                //OToken numberLiteral = tokenizer.CurrentToken;
-                //numberLiteral.Text = "-" + numberLiteral.Text;
-                //numberLiteral.Position = operatorToken.Position;
-                //tokenizer.CurrentToken = numberLiteral;
-                //context.LeaveRecurse();
-                //return ParseInHas(tokenizer, context);
-                throw new OQueryParserException("TODO");
-            }
-
-            QueryToken operand = ParseUnary(tokenizer, context);
-            UnaryOperatorKind unaryOperatorKind;
-            if (operatorToken.Kind == OTokenKind.Minus)
-            {
-                unaryOperatorKind = UnaryOperatorKind.Negate;
-            }
-            else
-            {
-               // Debug.Assert(operatorToken.IdentifierIs(TokenConstants.KeywordNot, context.EnableIdentifierCaseSensitive), "Was a new unary operator added?");
-                unaryOperatorKind = UnaryOperatorKind.Not;
-            }
-
-            context.LeaveRecurse();
-            return new UnaryOperatorToken(unaryOperatorKind, operand);
-        }
-
-        context.LeaveRecurse();
-        return ParseInHas(tokenizer, context);
-    }
-
-    /// <summary>
-    /// Parses the has and in operators.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseInHas(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        context.EnterRecurse();
-        QueryToken left = ParsePrimary(tokenizer, context);
-        while (true)
-        {
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordIn, context.EnableIdentifierCaseSensitive))
-            {
-                tokenizer.NextToken();
-                QueryToken right = ParsePrimary(tokenizer, context);
-                left = new InToken(left, right);
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordHas, context.EnableIdentifierCaseSensitive))
-            {
-                tokenizer.NextToken();
-                QueryToken right = this.ParsePrimary(tokenizer, context);
-                left = new BinaryOperatorToken(BinaryOperatorKind.Has, left, right);
-            }
-            else
-            {
+            case QueryTokenKind.All:
+                result = this.BindAnyAll((AllToken)token, context);
                 break;
-            }
+            //case QueryTokenKind.InnerPath:
+            //    result = this.BindInnerPathSegment((InnerPathToken)token, context);
+            //    break;
+            case QueryTokenKind.Literal:
+                result = this.BindLiteral((LiteralToken)token, context);
+                break;
+            //case QueryTokenKind.StringLiteral:
+            //    result = this.BindStringLiteral((StringLiteralToken)token, context);
+            //    break;
+            case QueryTokenKind.BinaryOperator:
+                result = this.BindBinaryOperator((BinaryOperatorToken)token, context);
+                break;
+            case QueryTokenKind.UnaryOperator:
+                result = this.BindUnaryOperator((UnaryOperatorToken)token, context);
+                break;
+            case QueryTokenKind.EndPath:
+                result = this.BindEndPath((EndPathToken)token, context);
+                break;
+            //case QueryTokenKind.FunctionCall:
+            //    result = this.BindFunctionCall((FunctionCallToken)token, context);
+            //    break;
+            //case QueryTokenKind.DottedIdentifier:
+            //    result = this.BindCast((DottedIdentifierToken)token, context);
+            //    break;
+            case QueryTokenKind.RangeVariable:
+                result = this.BindRangeVariable((RangeVariableToken)token, context);
+                break;
+            //case QueryTokenKind.FunctionParameterAlias:
+            //    result = this.BindParameterAlias((FunctionParameterAliasToken)token, context);
+            //    break;
+            //case QueryTokenKind.FunctionParameter:
+            //    result = this.BindFunctionParameter((FunctionParameterToken)token, context);
+            //    break;
+            //case QueryTokenKind.In:
+            //    result = this.BindIn((InToken)token, context);
+            //    break;
+            //case QueryTokenKind.CountSegment:
+            //    result = this.BindCountSegment((CountSegmentToken)token, context);
+            //    break;
+            default:
+                throw new Exception("ODataErrorStrings.MetadataBinder_UnsupportedQueryTokenKind(token.Kind)");
+        }
+
+        if (result == null)
+        {
+            throw new Exception("ODataErrorStrings.MetadataBinder_BoundNodeCannotBeNull(token.Kind)");
         }
 
         context.LeaveRecurse();
-        return left;
-    }
-
-    /// <summary>
-    /// Parses the primary expressions.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    protected virtual QueryToken ParsePrimary(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        context.EnterRecurse();
-        //QueryToken expr = this.aggregateExpressionParents.Count > 0 ? this.aggregateExpressionParents.Peek() : null;
-        //if (this.lexer.PeekNextToken().Kind == ExpressionTokenKind.Slash)
-        //{
-        //    expr = ParseSegment(expr);
-        //}
-        //else
-        //{
-        //    expr = ParsePrimaryStart(tokenizer, context);
-        //}
-        QueryToken expr = ParsePrimaryStart(tokenizer, context);
-
-        while (tokenizer.CurrentToken.Kind == OTokenKind.Slash)
-        {
-            tokenizer.NextToken();
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAny, context.EnableIdentifierCaseSensitive))
-            {
-                expr = ParseAnyAll(tokenizer, context, expr, true);
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAll, context.EnableIdentifierCaseSensitive))
-            {
-                expr = ParseAnyAll(tokenizer, context, expr, false);
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.QueryOptionCount, context.EnableIdentifierCaseSensitive))
-            {
-                expr = ParseCountSegment(tokenizer, context, expr);
-            }
-            //else if (this.lexer.PeekNextToken().Kind == OTokenKind.Slash)
-            //{
-            //    expr = ParseSegment(expr);
-            //}
-            else
-            {
-                expr = ParseIdentifier(tokenizer, context, expr);
-            }
-        }
-
-        context.LeaveRecurse();
-        return expr;
-    }
-
-    private QueryToken ParseIdentifier(IOTokenizer tokenizer, QueryOptionParserContext context, QueryToken parent)
-    {
-        tokenizer.ValidateToken(OTokenKind.Identifier);
-
-        string identifier = tokenizer.GetIdentifier().ToString();
-
-        if (parent == null && context.ContainsParameter(identifier))
-        {
-            tokenizer.NextToken();
-            return new RangeVariableToken(identifier);
-        }
-
-        tokenizer.NextToken();
-        return new EndPathToken(identifier, parent);
-    }
-
-    /// <summary>
-    /// Parses a $count segment.
-    /// </summary>
-    /// <param name="parent">The parent of the segment node.</param>
-    /// <returns>The lexical token representing the $count segment.</returns>
-    private QueryToken ParseCountSegment(IOTokenizer tokenizer, QueryOptionParserContext context, QueryToken parent)
-    {
-        tokenizer.NextToken();
-
-        //CountSegmentParser countSegmentParser = new CountSegmentParser(this.lexer, this);
-        //return countSegmentParser.CreateCountSegmentToken(parent);
-        return null;
-    }
-
-    /// <summary>
-    /// Handles the start of primary expressions.
-    /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParsePrimaryStart(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        switch (tokenizer.CurrentToken.Kind)
-        {
-            //case OTokenKind.ParameterAlias:
-            //    {
-            //        return ParseParameterAlias(this.lexer);
-            //    }
-
-            case OTokenKind.Identifier:
-                {
-                    //IdentifierTokenizer identifierTokenizer = new IdentifierTokenizer(this.parameters, new FunctionCallParser(this.lexer, this, this.IsInAggregateExpression));
-                    //QueryToken parent = this.aggregateExpressionParents.Count > 0 ? this.aggregateExpressionParents.Peek() : null;
-                    // return identifierTokenizer.ParseIdentifier(parent);
-                    return ParseIdentifier(tokenizer, context, null);
-                }
-
-            case OTokenKind.OpenParen:
-                {
-                    return ParseParenExpression(tokenizer, context);
-                }
-
-            //case OTokenKind.Star:
-            //    {
-            //        IdentifierTokenizer identifierTokenizer = new IdentifierTokenizer(this.parameters, new FunctionCallParser(this.lexer, this, this.IsInAggregateExpression));
-            //        return identifierTokenizer.ParseStarMemberAccess(null);
-            //    }
-
-            default:
-                {
-                    QueryToken primitiveLiteralToken = TryParseLiteral(tokenizer, context);
-                    if (primitiveLiteralToken == null)
-                    {
-                        throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_ExpressionExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-                    }
-
-                    return primitiveLiteralToken;
-                }
-        }
-    }
-
-    /// <summary>
-    /// Parses a literal.
-    /// </summary>
-    /// <param name="lexer">The lexer to use.</param>
-    /// <returns>The literal query token or null if something else was found.</returns>
-    internal static LiteralToken TryParseLiteral(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        switch (tokenizer.CurrentToken.Kind)
-        {
-            case OTokenKind.BooleanLiteral:
-                bool boolValue = bool.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(boolValue, null, typeof(bool));
-
-            case OTokenKind.DateOnlyLiteral:
-                DateOnly dateOnlyValue = DateOnly.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(dateOnlyValue, null, typeof(DateOnly));
-
-            case OTokenKind.DecimalLiteral:
-                decimal decimalValue = decimal.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(decimalValue, null, typeof(decimal));
-
-            case OTokenKind.StringLiteral:
-                string stringValue = tokenizer.CurrentToken.Text.ToString();
-                tokenizer.NextToken();
-                return new LiteralToken(stringValue, null, typeof(string));
-
-            case OTokenKind.Int64Literal:
-                long longValue = long.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(longValue, null, typeof(long));
-
-            case OTokenKind.IntegerLiteral:
-                int intValue = int.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(intValue, null, typeof(int));
-
-            case OTokenKind.DoubleLiteral:
-                double doubleValue = double.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(doubleValue, null, typeof(double));
-
-            case OTokenKind.SingleLiteral:
-                float floatValue = float.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(floatValue, null, typeof(float));
-
-            case OTokenKind.GuidLiteral:
-                Guid guidValue = Guid.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(guidValue, null, typeof(Guid));
-
-            case OTokenKind.BinaryLiteral:
-                // Binary is a binary prefix base64 string.
-                ReadOnlySpan<char> tokenText = tokenizer.CurrentToken.Text;
-                tokenText = tokenText.Slice(7, tokenText.Length - 8);// binary + two single quotes
-                byte[] byteArrayValue = Convert.FromBase64String(tokenText.ToString());
-                tokenizer.NextToken();
-                return new LiteralToken(byteArrayValue, null, typeof(byte[]));
-
-            //case OTokenKind.GeographyLiteral:
-            //case OTokenKind.GeometryLiteral:
-            //case OTokenKind.QuotedLiteral:
-            case OTokenKind.DurationLiteral:
-                TimeSpan timeSpanValue = TimeSpan.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(timeSpanValue, null, typeof(TimeSpan));
-
-            case OTokenKind.TimeOnlyLiteral:
-                TimeOnly timeOnlyValue = TimeOnly.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(timeOnlyValue, null, typeof(TimeOnly));
-
-            case OTokenKind.DateTimeOffsetLiteral:
-                DateTimeOffset dtoValue = DateTimeOffset.Parse(tokenizer.CurrentToken.Text);
-                tokenizer.NextToken();
-                return new LiteralToken(dtoValue, null, typeof(DateTimeOffset));
-
-            //     case OTokenKind.CustomTypeLiteral:
-            //IEdmTypeReference literalEdmTypeReference = lexer.CurrentToken.GetLiteralEdmTypeReference();
-
-            //// Why not using EdmTypeReference.FullName? (literalEdmTypeReference.FullName)
-            //string edmConstantName = GetEdmConstantNames(literalEdmTypeReference);
-            //return new LiteralToken(lexer, literalEdmTypeReference, edmConstantName);
-
-            //case OTokenKind.BracedExpression:
-            //case OTokenKind.BracketedExpression:
-            //case OTokenKind.ParenthesesExpression:
-            //    {
-            //        LiteralToken result = new LiteralToken(lexer.CurrentToken.Text, lexer.CurrentToken.Text);
-            //        lexer.NextToken();
-            //        return result;
-            //    }
-
-            case OTokenKind.NullLiteral:
-                return ParseNullLiteral(tokenizer, context);
-
-            default:
-                return null;
-        }
-    }
-
-    /// <summary>
-    /// Parses null literals.
-    /// </summary>
-    /// <param name="lexer">The lexer to use.</param>
-    /// <returns>The literal token produced by building the given literal.</returns>
-    private static LiteralToken ParseNullLiteral(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-       // Debug.Assert(lexer != null, "lexer != null");
-      //  Debug.Assert(lexer.CurrentToken.Kind == ExpressionTokenKind.NullLiteral, "this.lexer.CurrentToken.InternalKind == ExpressionTokenKind.NullLiteral");
-
-        LiteralToken result = new LiteralToken(null, tokenizer.CurrentToken.Text.ToString());
-
-        tokenizer.NextToken();
         return result;
     }
 
+    ///// <summary>
+    ///// Bind parameter alias (figuring out its type by first parsing and binding its value expression).
+    ///// </summary>
+    ///// <param name="functionParameterAliasToken">The alias syntactics token.</param>
+    ///// <returns>The semantics node for parameter alias.</returns>
+    //protected virtual SingleValueNode BindParameterAlias(FunctionParameterAliasToken functionParameterAliasToken)
+    //{
+    //    ParameterAliasBinder binder = new ParameterAliasBinder(this.Bind);
+    //    return binder.BindParameterAlias(this.BindingState, functionParameterAliasToken);
+    //}
+
     /// <summary>
-    /// Parses parenthesized expressions.
+    /// Bind a function parameter token
     /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseParenExpression(IOTokenizer tokenizer, QueryOptionParserContext context)
+    /// <param name="token">The token to bind.</param>
+    /// <returns>A semantically bound FunctionCallNode</returns>
+    //protected virtual QueryNode BindFunctionParameter(FunctionParameterToken token)
+    //{
+    //    // TODO: extract this into its own binder class.
+    //    if (token.ParameterName != null)
+    //    {
+    //        return new NamedFunctionParameterNode(token.ParameterName, this.Bind(token.ValueToken));
+    //    }
+
+    //    return this.Bind(token.ValueToken);
+    //}
+
+    /// <summary>
+    /// Binds an InnerPathToken.
+    /// </summary>
+    /// <param name="token">Token to bind.</param>
+    /// <returns>Either a SingleNavigationNode, CollectionNavigationNode, SinglePropertyAccessNode (complex),
+    /// or CollectionPropertyAccessNode (primitive or complex) that is the metadata-bound version of the given token.</returns>
+    //protected virtual QueryNode BindInnerPathSegment(InnerPathToken token)
+    //{
+    //    InnerPathTokenBinder innerPathTokenBinder = new InnerPathTokenBinder(this.Bind, this.BindingState);
+    //    return innerPathTokenBinder.BindInnerPathSegment(token);
+    //}
+
+    /// <summary>
+    /// Binds a parameter token.
+    /// </summary>
+    /// <param name="rangeVariableToken">The parameter token to bind.</param>
+    /// <returns>The bound query node.</returns>
+    protected virtual SingleValueNode BindRangeVariable(RangeVariableToken rangeVariableToken, QueryOptionParserContext context)
     {
-        if (tokenizer.CurrentToken.Kind != OTokenKind.OpenParen)
+        RangeVariable variable = context.GetRangeVariable(rangeVariableToken.Name);
+        if (variable == null)
         {
-            throw new OQueryParserException(Error.Format(SRResources.QueryOptionParser_OpenParenExpected, tokenizer.CurrentToken.Position, tokenizer.Text));
+            throw new Exception("ODataErrorStrings.MetadataBinder_ParameterNotInScope(rangeVariableToken.Name)");
         }
 
-        tokenizer.NextToken();
-        QueryToken result = ParseExpression(tokenizer, context);
-        if (tokenizer.CurrentToken.Kind != OTokenKind.CloseParen)
-        {
-            throw new OQueryParserException(Error.Format(SRResources.QueryOptionParser_CloseParenOrCommaExpected, tokenizer.CurrentToken.Position, tokenizer.Text));
-        }
-
-        tokenizer.NextToken();
-        return result;
+        return new RangeVariableReferenceNode(variable);
     }
 
     /// <summary>
-    /// Parses the mul, div, mod operators.
+    /// Binds a literal token.
     /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseMultiplicative(IOTokenizer tokenizer, QueryOptionParserContext context)
+    /// <param name="literalToken">The literal token to bind.</param>
+    /// <returns>The bound literal token.</returns>
+    protected virtual QueryNode BindLiteral(LiteralToken literalToken, QueryOptionParserContext context)
     {
-        context.EnterRecurse();
-        QueryToken left = ParseUnary(tokenizer, context);
-        while (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordMultiply, context.EnableIdentifierCaseSensitive) ||
-            tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordDivide, context.EnableIdentifierCaseSensitive) ||
-            tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordModulo, context.EnableIdentifierCaseSensitive))
+        if (!string.IsNullOrEmpty(literalToken.OriginalText))
         {
-            BinaryOperatorKind binaryOperatorKind;
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordMultiply, context.EnableIdentifierCaseSensitive))
+            if (literalToken.ExpectedType != null)
             {
-                binaryOperatorKind = BinaryOperatorKind.Multiply;
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordDivide, context.EnableIdentifierCaseSensitive))
-            {
-                binaryOperatorKind = BinaryOperatorKind.Divide;
-            }
-            else
-            {
-                Debug.Assert(tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordModulo, context.EnableIdentifierCaseSensitive), "Was a new binary operator added?");
-                binaryOperatorKind = BinaryOperatorKind.Modulo;
+                return new ConstantNode(literalToken.Value, literalToken.OriginalText, literalToken.ExpectedType);
             }
 
-            tokenizer.NextToken();
-            QueryToken right = ParseUnary(tokenizer, context);
-            left = new BinaryOperatorToken(binaryOperatorKind, left, right);
+            return new ConstantNode(literalToken.Value, literalToken.OriginalText);
         }
 
-        context.LeaveRecurse();
-        return left;
+        return new ConstantNode(literalToken.Value);
     }
 
     /// <summary>
-    /// Parses the Any/All portion of the query
+    /// Binds a binary operator token.
     /// </summary>
-    /// <param name="parent">The parent of the Any/All node.</param>
-    /// <param name="isAny">Denotes whether an Any or All is to be parsed.</param>
-    /// <returns>The lexical token representing the Any/All query.</returns>
-    private QueryToken ParseAnyAll(IOTokenizer tokenizer, QueryOptionParserContext context, QueryToken parent, bool isAny)
+    /// <param name="binaryOperatorToken">The binary operator token to bind.</param>
+    /// <returns>The bound binary operator token.</returns>
+    protected virtual QueryNode BindBinaryOperator(BinaryOperatorToken binaryOperatorToken, QueryOptionParserContext context)
     {
-        tokenizer.NextToken();
-        if (tokenizer.CurrentToken.Kind != OTokenKind.OpenParen)
+        SingleValueNode left = Bind(binaryOperatorToken.Left, context) as SingleValueNode;
+        if (left == null)
         {
-            throw new OQueryParserException(Error.Format(SRResources.QueryOptionParser_OpenParenExpected, tokenizer.CurrentToken.Position, tokenizer.Text));
+            throw new Exception("ODataErrorStrings.MetadataBinder_BinaryOperatorOperandNotSingleValue(operatorKind.ToString())");
         }
 
-        tokenizer.NextToken();
-
-        // When faced with Any(), return the same thing as if you encountered Any(a : true)
-        if (tokenizer.CurrentToken.Kind == OTokenKind.CloseParen)
+        SingleValueNode right = Bind(binaryOperatorToken.Right, context) as SingleValueNode;
+        if (left == null)
         {
-            tokenizer.NextToken();
-            if (isAny)
-            {
-                return new AnyToken(new LiteralToken(true, "True"), null, parent);
-            }
-            else
-            {
-                return new AllToken(new LiteralToken(true, "True"), null, parent);
-            }
+            throw new Exception("ODataErrorStrings.MetadataBinder_BinaryOperatorOperandNotSingleValue(operatorKind.ToString())");
         }
 
-        string parameter = tokenizer.GetIdentifier().ToString();
-        context.AddParameter(parameter);
+        // Maybe need covert implicitly
+        // left = MetadataBindingUtils.ConvertToTypeIfNeeded(left, leftType);
+        // right = MetadataBindingUtils.ConvertToTypeIfNeeded(right, rightType);
 
-        // read the ':' separating the range variable from the expression.
-        tokenizer.NextToken();
-        ValidateToken(tokenizer, OTokenKind.Colon);
+        return new BinaryOperatorNode(binaryOperatorToken.OperatorKind, left, right, left.NodeType);
+    }
 
-        tokenizer.NextToken();
-        QueryToken expr = ParseExpression(tokenizer, context);
-        if (tokenizer.CurrentToken.Kind != OTokenKind.CloseParen)
+    /// <summary>
+    /// Binds a unary operator token.
+    /// </summary>
+    /// <param name="unaryOperatorToken">The unary operator token to bind.</param>
+    /// <returns>The bound unary operator token.</returns>
+    protected virtual QueryNode BindUnaryOperator(UnaryOperatorToken unaryOperatorToken, QueryOptionParserContext context)
+    {
+        SingleValueNode operand = Bind(unaryOperatorToken.Operand, context) as SingleValueNode;
+        if (operand == null)
         {
-            throw new OQueryParserException(Error.Format(SRResources.QueryOptionParser_CloseParenOrCommaExpected, tokenizer.CurrentToken.Position, tokenizer.Text));
+            throw new Exception("ODataErrorStrings.MetadataBinder_UnaryOperatorOperandNotSingleValue(unaryOperatorToken.OperatorKind.ToString())");
         }
 
-        // forget about the range variable after parsing the expression for this lambda.
-        context.RemoveParameter(parameter);
+        //IEdmTypeReference typeReference = UnaryOperatorBinder.PromoteOperandType(operand, unaryOperatorToken.OperatorKind);
+        //Debug.Assert(typeReference == null || typeReference.IsODataPrimitiveTypeKind(), "Only primitive types should be able to get here.");
+        //operand = MetadataBindingUtils.ConvertToTypeIfNeeded(operand, typeReference);
 
-        tokenizer.NextToken();
-        if (isAny)
+        return new UnaryOperatorNode(unaryOperatorToken.OperatorKind, operand);
+    }
+
+    /// <summary>
+    /// Binds a type startPath token.
+    /// </summary>
+    /// <param name="dottedIdentifierToken">The type startPath token to bind.</param>
+    /// <returns>The bound type startPath token.</returns>
+    //protected virtual QueryNode BindCast(DottedIdentifierToken dottedIdentifierToken)
+    //{
+    //    DottedIdentifierBinder dottedIdentifierBinder = new DottedIdentifierBinder(this.Bind, this.BindingState);
+    //    return dottedIdentifierBinder.BindDottedIdentifier(dottedIdentifierToken);
+    //}
+
+    /// <summary>
+    /// Binds a LambdaToken.
+    /// </summary>
+    /// <param name="lambdaToken">The LambdaToken to bind.</param>
+    /// <returns>A bound Any or All node.</returns>
+    protected virtual QueryNode BindAnyAll(LambdaToken lambdaToken, QueryOptionParserContext context)
+    {
+        //ExceptionUtils.CheckArgumentNotNull(lambdaToken, "LambdaToken");
+
+        // Start by binding the parent token
+        CollectionValueNode parent = Bind(lambdaToken.Parent, context) as CollectionValueNode;
+        if (parent == null)
         {
-            return new AnyToken(expr, parameter, parent);
+            throw new Exception("ODataErrorStrings.MetadataBinder_LambdaParentMustBeCollection");
+        }
+
+        // Add the lambda variable to the stack
+        RangeVariable rangeVariable = null;
+        if (lambdaToken.Parameter != null)
+        {
+            rangeVariable = new RangeVariable(lambdaToken.Parameter, parent.ElementType);
+            context.RangeVariables.Push(rangeVariable);
+        }
+
+        // Bind the expression
+        SingleValueNode expression = Bind(lambdaToken.Expression, context) as SingleValueNode;
+        if (expression == null)
+        {
+            throw new Exception("MetadataBinder_AnyAllExpressionNotSingleValue");
+        }
+
+        // type reference is allowed to be null for open properties.
+        //IEdmTypeReference expressionTypeReference = expression.GetEdmTypeReference();
+        //if (expressionTypeReference != null && !expressionTypeReference.AsPrimitive().IsBoolean())
+        //{
+        //    throw new ODataException(ODataErrorStrings.MetadataBinder_AnyAllExpressionNotSingleValue);
+        //}
+
+        LambdaNode lambdaNode;
+        if (lambdaToken.Kind == QueryTokenKind.Any)
+        {
+            lambdaNode = new AnyNode(parent, new Collection<RangeVariable>(context.RangeVariables.ToList()), rangeVariable, expression);
         }
         else
         {
-            return new AllToken(expr, parameter, parent);
+            lambdaNode = new AllNode(parent, new Collection<RangeVariable>(context.RangeVariables.ToList()), rangeVariable, expression);
+        }
+
+        // Remove the lambda variable as it is now out of scope
+        if (rangeVariable != null)
+        {
+            context.RangeVariables.Pop();
+        }
+
+        return lambdaNode;
+    }
+
+    /// <summary>
+    /// Binds a property access token.
+    /// </summary>
+    /// <param name="endPathToken">The property access token to bind.</param>
+    /// <returns>The bound property access token.</returns>
+    protected virtual QueryNode BindEndPath(EndPathToken endPathToken, QueryOptionParserContext context)
+    {
+        QueryNode parent = DetermineParentNode(endPathToken, context);
+
+        if (parent is SingleValueNode singleValueParent)
+        {
+            // TODO: check computed? check aggregated?
+
+            Type type = singleValueParent.NodeType;
+
+            PropertyInfo propertyInfo = context.Resolver.ResolveProperty(type, endPathToken.Identifier);
+            if (propertyInfo != null)
+            {
+                if (propertyInfo.PropertyType.IsCollection())
+                {
+                    return new CollectionValuePropertyAccessNode(singleValueParent, propertyInfo);
+                }
+                else
+                {
+                    return new SingleValuePropertyAccessNode(singleValueParent, propertyInfo);
+                }
+            }
+
+            // if not declared property
+            //if (functionCallBinder.TryBindEndPathAsFunctionCall(endPathToken, singleValueParent, state, out boundFunction))
+            //{
+            //    return boundFunction;
+            //}
+
+            // or return as dynamic property?
+            throw new NotImplementedException();
+        }
+
+        // Collection with any or all expression is already supported and handled separately.
+        // Add support of collection with $count segment.
+        if (parent is CollectionValueNode colNode
+            && endPathToken.Identifier.Equals("$count", StringComparison.Ordinal))
+        {
+            // create a collection count node for collection node property.
+            return new DollarCountNode(colNode);
+        }
+
+        //if (functionCallBinder.TryBindEndPathAsFunctionCall(endPathToken, parent, state, out boundFunction))
+        //{
+        //    return boundFunction;
+        //}
+
+        throw new Exception("ODataErrorStrings.MetadataBinder_PropertyAccessSourceNotSingleValue(endPathToken.Identifier)");
+    }
+
+    private QueryNode DetermineParentNode(EndPathToken segmentToken, QueryOptionParserContext context)
+    {
+        //ExceptionUtils.CheckArgumentNotNull(segmentToken, "segmentToken");
+        //ExceptionUtils.CheckArgumentNotNull(state, "state");
+
+        if (segmentToken.NextToken != null)
+        {
+            return Bind(segmentToken.NextToken, context);
+        }
+        else
+        {
+            RangeVariable implicitRangeVariable = context.ImplicitRangeVariable;
+            return new RangeVariableReferenceNode(implicitRangeVariable);
         }
     }
 
     /// <summary>
-    /// Validates the current token is of the specified kind.
+    /// Binds a function call token.
     /// </summary>
-    /// <param name="kind">Expected token kind.</param>
-    private static void ValidateToken(IOTokenizer tokenizer, OTokenKind kind)
-    {
-        if (tokenizer.CurrentToken.Kind != kind)
-        {
-            throw new OQueryParserException(Error.Format(SRResources.QueryOptionParser_TokenKindExpected, kind, tokenizer.CurrentToken.Kind));
-        }
-    }
+    /// <param name="functionCallToken">The function call token to bind.</param>
+    /// <returns>The bound function call token.</returns>
+    //protected virtual QueryNode BindFunctionCall(FunctionCallToken functionCallToken, QueryOptionParserContext context)
+    //{
+    //    FunctionCallBinder functionCallBinder = new FunctionCallBinder(this.Bind, this.BindingState);
+    //    return functionCallBinder.BindFunctionCall(functionCallToken);
+    //}
 
-    internal void ValidateToken(OTokenKind kind)
-    {
-        if (kind != OTokenKind.EndOfInput && kind != OTokenKind.Ampersand)
-        {
-            throw new Exception("TODO:");
-        }
-    }
+    /// <summary>
+    /// Binds a StringLiteral token.
+    /// </summary>
+    /// <param name="stringLiteralToken">The StringLiteral token to bind.</param>
+    /// <returns>The bound StringLiteral token.</returns>
+    //protected virtual QueryNode BindStringLiteral(StringLiteralToken stringLiteralToken)
+    //{
+    //    return new SearchTermNode(stringLiteralToken.Text);
+    //}
 
-    public virtual QueryNode ParseQuery(QueryOptionParserContext context)
-    {
-        throw new NotImplementedException();
-    }
+    /// <summary>
+    /// Binds an In token.
+    /// </summary>
+    /// <param name="inToken">The In token to bind.</param>
+    /// <returns>The bound In token.</returns>
+    //protected virtual QueryNode BindIn(InToken inToken)
+    //{
+    //    Func<QueryToken, QueryNode> InBinderMethod = (queryToken) =>
+    //    {
+    //        ExceptionUtils.CheckArgumentNotNull(queryToken, "queryToken");
+
+    //        if (queryToken.Kind == QueryTokenKind.Literal)
+    //        {
+    //            return LiteralBinder.BindInLiteral((LiteralToken)queryToken);
+    //        }
+
+    //        return this.Bind(queryToken);
+    //    };
+
+    //    InBinder inBinder = new InBinder(InBinderMethod);
+    //    return inBinder.BindInOperator(inToken, this.BindingState);
+    //}
+
+    /// <summary>
+    /// Binds a CountSegment token.
+    /// </summary>
+    /// <param name="countSegmentToken">The CountSegment token to bind.</param>
+    /// <returns>The bound CountSegment token.</returns>
+    //protected virtual QueryNode BindCountSegment(CountSegmentToken countSegmentToken)
+    //{
+    //    CountSegmentBinder countSegmentBinder = new CountSegmentBinder(this.Bind, this.BindingState);
+    //    return countSegmentBinder.BindCountSegment(countSegmentToken);
+    //}
 }

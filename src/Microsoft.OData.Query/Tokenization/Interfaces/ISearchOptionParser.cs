@@ -3,11 +3,12 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.SyntacticAst;
 
-/// <summary>
-/// Base class for all semantic metadata bound nodes which represent a single composable value.
-/// </summary>
-public abstract class SingleValueNode : QueryNode
+namespace Microsoft.OData.Query.Tokenization;
+
+
+public interface ISearchOptionParser
 {
+    SearchToken ParseSearch(string search, QueryTokenizerContext context);
 }

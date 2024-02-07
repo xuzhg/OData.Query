@@ -3,10 +3,9 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
 
-namespace Microsoft.OData.Query.Ast;
+namespace Microsoft.OData.Query.Nodes;
 
 public class UnaryOperatorNode : SingleValueNode
 {
@@ -35,4 +34,6 @@ public class UnaryOperatorNode : SingleValueNode
     /// Gets the kind of the query node.
     /// </summary>
     public override QueryNodeKind Kind => QueryNodeKind.UnaryOperator;
+
+    public override Type NodeType => throw new NotImplementedException();
 }

@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------
 
 using System.Linq.Expressions;
-using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Nodes;
 
 namespace Microsoft.OData.Query.Binders;
 
@@ -80,7 +80,7 @@ public class QueryNodeBinder : IQueryNodeBinder
     {
         Expression source = Bind(propertyAccessNode.Source, context);
 
-        return Expression.Property(source, propertyAccessNode.Name);
+        return Expression.Property(source, propertyAccessNode.Property);
     }
 
     public virtual Expression BindConstantNode(ConstantNode constantNode, BinderContext context)

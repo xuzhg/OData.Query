@@ -8,6 +8,7 @@ using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
+
 public class OQueryOptionParser : IOQueryOptionParser
 {
     private readonly IOTokenizerFactory _tokenizerFactory;

@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------
 
 using System.Linq.Expressions;
-using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Nodes;
 
 namespace Microsoft.OData.Query.Expressions;
 

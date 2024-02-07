@@ -3,7 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query.Ast;
+namespace Microsoft.OData.Query.Nodes;
 
 /// <summary>
 /// Base class for all transformation nodes.

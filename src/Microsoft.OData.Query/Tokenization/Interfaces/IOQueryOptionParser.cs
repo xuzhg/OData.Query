@@ -3,11 +3,16 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.SyntacticAst;
 
-namespace Microsoft.OData.Query.Parser;
+namespace Microsoft.OData.Query.Tokenization;
 
-public interface ISearchOptionParser
+public interface IOQueryOptionParser
 {
-    SearchToken ParseSearch(string search, QueryOptionParserContext context);
+ //   FilterClause ParseFilter(string filter, QueryOptionParserContext context);
+
+    QueryToken ParseQuery(string query, QueryTokenizerContext context);
+
+ //   QueryToken ParseQuery(QueryOptionParserContext context);
 }

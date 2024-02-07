@@ -3,6 +3,8 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.SyntacticAst;
+
 namespace Microsoft.OData.Query.Nodes;
 
 /// <summary>

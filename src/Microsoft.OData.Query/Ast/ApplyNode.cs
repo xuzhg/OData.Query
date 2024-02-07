@@ -10,6 +10,8 @@ namespace Microsoft.OData.Query.Ast;
 public class ApplyNode : QueryNode
 {
     public override QueryNodeKind Kind => throw new NotImplementedException();
+
+    public override Type NodeType => throw new NotImplementedException();
 }
 
 public class ApplyClause

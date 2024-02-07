@@ -3,13 +3,11 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.SyntacticAst;
 
-public class SingleValuePropertyAccessNode : SingleValueNode
+namespace Microsoft.OData.Query.Tokenization;
+
+public interface ISelectOptionParser
 {
-    public SingleValueNode Source { get; set; }
-
-    public string Name { get; set; }
-
-    public override Nodes.QueryNodeKind Kind => throw new NotImplementedException();
+    SelectToken ParseSelect(string select, QueryTokenizerContext context);
 }

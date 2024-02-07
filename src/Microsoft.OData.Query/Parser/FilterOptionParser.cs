@@ -3,6 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
 using Microsoft.OData.Query.Tokenization;
 
@@ -17,11 +18,16 @@ public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
         _tokenizerFactory = factory;
     }
 
-    public QueryToken ParseFilter(string filter, QueryOptionParserContext context)
-    {
-        IOTokenizer tokenizer = _tokenizerFactory.CreateTokenizer(filter, OTokenizerContext.Default);
-        tokenizer.NextToken(); // move to first token
+    //public QueryNode ParseFilter(string filter, QueryOptionParserContext context)
+    //{
+    //    IOTokenizer tokenizer = _tokenizerFactory.CreateTokenizer(filter, OTokenizerContext.Default);
+    //    tokenizer.NextToken(); // move to first token
 
-        return ParseExpression(tokenizer, context);
+    //    return Bind(tokenizer, context);
+    //}
+
+    public QueryNode ParseFilter(QueryToken filter, QueryOptionParserContext context)
+    {
+        return Bind(filter, context);
     }
 }

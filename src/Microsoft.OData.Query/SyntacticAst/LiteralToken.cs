@@ -38,10 +38,10 @@ public class LiteralToken : QueryToken
     /// <param name="originalText">The original text value of the literal.</param>
     /// <param name="expectedEdmTypeReference">The expected EDM type of literal..</param>
     /// <remarks>This is used internally to simulate correct compat behavior with WCF DS, and parameter alias.</remarks>
-    internal LiteralToken(object value, string originalText, Type expectedEdmTypeReference)
+    internal LiteralToken(object value, string originalText, Type expectedType)
         : this(value, originalText)
     {
-        ExpectedEdmTypeReference = expectedEdmTypeReference;
+        ExpectedType = expectedType;
     }
 
     /// <summary>
@@ -64,5 +64,5 @@ public class LiteralToken : QueryToken
     /// <summary>
     /// The expected EDM type of literal.
     /// </summary>
-    internal Type ExpectedEdmTypeReference { get; }
+    internal Type ExpectedType { get; }
 }

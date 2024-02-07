@@ -53,7 +53,12 @@ public enum QueryNodeKind
     /// <summary>
     /// In operator node.
     /// </summary>
-    In = 32,
+    In,
+
+    /// <summary>
+    /// Node describing count of a collection contains primitive or enum or complex or entity type.
+    /// </summary>
+    DollarCount,
 
     /// <summary>
     /// Node describing access to a property which is a single (non-collection) non-entity value.
@@ -69,4 +74,9 @@ public enum QueryNodeKind
     /// Function call returning a single value.
     /// </summary>
     SingleValueFunctionCall,
+
+    /// <summary>
+    /// Resource node referencing a range variable.
+    /// </summary>
+    ResourceRangeVariableReference
 }

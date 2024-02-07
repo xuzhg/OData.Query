@@ -30,4 +30,6 @@ public class OrderByNode : QueryNode
     public RangeVariable RangeVariable { get; }
 
     public override QueryNodeKind Kind => throw new NotImplementedException();
+
+    public override Type NodeType => throw new NotImplementedException();
 }

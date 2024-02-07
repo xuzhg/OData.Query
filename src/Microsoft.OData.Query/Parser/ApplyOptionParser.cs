@@ -11,6 +11,11 @@ namespace Microsoft.OData.Query.Parser;
 
 public class ApplyParserContext : QueryOptionParserContext
 {
+    public ApplyParserContext(Type elementType)
+        : base(elementType)
+    {
+
+    }
     private int _parseAggregateExpressionDepth;
 
     public void IncreaseAggDepth() => ++_parseAggregateExpressionDepth;
@@ -18,6 +23,7 @@ public class ApplyParserContext : QueryOptionParserContext
     public void DecreaseAggDepth() => --_parseAggregateExpressionDepth;
 }
 
+#if false
 public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
 {
     private IOTokenizerFactory _tokenizerFactory;
@@ -407,3 +413,4 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
         return new ExpandToken(termTokens);
     }
 }
+#endif
