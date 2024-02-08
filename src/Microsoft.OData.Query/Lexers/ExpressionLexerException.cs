@@ -3,7 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query.Tokenization;
+namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
 /// Represents a lexical expression lexer exception.

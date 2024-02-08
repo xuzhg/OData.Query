@@ -6,7 +6,6 @@
 using System.Diagnostics;
 using System.Globalization;
 using Microsoft.OData.Query.Commons;
-using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Lexers;
 
@@ -273,12 +272,12 @@ public class ExpressionLexer : IExpressionLexer
                 ParseIdentifier();
                 ReadOnlySpan<char> currentIdentifier = ExpressionText.AsSpan().Slice(tokenPos + 1, CurrPos - tokenPos - 1);
 
-                if (OTokenizationUtils.IsInfinity(currentIdentifier))
+                if (ExpressionLexerUtils.IsInfinity(currentIdentifier))
                 {
                     SetCurrentTokenState(ExpressionKind.DoubleLiteral, tokenPos);
                     return true;
                 }
-                else if (OTokenizationUtils.IsSingleInfinity(currentIdentifier))
+                else if (ExpressionLexerUtils.IsSingleInfinity(currentIdentifier))
                 {
                     SetCurrentTokenState(ExpressionKind.SingleLiteral, tokenPos);
                     return true;
@@ -320,7 +319,7 @@ public class ExpressionLexer : IExpressionLexer
 
             if (CurrPos == Length)
             {
-                throw new OTokenizationException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
+                throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
             }
 
             NextChar(); // remember to read the ending quote
@@ -475,7 +474,7 @@ public class ExpressionLexer : IExpressionLexer
 
                 if (CurrPos == Length)
                 {
-                    throw new OTokenizationException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
+                    throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
                 }
 
                 this.NextChar();
@@ -484,19 +483,19 @@ public class ExpressionLexer : IExpressionLexer
             return;
         }
 
-        if (OTokenizationUtils.IsInfinityOrNaN(tokenText))
+        if (ExpressionLexerUtils.IsInfinityOrNaN(tokenText))
         {
             kind = ExpressionKind.DoubleLiteral;
         }
-        else if (OTokenizationUtils.IsSingleInfinityOrNaN(tokenText))
+        else if (ExpressionLexerUtils.IsSingleInfinityOrNaN(tokenText))
         {
             kind = ExpressionKind.SingleLiteral;
         }
-        else if (OTokenizationUtils.IsBoolean(tokenText))
+        else if (ExpressionLexerUtils.IsBoolean(tokenText))
         {
             kind = ExpressionKind.BooleanLiteral;
         }
-        else if (OTokenizationUtils.IsNull(tokenText))
+        else if (ExpressionLexerUtils.IsNull(tokenText))
         {
             kind = ExpressionKind.NullLiteral;
         }
@@ -529,7 +528,7 @@ public class ExpressionLexer : IExpressionLexer
         else if (tokenText.Equals("null", StringComparison.Ordinal))
         {
             // typed null literals are not supported.
-            throw new OTokenizationException(Error.Format(SRResources.Tokenization_SyntaxError, CurrPos, ExpressionText));
+            throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_SyntaxError, CurrPos, ExpressionText));
         }
         else
         {
@@ -881,7 +880,7 @@ public class ExpressionLexer : IExpressionLexer
             return ExpressionKind.DoubleLiteral;
         }
 
-        throw new OTokenizationException(Error.Format(SRResources.Tokenization_InvalidNumericString, numericStr.ToString()));
+        throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_InvalidNumericString, numericStr.ToString()));
     }
 
     /// <summary>
@@ -905,7 +904,7 @@ public class ExpressionLexer : IExpressionLexer
     {
         if (!char.IsDigit(CurrChar))
         {
-            throw new OTokenizationException(Error.Format(SRResources.Tokenization_DigitExpected, CurrPos, ExpressionText));
+            throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_DigitExpected, CurrPos, ExpressionText));
         }
     }
 

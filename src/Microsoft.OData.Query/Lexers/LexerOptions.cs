@@ -6,7 +6,7 @@
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
-/// Represents a lexical expression token.
+/// Represents a lexical expression lexer options.
 /// </summary>
 public class LexerOptions
 {

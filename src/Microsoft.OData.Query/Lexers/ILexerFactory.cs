@@ -6,25 +6,12 @@
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
-/// Lexical tokenization is conversion of a text into meaningful lexical tokens.
+/// The factory to create <see cref="IExpressionLexer"/>.
 /// </summary>
 public interface ILexerFactory
 {
     /// <summary>
-    /// Gets the token processed.
+    /// Create the <see cref="IExpressionLexer"/>.
     /// </summary>
     IExpressionLexer CreateLexer(string text, LexerOptions options);
-}
-
-public class ExpressionLexerFactory : ILexerFactory
-{
-    internal static ExpressionLexerFactory Default = new ExpressionLexerFactory();
-
-    /// <summary>
-    /// Gets the token processed.
-    /// </summary>
-    public IExpressionLexer CreateLexer(string text, LexerOptions options)
-    {
-        return new ExpressionLexer(text, options);
-    }
 }

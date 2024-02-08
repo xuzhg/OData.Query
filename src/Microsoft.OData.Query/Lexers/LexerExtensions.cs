@@ -9,9 +9,9 @@ using Microsoft.OData.Query.Tokenization;
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
-/// Extension method for <see cref="IExpressionLexer"/>.
+/// Extension methods for <see cref="IExpressionLexer"/>.
 /// </summary>
-public static class ILexerExtensions
+public static class LexerExtensions
 {
     /// <summary>
     /// Checks that the current token has the specified identifier.
