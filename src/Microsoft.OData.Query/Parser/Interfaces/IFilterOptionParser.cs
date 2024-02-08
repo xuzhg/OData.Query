@@ -17,5 +17,5 @@ public interface IFilterOptionParser
     /// <returns>The filter token.</returns>
    // QueryNode ParseFilter(string filter, QueryOptionParserContext context);
 
-    QueryNode ParseFilter(QueryToken filter, QueryOptionParserContext context);
+    QueryNode Parse(QueryToken filter, QueryOptionParserContext context);
 }

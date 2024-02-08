@@ -3,28 +3,37 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Parser;
-using System;
 using System.Threading.Tasks;
+using Microsoft.OData.Query.Parser;
+using Microsoft.OData.Query.Tests.Models;
 using Xunit;
 
 namespace Microsoft.OData.Query.Tests;
 
-public class Person
-{
-    public int Id { get; set; }
-
-    public string Name { get; set; }
-}
-
 public class ODataQueryOptionParserTests
 {
     [Fact]
-    public async Task QueryParser_Parse_QueryWithUniqueKeysWorks()
+    public async Task QueryParser_Parse_OrderBy()
     {
         // Arrange
         IODataQueryOptionParser parser = new ODataQueryOptionParser(null);
         string query = "?$orderby=Name";
+        QueryOptionParserContext context = new QueryOptionParserContext(typeof(Person));
+
+        // Act
+        var result = await parser.ParseQueryAsync(query, context);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.OrderBy);
+    }
+
+    [Fact]
+    public async Task QueryParser_Parse_AdvancedOrderBy()
+    {
+        // Arrange
+        IODataQueryOptionParser parser = new ODataQueryOptionParser(null);
+        string query = "?$orderby=location/street";
         QueryOptionParserContext context = new QueryOptionParserContext(typeof(Person));
 
         // Act

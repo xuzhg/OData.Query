@@ -1,8 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.Tokenization;
 
-OTokenizerContext context = new OTokenizerContext();
+LexerOptions options = new LexerOptions();
 
 bool isIgnoreWhiteSpace = true;
 while (true)
@@ -22,7 +23,7 @@ while (true)
         Console.WriteLine(isIgnoreWhiteSpace ? "Ignore whitespace now!" : "Not ignore whitespace now!");
         continue;
     }
-    context.IgnoreWhitespace = isIgnoreWhiteSpace;
+    options.IgnoreWhitespace = isIgnoreWhiteSpace;
 
     if (line == "#q")
     {
@@ -33,13 +34,13 @@ while (true)
     ConsoleColor color = Console.ForegroundColor;
     Console.ForegroundColor = ConsoleColor.Green;
 
-    IOTokenizer tokenizer = new OTokenizer(line, context);
+    IExpressionLexer lexer = new ExpressionLexer(line, options);
 
     try
     {
-        while (tokenizer.NextToken())
+        while (lexer.NextToken())
         {
-            OToken token = tokenizer.CurrentToken;
+            ExpressionToken token = lexer.CurrentToken;
             Console.WriteLine(" ├──" + token.ToString());
         }
     }

@@ -3,8 +3,6 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>

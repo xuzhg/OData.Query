@@ -3,6 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Parser;
@@ -17,5 +18,5 @@ public interface IApplyOptionParser
     /// </summary>
     /// <param name="apply">The $apply expression string to parse.</param>
     /// <returns>The apply token parsed.</returns>
-    ApplyToken ParseApply(string apply, ApplyParserContext context);
+    ApplyClause Parse(ApplyToken apply, QueryOptionParserContext context);
 }

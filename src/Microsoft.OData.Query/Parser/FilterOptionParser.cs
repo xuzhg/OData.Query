@@ -5,18 +5,17 @@
 
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
 public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
 {
-    private IOTokenizerFactory _tokenizerFactory;
+    //private IOTokenizerFactory _tokenizerFactory;
 
-    public FilterOptionParser(IOTokenizerFactory factory)
-    {
-        _tokenizerFactory = factory;
-    }
+    //public FilterOptionParser(IOTokenizerFactory factory)
+    //{
+    //    _tokenizerFactory = factory;
+    //}
 
     //public QueryNode ParseFilter(string filter, QueryOptionParserContext context)
     //{
@@ -26,7 +25,7 @@ public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
     //    return Bind(tokenizer, context);
     //}
 
-    public QueryNode ParseFilter(QueryToken filter, QueryOptionParserContext context)
+    public virtual QueryNode Parse(QueryToken filter, QueryOptionParserContext context)
     {
         return Bind(filter, context);
     }

@@ -8,14 +8,14 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Tokenization;
 
 /// <summary>
-/// Parser which consumes the $apply query expression and produces the lexical object model.
+/// Tokenize which consumes the $apply query expression and produces the lexical object model.
 /// </summary>
-public interface IApplyOptionParser
+public interface IApplyOptionTokenizer
 {
     /// <summary>
-    /// Parses the $apply expression.
+    /// Tokenize the $apply expression.
     /// </summary>
-    /// <param name="apply">The $apply expression string to parse.</param>
-    /// <returns>The apply token parsed.</returns>
+    /// <param name="apply">The $apply expression string to tokenize.</param>
+    /// <returns>The apply token tokenized.</returns>
     ApplyToken ParseApply(string apply, QueryTokenizerContext context);
 }

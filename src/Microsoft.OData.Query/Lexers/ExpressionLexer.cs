@@ -11,7 +11,7 @@ using Microsoft.OData.Query.Tokenization;
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
-/// Default Lexical tokenizer to convert a text into meaningful lexical tokens.
+/// Default Lexical lexer to convert a text into meaningful lexical tokens.
 /// </summary>
 [DebuggerDisplay("{DebuggerToString(),nq}")]
 public class ExpressionLexer : IExpressionLexer

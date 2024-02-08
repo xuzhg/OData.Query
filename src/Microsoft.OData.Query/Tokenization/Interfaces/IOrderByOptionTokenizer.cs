@@ -15,7 +15,7 @@ public interface IOrderByOptionTokenizer
     /// <summary>
     /// Tokenize the $orderby expression.
     /// </summary>
-    /// <param name="orderBy">The $orderby expression string to Tokenize.</param>
+    /// <param name="orderBy">The $orderby expression string to tokenize.</param>
     /// <returns>The order by token tokenized.</returns>
     OrderByToken Tokenize(string orderBy, QueryTokenizerContext context);
 }

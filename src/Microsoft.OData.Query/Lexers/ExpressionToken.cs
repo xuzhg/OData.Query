@@ -3,8 +3,6 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Tokenization;
-
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
@@ -13,11 +11,11 @@ namespace Microsoft.OData.Query.Lexers;
 public ref struct ExpressionToken
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="OToken" /> class.
+    /// Initializes a new instance of the <see cref="ExpressionToken" /> class.
     /// </summary>
-    /// <param name="kind">The OTokenKind.</param>
-    /// <param name="text">The Token Text.</param>
-    /// <param name="position">The Token starting positing.</param>
+    /// <param name="kind">The ExpressionKind.</param>
+    /// <param name="text">The Expression Token Text.</param>
+    /// <param name="position">The Expression Token starting positing.</param>
     public ExpressionToken(ExpressionKind kind, ReadOnlySpan<char> text, int position)
     {
         Kind = kind;
@@ -26,17 +24,17 @@ public ref struct ExpressionToken
     }
 
     /// <summary>
-    /// Token kind.
+    /// Expression Token kind.
     /// </summary>
     public ExpressionKind Kind { get; }
 
     /// <summary>
-    /// Token text.
+    /// Expression Token text.
     /// </summary>
     public ReadOnlySpan<char> Text { get; }
 
     /// <summary>
-    /// Starting Position of token.
+    /// Starting Position of expression token.
     /// </summary>
     public int Position { get; }
 

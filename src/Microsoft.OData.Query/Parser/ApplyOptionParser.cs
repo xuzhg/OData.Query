@@ -3,414 +3,204 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using System.Diagnostics;
+using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
-public class ApplyParserContext : QueryOptionParserContext
-{
-    public ApplyParserContext(Type elementType)
-        : base(elementType)
-    {
-
-    }
-    private int _parseAggregateExpressionDepth;
-
-    public void IncreaseAggDepth() => ++_parseAggregateExpressionDepth;
-
-    public void DecreaseAggDepth() => --_parseAggregateExpressionDepth;
-}
-
-#if false
 public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
 {
-    private IOTokenizerFactory _tokenizerFactory;
+    public ApplyOptionParser()
+    { }
 
-    public ApplyOptionParser(IOTokenizerFactory factory)
+    public virtual ApplyClause Parse(ApplyToken apply, QueryOptionParserContext context)
     {
-        _tokenizerFactory = factory;
+        List<TransformationNode> transformations = new List<TransformationNode>();
+        foreach (QueryToken token in apply.Transformations)
+        {
+            switch (token.Kind)
+            {
+                case QueryTokenKind.Aggregate:
+                    AggregateTransformationNode aggregate = BindAggregate((AggregateToken)(token), context);
+                    transformations.Add(aggregate);
+                    //aggregateExpressionsCache = aggregate.AggregateExpressions;
+                    //state.AggregatedPropertyNames = new HashSet<EndPathToken>(aggregate.AggregateExpressions.Select(statement => new EndPathToken(statement.Alias, null)));
+                    //state.IsCollapsed = true;
+                    break;
+                case QueryTokenKind.AggregateGroupBy:
+                    GroupByTransformationNode groupBy = BindGroupByToken((GroupByToken)(token), context);
+                    transformations.Add(groupBy);
+                  //  state.IsCollapsed = true;
+                    break;
+                case QueryTokenKind.Compute:
+                    var compute = BindComputeToken((ComputeToken)token, context);
+                    transformations.Add(compute);
+                  //  state.AggregatedPropertyNames = new HashSet<EndPathToken>(compute.Expressions.Select(statement => new EndPathToken(statement.Alias, null)));
+                    break;
+                //case QueryTokenKind.Expand:
+                //    SelectExpandClause expandClause = SelectExpandSemanticBinder.Bind(this.odataPathInfo, (ExpandToken)token, null, this.configuration, null);
+                //    ExpandTransformationNode expandNode = new ExpandTransformationNode(expandClause);
+                //    transformations.Add(expandNode);
+                //    break;
+                //default:
+                //    FilterClause filterClause = this.filterBinder.BindFilter(token);
+                //    FilterTransformationNode filterNode = new FilterTransformationNode(filterClause);
+                //    transformations.Add(filterNode);
+                //    break;
+            }
+        }
+
+        return new ApplyClause(transformations);
     }
 
-    public virtual ApplyToken ParseApply(string apply, ApplyParserContext context)
+    protected virtual AggregateTransformationNode BindAggregate(AggregateToken token, QueryOptionParserContext context)
     {
-        IOTokenizer tokenizer = _tokenizerFactory.CreateTokenizer(apply, OTokenizerContext.Default);
+        IEnumerable<AggregateTokenBase> aggregateTokens = MergeEntitySetAggregates(token.AggregateExpressions, context);
+        List<AggregateExpressionBase> statements = new List<AggregateExpressionBase>();
 
-        context.EnterRecurse();
-
-        List<QueryToken> transformationTokens = new List<QueryToken>();
-
-        while (true)
+        foreach (AggregateTokenBase statementToken in aggregateTokens)
         {
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableIdentifierCaseSensitive))
-            {
-                transformationTokens.Add(ParseAggregate(tokenizer, context));
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordFilter, context.EnableIdentifierCaseSensitive))
-            {
-                transformationTokens.Add(ParseFilter(tokenizer, context));
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordGroupBy, context.EnableIdentifierCaseSensitive))
-            {
-                transformationTokens.Add(ParseGroupBy(tokenizer, context));
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableIdentifierCaseSensitive))
-            {
-                transformationTokens.Add(ParseCompute(tokenizer, context));
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordExpand, context.EnableIdentifierCaseSensitive))
-            {
-                transformationTokens.Add(ParseExpand(tokenizer, context));
-            }
-            else
-            {
-                // ODataErrorStrings.UriQueryExpressionParser_KeywordOrIdentifierExpected(supportedKeywords, this.lexer.CurrentToken.Position, this.lexer.ExpressionText));
-                throw new OQueryParserException("TODO: ");
-            }
-
-            // '/' indicates there are more transformations
-            if (tokenizer.CurrentToken.Kind != OTokenKind.Slash)
-            {
-                break;
-            }
-
-            tokenizer.NextToken();
+            statements.Add(BindAggregateExpressionToken(statementToken, context));
         }
 
-        context.LeaveRecurse();
-
-        tokenizer.ValidateToken(OTokenKind.EndOfInput);
-
-        return new ApplyToken(transformationTokens);
+        return new AggregateTransformationNode(statements);
     }
 
-    // parses $apply aggregate transformation (.e.g. aggregate(UnitPrice with sum as TotalUnitPrice))
-    protected virtual AggregateToken ParseAggregate(IOTokenizer tokenizer, ApplyParserContext context)
+    private static IEnumerable<AggregateTokenBase> MergeEntitySetAggregates(IEnumerable<AggregateTokenBase> tokens, QueryOptionParserContext context)
     {
-       // Debug.Assert(TokenIdentifierIs(ExpressionConstants.KeywordAggregate), "token identifier is aggregate");
+        List<AggregateTokenBase> mergedTokens = new List<AggregateTokenBase>();
+        Dictionary<string, AggregateTokenBase> entitySetTokens = new Dictionary<string, AggregateTokenBase>();
 
-        tokenizer.NextToken();
-
-        return new AggregateToken(ParseAggregateExpressions(tokenizer, context));
-    }
-
-    internal List<AggregateTokenBase> ParseAggregateExpressions(IOTokenizer tokenizer, ApplyParserContext context)
-    {
-        // '('
-        if (tokenizer.CurrentToken.Kind != OTokenKind.OpenParen)
+        foreach (AggregateTokenBase token in tokens)
         {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_OpenParenExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        // series of statements separates by commas
-        List<AggregateTokenBase> statements = new List<AggregateTokenBase>();
-        while (true)
-        {
-            statements.Add(ParseAggregateExpression(tokenizer, context));
-
-            if (tokenizer.CurrentToken.Kind != OTokenKind.Comma)
+            switch (token.Kind)
             {
-                break;
-            }
+                //case QueryTokenKind.EntitySetAggregateExpression:
+                //    {
+                //        AggregateTokenBase currentValue;
+                //        EntitySetAggregateToken entitySetToken = token as EntitySetAggregateToken;
+                //        string key = entitySetToken.Path();
 
-            tokenizer.NextToken();
-        }
+                //        if (entitySetTokens.TryGetValue(key, out currentValue))
+                //        {
+                //            entitySetTokens.Remove(key);
+                //        }
 
-        // ")"
-        if (tokenizer.CurrentToken.Kind != OTokenKind.CloseParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_CloseParenOrCommaExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
+                //        entitySetTokens.Add(key, EntitySetAggregateToken.Merge(entitySetToken, currentValue as EntitySetAggregateToken));
+                //        break;
+                //    }
 
-        tokenizer.NextToken();
-
-        return statements;
-    }
-
-    internal AggregateTokenBase ParseAggregateExpression(IOTokenizer tokenizer, ApplyParserContext context)
-    {
-        //try
-        //{
-        //    context.IncreaseAggDepth();
-
-        //    // expression
-        //    QueryToken expression = ParseLogicalOr(tokenizer, context);
-
-        //    if (tokenizer.CurrentToken.Kind == OTokenKind.OpenParen)
-        //    {
-        //        // When there's a parenthesis after the expression we have a entity set aggregation.
-        //        // The syntax is the same as the aggregate expression itself, so we recurse on ParseAggregateExpressions.
-        //        this.aggregateExpressionParents.Push(expression);
-        //        List<AggregateTokenBase> statements = ParseAggregateExpressions();
-        //        this.aggregateExpressionParents.Pop();
-
-        //        return new EntitySetAggregateToken(expression, statements);
-        //    }
-
-        //    AggregationMethodDefinition verb;
-
-        //    // "with" verb
-        //    EndPathToken endPathExpression = expression as EndPathToken;
-        //    if (endPathExpression != null && endPathExpression.Identifier == TokenConstants.QueryOptionCount)
-        //    {
-        //        // e.g. aggregate($count as Count)
-        //        verb = AggregationMethodDefinition.VirtualPropertyCount;
-        //    }
-        //    else
-        //    {
-        //        // e.g. aggregate(UnitPrice with sum as Total)
-        //        verb = this.ParseAggregateWith();
-        //    }
-
-        //    // "as" alias
-        //    StringLiteralToken alias = ParseAggregateAs();
-
-        //    return new AggregateExpressionToken(expression, verb, alias.Text);
-        //}
-        //finally
-        //{
-        //    this.parseAggregateExpressionDepth--;
-        //}
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// parses $apply groupby transformation (.e.g. groupby(ProductID, CategoryId, aggregate(UnitPrice with sum as TotalUnitPrice))
-    /// </summary>
-    /// <param name="tokenizer"></param>
-    /// <param name="context"></param>
-    /// <returns></returns>
-    protected virtual GroupByToken ParseGroupBy(IOTokenizer tokenizer, ApplyParserContext context)
-    {
-      //  Debug.Assert(TokenIdentifierIs(ExpressionConstants.KeywordGroupBy), "token identifier is groupby");
-        tokenizer.NextToken();
-
-        // '('
-        if (tokenizer.CurrentToken.Kind != OTokenKind.OpenParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_OpenParenExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        // '('
-        if (tokenizer.CurrentToken.Kind != OTokenKind.OpenParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_OpenParenExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        // properties
-        var properties = new List<EndPathToken>();
-        while (true)
-        {
-            var expression = ParsePrimary(tokenizer, context) as EndPathToken;
-
-            if (expression == null)
-            {
-                throw new OQueryParserException("(ODataErrorStrings.UriQueryExpressionParser_ExpressionExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-            }
-
-            properties.Add(expression);
-
-            if (tokenizer.CurrentToken.Kind != OTokenKind.Comma)
-            {
-                break;
-            }
-
-            tokenizer.NextToken();
-        }
-
-        // ")"
-        if (tokenizer.CurrentToken.Kind != OTokenKind.CloseParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_CloseParenOrOperatorExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        // optional child transformation
-        ApplyTransformationToken transformationToken = null;
-
-        // "," (comma)
-        if (tokenizer.CurrentToken.Kind == OTokenKind.Comma)
-        {
-            tokenizer.NextToken();
-
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableIdentifierCaseSensitive))
-            {
-                transformationToken = ParseAggregate(tokenizer, context);
-            }
-            else
-            {
-                throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_KeywordOrIdentifierExpected(ExpressionConstants.KeywordAggregate, this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
+                case QueryTokenKind.AggregateExpression:
+                    {
+                        mergedTokens.Add(token);
+                        break;
+                    }
             }
         }
 
-        // ")"
-        if (tokenizer.CurrentToken.Kind != OTokenKind.CloseParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_CloseParenOrCommaExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        return new GroupByToken(properties, transformationToken);
+        return mergedTokens.Concat(entitySetTokens.Values).ToList();
     }
 
-    /// <summary>
-    /// parses $apply filter transformation (.e.g. filter(ProductName eq 'Aniseed Syrup'))
-    /// </summary>
-    /// <param name="tokenizer"></param>
-    /// <param name="context"></param>
-    /// <returns></returns>
-    protected virtual QueryToken ParseFilter(IOTokenizer tokenizer, QueryOptionParserContext context)
+    protected virtual AggregateExpressionBase BindAggregateExpressionToken(AggregateTokenBase aggregateToken, QueryOptionParserContext context)
     {
-        // Debug.Assert(TokenIdentifierIs(ExpressionConstants.KeywordFilter), "token identifier is filter");
-        tokenizer.NextToken();
-
-        // '(' expression ')'
-        // return ParseParenExpression(tokenizer, context);
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Parses $apply compute expression (.e.g. compute(UnitPrice mul SalesPrice as computePrice)
-    /// </summary>
-    /// <returns></returns>
-    protected virtual ComputeToken ParseCompute(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        Debug.Assert(tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableIdentifierCaseSensitive), "token identifier is compute");
-
-        tokenizer.NextToken();
-
-        // '('
-        if (tokenizer.CurrentToken.Kind != OTokenKind.OpenParen)
+        switch (aggregateToken.Kind)
         {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_OpenParenExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        List<ComputeExpressionToken> transformationTokens = new List<ComputeExpressionToken>();
-
-        while (true)
-        {
-            ComputeExpressionToken computed = ParseComputeExpression(tokenizer, context);
-
-            transformationTokens.Add(computed);
-
-            if (tokenizer.CurrentToken.Kind != OTokenKind.Comma)
-            {
-                break;
-            }
-
-            tokenizer.NextToken();
-        }
-
-        // ")"
-        if (tokenizer.CurrentToken.Kind != OTokenKind.CloseParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_CloseParenOrCommaExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        return new ComputeToken(transformationTokens);
-    }
-
-    /// <summary>
-    /// Parse compute expression text into a token.
-    /// </summary>
-    /// <returns>The lexical token representing the compute expression text.</returns>
-    internal ComputeExpressionToken ParseComputeExpression(IOTokenizer tokenizer, QueryOptionParserContext context)
-    {
-        // expression
-        QueryToken expression = ParseExpression(tokenizer, context);
-
-        // "as" alias
-        // StringLiteralToken alias = ParseAggregateAs(tokenizer, context);
-
-        // return new ComputeExpressionToken(expression, alias.Text);
-
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    protected virtual ExpandToken ParseExpand(IOTokenizer tokenizer, ApplyParserContext context)
-    {
-        //Debug.Assert(TokenIdentifierIs(TokenConstants.KeywordExpand), "token identifier is expand");
-
-        tokenizer.NextToken();
-
-        // '('
-        if (tokenizer.CurrentToken.Kind != OTokenKind.OpenParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_OpenParenExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-        List<ExpandItemToken> termTokens = new List<ExpandItemToken>();
-
-        // First token must be Path
-        //var termParser = new SelectExpandTermParser(this.lexer, this.maxDepth - 1, false);
-        PathSegmentToken pathToken = null;// Parse(allowRef: true);
-
-        QueryToken filterToken = null;
-        ExpandToken nestedExpand = null;
-
-        // Followed (optionally) by filter and expand
-        // Syntax for expand inside $apply is different (and much simpler)  from $expand clause => had to use different parsing approach
-        while (tokenizer.CurrentToken.Kind == OTokenKind.Comma)
-        {
-            tokenizer.NextToken();
-
-            if (tokenizer.CurrentToken.Kind == OTokenKind.Identifier)
-            {
-                switch (tokenizer.GetIdentifier().ToString())
+            case QueryTokenKind.AggregateExpression:
                 {
-                    case TokenConstants.KeywordFilter:
-                        filterToken = ParseFilter(tokenizer, context);
-                        break;
-                    case TokenConstants.KeywordExpand:
-                        ExpandToken tempNestedExpand = ParseExpand(tokenizer, context);
-                        nestedExpand = nestedExpand == null
-                            ? tempNestedExpand
-                            : new ExpandToken(nestedExpand.ExpandItems.Concat(tempNestedExpand.ExpandItems));
-                        break;
-                    default:
-                        throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_KeywordOrIdentifierExpected(supportedKeywords, this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
+                    AggregateExpressionToken token = aggregateToken as AggregateExpressionToken;
+                    SingleValueNode expression = Bind(token.Expression, context) as SingleValueNode;
+                    //IEdmTypeReference typeReference = CreateAggregateExpressionTypeReference(expression, token.MethodDefinition);
+
+                    //// TODO: Determine source
+                    //return new AggregateExpression(expression, token.MethodDefinition, token.Alias, typeReference);
                 }
+
+                //case QueryTokenKind.EntitySetAggregateExpression:
+                //    {
+                //        EntitySetAggregateToken token = aggregateToken as EntitySetAggregateToken;
+                //        QueryNode boundPath = Bind(token.EntitySet, context);
+
+                //        state.InEntitySetAggregation = true;
+                //        IEnumerable<AggregateExpressionBase> children = token.Expressions.Select(x => BindAggregateExpressionToken(x)).ToList();
+                //        state.InEntitySetAggregation = false;
+                //        return new EntitySetAggregateExpression((CollectionNavigationNode)boundPath, children);
+                //    }
+                break;
+
+            default:
+                throw new Exception("ODataErrorStrings.ApplyBinder_UnsupportedAggregateKind(aggregateToken.Kind)");
+        }
+
+        return null;
+    }
+
+    protected virtual GroupByTransformationNode BindGroupByToken(GroupByToken token, QueryOptionParserContext context)
+    {
+        List<GroupByPropertyNode> properties = new List<GroupByPropertyNode>();
+
+        foreach (EndPathToken propertyToken in token.Properties)
+        {
+            QueryNode bindResult = Bind(propertyToken, context);
+            SingleValuePropertyAccessNode property = bindResult as SingleValuePropertyAccessNode;
+            //SingleComplexNode complexProperty = bindResult as SingleComplexNode;
+
+            //if (property != null)
+            //{
+            //    RegisterProperty(properties, ReversePropertyPath(property));
+            //}
+            //else if (complexProperty != null)
+            //{
+            //    RegisterProperty(properties, ReversePropertyPath(complexProperty));
+            //}
+            //else
+            //{
+            //    SingleValueOpenPropertyAccessNode openProperty = bindResult as SingleValueOpenPropertyAccessNode;
+            //    if (openProperty != null)
+            //    {
+            //        IEdmTypeReference type = GetTypeReferenceByPropertyName(openProperty.Name);
+            //        properties.Add(new GroupByPropertyNode(openProperty.Name, openProperty, type));
+            //    }
+            //    else
+            //    {
+            //        throw new ODataException(
+            //            ODataErrorStrings.ApplyBinder_GroupByPropertyNotPropertyAccessValue(propertyToken.Identifier));
+            //    }
+            //}
+        }
+
+        var newProperties = new HashSet<EndPathToken>(((GroupByToken)token).Properties);
+
+        TransformationNode aggregate = null;
+        if (token.Child != null)
+        {
+            if (token.Child.Kind == QueryTokenKind.Aggregate)
+            {
+                aggregate = BindAggregate((AggregateToken)token.Child, context);
+                //aggregateExpressionsCache = ((AggregateTransformationNode)aggregate).AggregateExpressions;
+                //newProperties.UnionWith(aggregateExpressionsCache.Select(statement => new EndPathToken(statement.Alias, null)));
+            }
+            else
+            {
+                throw new Exception("ODataErrorStrings.ApplyBinder_UnsupportedGroupByChild(token.Child.Kind)");
             }
         }
 
-        // Leaf level expands require filter
-        if (filterToken == null && nestedExpand == null)
+        //state.AggregatedPropertyNames = newProperties;
+
+        // TODO: Determine source
+        return new GroupByTransformationNode(properties, aggregate, null);
+    }
+
+    protected virtual ComputeTransformationNode BindComputeToken(ComputeToken token, QueryOptionParserContext context)
+    {
+        var statements = new List<ComputeExpression>();
+        foreach (ComputeExpressionToken statementToken in token.Expressions)
         {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_InnerMostExpandRequireFilter(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
+            var singleValueNode = (SingleValueNode)Bind(statementToken.Expression, context);
+            statements.Add(new ComputeExpression(singleValueNode, statementToken.Alias, singleValueNode.NodeType));
         }
 
-        ExpandItemToken expandTermToken = new ExpandItemToken(pathToken, filterToken, null, null, null, null, null, null, null, nestedExpand);
-        termTokens.Add(expandTermToken);
-
-        // ")"
-        if (tokenizer.CurrentToken.Kind != OTokenKind.CloseParen)
-        {
-            throw new OQueryParserException("ODataErrorStrings.UriQueryExpressionParser_CloseParenOrCommaExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
-        }
-
-        tokenizer.NextToken();
-
-
-        return new ExpandToken(termTokens);
+        return new ComputeTransformationNode(statements);
     }
 }
-#endif

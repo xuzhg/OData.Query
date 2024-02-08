@@ -18,7 +18,10 @@ public sealed class ApplyToken : QueryToken
     /// <param name="parent">The parent token.  Pass null if this property has no parent.</param>
     public ApplyToken(IList<QueryToken> transformations)
     {
+        Transformations = transformations;
     }
+
+    public IEnumerable<QueryToken> Transformations { get; }
 
     /// <summary>
     /// The kind of the query token.

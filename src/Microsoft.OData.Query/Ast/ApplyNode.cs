@@ -16,5 +16,17 @@ public class ApplyNode : QueryNode
 
 public class ApplyClause
 {
+    /// <summary>
+    /// Create a ApplyClause.
+    /// </summary>
+    /// <param name="transformations">The <see cref="TransformationNode"/>s.</param>
+    public ApplyClause(IList<TransformationNode> transformations)
+    {
+        Transformations = transformations;
+    }
 
+    /// <summary>
+    /// The collection of transformations to perform.
+    /// </summary>
+    public IEnumerable<TransformationNode> Transformations { get; }
 }
