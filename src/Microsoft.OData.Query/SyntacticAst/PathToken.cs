@@ -61,3 +61,42 @@ public abstract class PathToken : QueryToken
         return ((int)rol5 + h1) ^ h2;
     }
 }
+
+/// <summary>
+/// Lexical token representing a System token such as $count
+/// </summary>
+public class SegmentToken : QueryToken
+{
+    /// <summary>
+    /// Build a new System Token
+    /// </summary>
+    /// <param name="identifier">the identifier for this token.</param>
+    /// <param name="next">the next token in the path</param>
+    public SegmentToken(string identifier/*, SegmentToken next*/)
+    {
+        // ExceptionUtils.CheckArgumentNotNull(identifier, "identifier");
+        Identifier = identifier;
+       // Next = next;
+    }
+
+    /// <summary>
+    /// Get/set the NextToken in the path
+    /// </summary>
+    public SegmentToken Next { get; set; }
+
+    /// <summary>
+    /// Get the identifier for this token
+    /// </summary>
+    public string Identifier { get; }
+
+    public override QueryTokenKind Kind => QueryTokenKind.PathSegment;
+
+    /// <summary>
+    /// Is this token namespace or container qualified.
+    /// </summary>
+    /// <returns>always false, since this is a system token.</returns>
+    //public override bool IsNamespaceOrContainerQualified()
+    //{
+    //    return false;
+    //}
+}

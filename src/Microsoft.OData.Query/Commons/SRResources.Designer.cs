@@ -88,20 +88,47 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; has already been declared..
-        /// </summary>
-        internal static string QueryOptionParser_RangeVariableAlreadyDeclared {
-            get {
-                return ResourceManager.GetString("QueryOptionParser_RangeVariableAlreadyDeclared", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Token kind &apos;{0}&apos; expected, but kind &apos;{1}&apos; presented..
         /// </summary>
         internal static string QueryOptionParser_TokenKindExpected {
             get {
                 return ResourceManager.GetString("QueryOptionParser_TokenKindExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The max depth must be greater than or equal to zero..
+        /// </summary>
+        internal static string QueryTokenizer_NegativeMaxDepth {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_NegativeMaxDepth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; has already been declared..
+        /// </summary>
+        internal static string QueryTokenizer_RangeVariableAlreadyDeclared {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_RangeVariableAlreadyDeclared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recursion depth doesn&apos;t match..
+        /// </summary>
+        internal static string QueryTokenizer_RecurseMismatch {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_RecurseMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recursion depth &apos;{0}&apos; is exceeded allowed limit &apos;{1}&apos;..
+        /// </summary>
+        internal static string QueryTokenizer_RecurseTooDeep {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_RecurseTooDeep", resourceCulture);
             }
         }
         

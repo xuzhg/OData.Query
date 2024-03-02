@@ -42,7 +42,7 @@ public class OrderByOptionTokenizer : QueryTokenizer, IOrderByOptionTokenizer
         OrderByToken previousToken = null;
         while (true)
         {
-            QueryToken expression = ParseExpression(lexer, context);
+            QueryToken expression = TokenizeExpression(lexer, context);
             bool ascending = true;
             if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAscending, false))
             {

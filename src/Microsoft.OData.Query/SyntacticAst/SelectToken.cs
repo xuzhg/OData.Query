@@ -19,7 +19,7 @@ public sealed class SelectToken : QueryToken
     /// Create a <see cref="SelectToken"/> given the property-accesses of the select query.
     /// </summary>
     /// <param name="properties">The properties according to which to select the results.</param>
-    public SelectToken(IEnumerable<PathSegmentToken> properties)
+    public SelectToken(IEnumerable<SegmentToken> properties)
         : this(properties == null ? null : properties.Select(e => new SelectItemToken(e)))
     {
     }

@@ -3,6 +3,8 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Metadata;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
 
@@ -10,23 +12,25 @@ namespace Microsoft.OData.Query.Parser;
 
 public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
 {
-    //private IOTokenizerFactory _tokenizerFactory;
-
-    //public FilterOptionParser(IOTokenizerFactory factory)
-    //{
-    //    _tokenizerFactory = factory;
-    //}
-
-    //public QueryNode ParseFilter(string filter, QueryOptionParserContext context)
-    //{
-    //    IOTokenizer tokenizer = _tokenizerFactory.CreateTokenizer(filter, OTokenizerContext.Default);
-    //    tokenizer.NextToken(); // move to first token
-
-    //    return Bind(tokenizer, context);
-    //}
-
-    public virtual QueryNode Parse(QueryToken filter, QueryOptionParserContext context)
+    public virtual FilterClause Parse(QueryToken filter, QueryOptionParserContext context)
     {
-        return Bind(filter, context);
+        QueryNode expressionNode = Bind(filter, context);
+
+        SingleValueNode expressionResultNode = expressionNode as SingleValueNode;
+        if (expressionResultNode == null ||
+            (expressionResultNode.NodeType != null && !expressionResultNode.NodeType.IsPrimitiveTypeKind()))
+        {
+            throw new Exception("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
+        }
+
+        PrimitiveTypeKind kind = expressionResultNode.NodeType.GetPrimitiveTypeKind();
+        if (kind != PrimitiveTypeKind.Boolean)
+        {
+            throw new Exception("ODataErrorStrings.MetadataBinder_FilterExpressionNotBooleanType");
+        }
+
+        FilterClause filterNode = new FilterClause(expressionResultNode, context.ImplicitRangeVariable);
+
+        return filterNode;
     }
 }

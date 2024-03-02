@@ -20,7 +20,7 @@ public abstract class SelectExpandItemToken : QueryToken
     /// <param name="selectOption">the select option for this select or expand term</param>
     /// <param name="computeOption">the compute option for this select or expand term</param>
     protected SelectExpandItemToken(
-        PathSegmentToken pathToProperty,
+        SegmentToken pathToProperty,
         QueryToken filterOption,
         IEnumerable<OrderByToken> orderByOptions,
         long? topOption,
@@ -46,7 +46,7 @@ public abstract class SelectExpandItemToken : QueryToken
     /// <summary>
     /// Gets the property for this select or expand term.
     /// </summary>
-    public PathSegmentToken PathToProperty { get; internal set; }
+    public SegmentToken PathToProperty { get; internal set; }
 
     /// <summary>
     /// Gets the filter option for this select or expand term.
@@ -98,7 +98,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
     /// Create an expand term token using only a property
     /// </summary>
     /// <param name="pathToNavigationProp">the path to the navigation property</param>
-    public ExpandItemToken(PathSegmentToken pathToNavigationProp)
+    public ExpandItemToken(SegmentToken pathToNavigationProp)
         : this(pathToNavigationProp, null, null)
     {
     }
@@ -109,7 +109,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
     /// <param name="pathToNavigationProp">the path to the navigation property for this expand term</param>
     /// <param name="selectOption">the sub select for this token</param>
     /// <param name="expandOption">the sub expand for this token</param>
-    public ExpandItemToken(PathSegmentToken pathToNavigationProp, SelectToken selectOption, ExpandToken expandOption)
+    public ExpandItemToken(SegmentToken pathToNavigationProp, SelectToken selectOption, ExpandToken expandOption)
         : this(pathToNavigationProp, null, null, null, null, null, null, null, selectOption, expandOption)
     {
     }
@@ -127,7 +127,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
     /// <param name="searchOption">the search option for this expand term</param>
     /// <param name="selectOption">the select option for this expand term</param>
     /// <param name="expandOption">the expand option for this expand term</param>
-    public ExpandItemToken(PathSegmentToken pathToNavigationProp, QueryToken filterOption, IEnumerable<OrderByToken> orderByOptions, long? topOption, long? skipOption, bool? countQueryOption, long? levelsOption, QueryToken searchOption, SelectToken selectOption, ExpandToken expandOption)
+    public ExpandItemToken(SegmentToken pathToNavigationProp, QueryToken filterOption, IEnumerable<OrderByToken> orderByOptions, long? topOption, long? skipOption, bool? countQueryOption, long? levelsOption, QueryToken searchOption, SelectToken selectOption, ExpandToken expandOption)
         : this(pathToNavigationProp, filterOption, orderByOptions, topOption, skipOption, countQueryOption, levelsOption, searchOption, selectOption, expandOption, null)
     {
     }
@@ -147,7 +147,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
     /// <param name="expandOption">the expand option for this expand term</param>
     /// <param name="computeOption">the compute option for this expand term.</param>
     public ExpandItemToken(
-        PathSegmentToken pathToNavigationProp,
+        SegmentToken pathToNavigationProp,
         QueryToken filterOption,
         IEnumerable<OrderByToken> orderByOptions,
         long? topOption,
@@ -178,7 +178,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
     /// <param name="computeOption">the compute option for this expand term.</param>
     /// <param name="applyOptions">the apply options for this expand term.</param>
     public ExpandItemToken(
-        PathSegmentToken pathToNavigationProp,
+        SegmentToken pathToNavigationProp,
         QueryToken filterOption,
         IEnumerable<OrderByToken> orderByOptions,
         long? topOption,
@@ -200,7 +200,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
     /// <summary>
     /// Gets the navigation property for this expand term.
     /// </summary>
-    public PathSegmentToken PathToNavigationProp
+    public SegmentToken PathToNavigationProp
     {
         get
         {

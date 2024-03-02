@@ -16,6 +16,21 @@ public abstract class QueryToken
     public abstract QueryTokenKind Kind { get; }
 }
 
+public class TopToken : QueryToken
+{
+    public TopToken(long top)
+    {
+        Top = top;
+    }
+
+    public long Top { get; }
+
+    /// <summary>
+    /// The kind of the query token.
+    /// </summary>
+    public override QueryTokenKind Kind => QueryTokenKind.Top;
+}
+
 public class SkipTokenToken : QueryToken
 {
     /// <summary>

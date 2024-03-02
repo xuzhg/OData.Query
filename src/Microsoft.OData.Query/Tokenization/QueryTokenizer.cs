@@ -11,39 +11,43 @@ using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Tokenization;
 
+/// <summary>
+/// Base class to tokenize an OData query.
+/// </summary>
 public abstract class QueryTokenizer
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="QueryTokenizer" /> class.
     /// </summary>
     protected QueryTokenizer()
-    {
-    }
+    { }
 
     /// <summary>
     /// Tokenize the expression to tokens
     /// </summary>
-    /// <returns>The lexical token representing the expression.</returns>
-    protected virtual QueryToken ParseExpression(IExpressionLexer lexer, QueryTokenizerContext context)
+    /// <param name="lexer">The expression lexer.</param>
+    /// <param name="context">The tokenizer context.</param>
+    /// <returns>The token tokenized.</returns>
+    protected virtual QueryToken TokenizeExpression(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken result = ParseLogicalOr(lexer, context);
+        QueryToken result = TokenizeLogicalOr(lexer, context);
         context.LeaveRecurse();
         return result;
     }
 
     /// <summary>
-    /// Parses the or operator.
+    /// Tokenize the 'or' operator.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    protected QueryToken ParseLogicalOr(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected QueryToken TokenizeLogicalOr(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = ParseLogicalAnd(lexer, context);
+        QueryToken left = TokenizeLogicalAnd(lexer, context);
         while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordOr, context.EnableIdentifierCaseSensitive))
         {
             lexer.NextToken();
-            QueryToken right = this.ParseLogicalAnd(lexer, context);
+            QueryToken right = this.TokenizeLogicalAnd(lexer, context);
             left = new BinaryOperatorToken(BinaryOperatorKind.Or, left, right);
         }
 
@@ -52,17 +56,17 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses the and operator.
+    /// Tokenize the 'and' operator.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseLogicalAnd(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizeLogicalAnd(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = this.ParseComparison(lexer, context);
+        QueryToken left = this.TokenizeComparison(lexer, context);
         while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAnd, context.EnableIdentifierCaseSensitive))
         {
             lexer.NextToken();
-            QueryToken right = ParseComparison(lexer, context);
+            QueryToken right = TokenizeComparison(lexer, context);
             left = new BinaryOperatorToken(BinaryOperatorKind.And, left, right);
         }
 
@@ -71,13 +75,13 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses the eq, ne, lt, gt, le, and ge operators.
+    /// Tokenize the 'eq', 'ne', 'lt', 'gt', 'le', and 'ge' operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseComparison(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizeComparison(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = ParseAdditive(lexer, context);
+        QueryToken left = TokenizeAdditive(lexer, context);
         while (true)
         {
             BinaryOperatorKind binaryOperatorKind;
@@ -111,7 +115,7 @@ public abstract class QueryTokenizer
             }
 
             lexer.NextToken();
-            QueryToken right = ParseAdditive(lexer, context);
+            QueryToken right = TokenizeAdditive(lexer, context);
             left = new BinaryOperatorToken(binaryOperatorKind, left, right);
         }
 
@@ -120,13 +124,13 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses the add, sub operators.
+    /// Tokenize the 'add', 'sub' operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseAdditive(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizeAdditive(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = ParseMultiplicative(lexer, context);
+        QueryToken left = TokenizeMultiplicative(lexer, context);
         while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAdd, context.EnableIdentifierCaseSensitive) ||
             lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordSub, context.EnableIdentifierCaseSensitive))
         {
@@ -142,7 +146,7 @@ public abstract class QueryTokenizer
             }
 
             lexer.NextToken();
-            QueryToken right = ParseMultiplicative(lexer, context);
+            QueryToken right = TokenizeMultiplicative(lexer, context);
             left = new BinaryOperatorToken(binaryOperatorKind, left, right);
         }
 
@@ -151,10 +155,10 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses the -, not unary operators.
+    /// Tokenize the '-', 'not' unary operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseUnary(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizeUnary(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
 
@@ -169,11 +173,11 @@ public abstract class QueryTokenizer
                 //numberLiteral.Position = operatorToken.Position;
                 //lexer.CurrentToken = numberLiteral;
                 //context.LeaveRecurse();
-                //return ParseInHas(lexer, context);
+                //return TokenizeInHas(lexer, context);
                 throw new QueryTokenizerException("TODO");
             }
 
-            QueryToken operand = ParseUnary(lexer, context);
+            QueryToken operand = TokenizeUnary(lexer, context);
             UnaryOperatorKind unaryOperatorKind;
             if (operatorToken.Kind == ExpressionKind.Minus)
             {
@@ -190,29 +194,29 @@ public abstract class QueryTokenizer
         }
 
         context.LeaveRecurse();
-        return ParseInHas(lexer, context);
+        return TokenizeInHas(lexer, context);
     }
 
     /// <summary>
-    /// Parses the has and in operators.
+    /// Tokenize the 'has' and 'in' operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseInHas(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizeInHas(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = ParsePrimary(lexer, context);
+        QueryToken left = TokenizePrimary(lexer, context);
         while (true)
         {
             if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordIn, context.EnableIdentifierCaseSensitive))
             {
                 lexer.NextToken();
-                QueryToken right = ParsePrimary(lexer, context);
+                QueryToken right = TokenizePrimary(lexer, context);
                 left = new InToken(left, right);
             }
             else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordHas, context.EnableIdentifierCaseSensitive))
             {
                 lexer.NextToken();
-                QueryToken right = this.ParsePrimary(lexer, context);
+                QueryToken right = TokenizePrimary(lexer, context);
                 left = new BinaryOperatorToken(BinaryOperatorKind.Has, left, right);
             }
             else
@@ -226,45 +230,45 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses the primary expressions.
+    /// Tokenize the primary expressions.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    protected virtual QueryToken ParsePrimary(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizePrimary(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
         //QueryToken expr = this.aggregateExpressionParents.Count > 0 ? this.aggregateExpressionParents.Peek() : null;
         //if (this.lexer.PeekNextToken().Kind == ExpressionTokenKind.Slash)
         //{
-        //    expr = ParseSegment(expr);
+        //    expr = TokenizeSegment(expr);
         //}
         //else
         //{
-        //    expr = ParsePrimaryStart(lexer, context);
+        //    expr = TokenizePrimaryStart(lexer, context);
         //}
-        QueryToken expr = ParsePrimaryStart(lexer, context);
+        QueryToken expr = TokenizePrimaryStart(lexer, context);
 
         while (lexer.CurrentToken.Kind == ExpressionKind.Slash)
         {
             lexer.NextToken();
             if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAny, context.EnableIdentifierCaseSensitive))
             {
-                expr = ParseAnyAll(lexer, context, expr, true);
+                expr = TokenizeAnyAll(lexer, context, expr, true);
             }
             else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAll, context.EnableIdentifierCaseSensitive))
             {
-                expr = ParseAnyAll(lexer, context, expr, false);
+                expr = TokenizeAnyAll(lexer, context, expr, false);
             }
             else if (lexer.IsCurrentTokenIdentifier(TokenConstants.QueryOptionCount, context.EnableIdentifierCaseSensitive))
             {
-                expr = ParseCountSegment(lexer, context, expr);
+                expr = TokenizeCountSegment(lexer, context, expr);
             }
             //else if (this.lexer.PeekNextToken().Kind == ExpressionKind.Slash)
             //{
-            //    expr = ParseSegment(expr);
+            //    expr = TokenizeSegment(expr);
             //}
             else
             {
-                expr = ParseIdentifier(lexer, context, expr);
+                expr = TokenizeIdentifier(lexer, context, expr);
             }
         }
 
@@ -272,7 +276,7 @@ public abstract class QueryTokenizer
         return expr;
     }
 
-    private QueryToken ParseIdentifier(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
+    private QueryToken TokenizeIdentifier(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
     {
         lexer.ValidateToken(ExpressionKind.Identifier);
 
@@ -289,11 +293,11 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses a $count segment.
+    /// Tokenize a $count segment.
     /// </summary>
     /// <param name="parent">The parent of the segment node.</param>
     /// <returns>The lexical token representing the $count segment.</returns>
-    private QueryToken ParseCountSegment(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
+    private QueryToken TokenizeCountSegment(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
     {
         lexer.NextToken();
 
@@ -303,29 +307,29 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Handles the start of primary expressions.
+    /// Tokenize the start of primary expressions.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParsePrimaryStart(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizePrimaryStart(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         switch (lexer.CurrentToken.Kind)
         {
             //case ExpressionKind.ParameterAlias:
             //    {
-            //        return ParseParameterAlias(this.lexer);
+            //        return TokenizeParameterAlias(this.lexer);
             //    }
 
             case ExpressionKind.Identifier:
                 {
                     //IdentifierTokenizer identifierTokenizer = new IdentifierTokenizer(this.parameters, new FunctionCallParser(this.lexer, this, this.IsInAggregateExpression));
                     //QueryToken parent = this.aggregateExpressionParents.Count > 0 ? this.aggregateExpressionParents.Peek() : null;
-                    // return identifierTokenizer.ParseIdentifier(parent);
-                    return ParseIdentifier(lexer, context, null);
+                    // return identifierTokenizer.TokenizeIdentifier(parent);
+                    return TokenizeIdentifier(lexer, context, null);
                 }
 
             case ExpressionKind.OpenParen:
                 {
-                    return ParseParenExpression(lexer, context);
+                    return TokenizeParenExpression(lexer, context);
                 }
 
             //case ExpressionKind.Star:
@@ -336,7 +340,7 @@ public abstract class QueryTokenizer
 
             default:
                 {
-                    QueryToken primitiveLiteralToken = TryParseLiteral(lexer, context);
+                    QueryToken primitiveLiteralToken = TryTokenizeLiteral(lexer, context);
                     if (primitiveLiteralToken == null)
                     {
                         throw new QueryTokenizerException("ODataErrorStrings.UriQueryExpressionParser_ExpressionExpected(this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
@@ -348,11 +352,11 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses a literal.
+    /// Tokenize a literal.
     /// </summary>
     /// <param name="lexer">The lexer to use.</param>
     /// <returns>The literal query token or null if something else was found.</returns>
-    internal static LiteralToken TryParseLiteral(IExpressionLexer lexer, QueryTokenizerContext context)
+    internal static LiteralToken TryTokenizeLiteral(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         switch (lexer.CurrentToken.Kind)
         {
@@ -444,7 +448,7 @@ public abstract class QueryTokenizer
             //    }
 
             case ExpressionKind.NullLiteral:
-                return ParseNullLiteral(lexer, context);
+                return TokenizeNullLiteral(lexer, context);
 
             default:
                 return null;
@@ -452,11 +456,11 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses null literals.
+    /// Tokenize 'null' literals.
     /// </summary>
     /// <param name="lexer">The lexer to use.</param>
     /// <returns>The literal token produced by building the given literal.</returns>
-    private static LiteralToken ParseNullLiteral(IExpressionLexer lexer, QueryTokenizerContext context)
+    private static LiteralToken TokenizeNullLiteral(IExpressionLexer lexer, QueryTokenizerContext context)
     {
        // Debug.Assert(lexer != null, "lexer != null");
       //  Debug.Assert(lexer.CurrentToken.Kind == ExpressionTokenKind.NullLiteral, "this.lexer.CurrentToken.InternalKind == ExpressionTokenKind.NullLiteral");
@@ -468,10 +472,10 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses parenthesized expressions.
+    /// Tokenize parenthesized expressions.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseParenExpression(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizeParenExpression(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         if (lexer.CurrentToken.Kind != ExpressionKind.OpenParen)
         {
@@ -479,7 +483,7 @@ public abstract class QueryTokenizer
         }
 
         lexer.NextToken();
-        QueryToken result = ParseExpression(lexer, context);
+        QueryToken result = TokenizeExpression(lexer, context);
         if (lexer.CurrentToken.Kind != ExpressionKind.CloseParen)
         {
             throw new QueryTokenizerException(Error.Format(SRResources.QueryOptionParser_CloseParenOrCommaExpected, lexer.CurrentToken.Position, lexer.ExpressionText));
@@ -490,13 +494,13 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses the mul, div, mod operators.
+    /// Tokenize the mul, div, mod operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken ParseMultiplicative(IExpressionLexer lexer, QueryTokenizerContext context)
+    private QueryToken TokenizeMultiplicative(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = ParseUnary(lexer, context);
+        QueryToken left = TokenizeUnary(lexer, context);
         while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordMultiply, context.EnableIdentifierCaseSensitive) ||
             lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordDivide, context.EnableIdentifierCaseSensitive) ||
             lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordModulo, context.EnableIdentifierCaseSensitive))
@@ -517,7 +521,7 @@ public abstract class QueryTokenizer
             }
 
             lexer.NextToken();
-            QueryToken right = ParseUnary(lexer, context);
+            QueryToken right = TokenizeUnary(lexer, context);
             left = new BinaryOperatorToken(binaryOperatorKind, left, right);
         }
 
@@ -526,12 +530,12 @@ public abstract class QueryTokenizer
     }
 
     /// <summary>
-    /// Parses the Any/All portion of the query
+    /// Tokenize the 'Any'/'All' portion of the query
     /// </summary>
     /// <param name="parent">The parent of the Any/All node.</param>
-    /// <param name="isAny">Denotes whether an Any or All is to be parsed.</param>
+    /// <param name="isAny">Denotes whether an Any or All is to be tokenized.</param>
     /// <returns>The lexical token representing the Any/All query.</returns>
-    private QueryToken ParseAnyAll(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent, bool isAny)
+    private QueryToken TokenizeAnyAll(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent, bool isAny)
     {
         lexer.NextToken();
         if (lexer.CurrentToken.Kind != ExpressionKind.OpenParen)
@@ -563,7 +567,7 @@ public abstract class QueryTokenizer
         ValidateToken(lexer, ExpressionKind.Colon);
 
         lexer.NextToken();
-        QueryToken expr = ParseExpression(lexer, context);
+        QueryToken expr = TokenizeExpression(lexer, context);
         if (lexer.CurrentToken.Kind != ExpressionKind.CloseParen)
         {
             throw new QueryTokenizerException(Error.Format(SRResources.QueryOptionParser_CloseParenOrCommaExpected, lexer.CurrentToken.Position, lexer.ExpressionText));

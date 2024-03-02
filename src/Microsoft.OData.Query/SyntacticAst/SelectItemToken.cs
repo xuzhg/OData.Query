@@ -14,7 +14,7 @@ public sealed class SelectItemToken : SelectExpandItemToken
     /// Initializes a new instance of  <see cref="SelectTermToken"/> class.
     /// </summary>
     /// <param name="pathToProperty">the path to the property for this select term</param>
-    public SelectItemToken(PathSegmentToken pathToProperty)
+    public SelectItemToken(SegmentToken pathToProperty)
         : this(pathToProperty, null)
     {
     }
@@ -24,7 +24,7 @@ public sealed class SelectItemToken : SelectExpandItemToken
     /// </summary>
     /// <param name="pathToProperty">the path to the property for this select term</param>
     /// <param name="selectOption">the sub select for this token</param>
-    public SelectItemToken(PathSegmentToken pathToProperty, SelectToken selectOption)
+    public SelectItemToken(SegmentToken pathToProperty, SelectToken selectOption)
         : this(pathToProperty, null, null, null, null, null, null, selectOption, null)
     {
     }
@@ -41,7 +41,7 @@ public sealed class SelectItemToken : SelectExpandItemToken
     /// <param name="searchOption">the search option for this select term</param>
     /// <param name="selectOption">the select option for this select term</param>
     /// <param name="computeOption">the compute option for this select term</param>
-    public SelectItemToken(PathSegmentToken pathToProperty,
+    public SelectItemToken(SegmentToken pathToProperty,
         QueryToken filterOption, IEnumerable<OrderByToken> orderByOptions, long? topOption, long? skipOption, bool? countQueryOption, QueryToken searchOption, SelectToken selectOption, ComputeToken computeOption)
         : base(pathToProperty, filterOption, orderByOptions, topOption, skipOption, countQueryOption, searchOption, selectOption, computeOption)
     {

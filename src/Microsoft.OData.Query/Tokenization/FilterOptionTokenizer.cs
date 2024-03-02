@@ -30,6 +30,6 @@ public class FilterOptionTokenizer : QueryTokenizer, IFilterOptionTokenizer
         IExpressionLexer lexer = _lexerFactory.CreateLexer(filter, LexerOptions.Default);
         lexer.NextToken(); // move to first token
 
-        return ParseExpression(lexer, context);
+        return TokenizeExpression(lexer, context);
     }
 }

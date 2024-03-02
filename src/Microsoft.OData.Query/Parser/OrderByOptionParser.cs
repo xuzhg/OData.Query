@@ -27,56 +27,9 @@ public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
     {
         _tokenizerFactory = factory;
     }
-    /*
-    public OrderByToken ParseOrderBy(string orderBy, OrderByOptionParserContext context)
-    {
-        Debug.Assert(orderBy != null, "orderBy != null");
 
-        IOTokenizer tokenizer = _tokenizerFactory.CreateTokenizer(orderBy, OTokenizerContext.Default);
-        tokenizer.NextToken(); // move to first token
 
-        OrderByToken headToken = null;
-        OrderByToken previousToken = null;
-        while (true)
-        {
-            QueryToken expression = ParseExpression(tokenizer, context);
-            bool ascending = true;
-            if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordAscending, false))
-            {
-                tokenizer.NextToken();
-            }
-            else if (tokenizer.IsCurrentTokenIdentifier(TokenConstants.KeywordDescending, false))
-            {
-                tokenizer.NextToken();
-                ascending = false;
-            }
-
-            OrderByToken orderByToken = new OrderByToken(expression, ascending ? OrderByDirection.Ascending : OrderByDirection.Descending);
-            if (previousToken == null)
-            {
-                headToken = orderByToken;
-            }
-            else
-            {
-                previousToken.ThenBy = orderByToken;
-            }
-
-            previousToken = orderByToken;
-
-            if (tokenizer.CurrentToken.Kind != OTokenKind.Comma)
-            {
-                break;
-            }
-
-            tokenizer.NextToken();
-        }
-
-        tokenizer.ValidateToken(OTokenKind.EndOfInput);
-
-        return headToken;
-    }*/
-
-    public virtual OrderByClause ParseOrderBy(OrderByToken orderBy, QueryOptionParserContext context)
+    public virtual OrderByClause Parse(OrderByToken orderBy, QueryOptionParserContext context)
     {
         OrderByClause head = null;
         OrderByClause previous = null;

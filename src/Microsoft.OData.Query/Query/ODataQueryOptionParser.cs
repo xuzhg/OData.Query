@@ -12,6 +12,11 @@ using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query;
 
+/// <summary>
+/// Engine Pipeline
+/// 1) 
+/// </summary>
+
 public class ODataQueryOptionParser : IODataQueryOptionParser
 {
     private readonly IServiceProvider _serviceProvider;
@@ -65,10 +70,23 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         return ValueTask.FromResult(queryOption);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="apply"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
     protected virtual ApplyClause ParseApply(ReadOnlyMemory<char> apply, QueryOptionParserContext context)
     {
-        // Need add the aggregate properties into context
-        throw new NotImplementedException();
+        IApplyOptionTokenizer tokenizer = _serviceProvider?.GetService<IApplyOptionTokenizer>()
+            ?? new ApplyOptionTokenizer(ExpressionLexerFactory.Default);
+
+        ApplyToken token = tokenizer.Tokenize(apply.Span.ToString(), context.TokenizerContext);
+
+        IApplyOptionParser parser = _serviceProvider?.GetService<IApplyOptionParser>()
+            ?? new ApplyOptionParser();
+
+        return parser.Parse(token, context);
     }
 
     protected virtual ComputeClause ParseCompute(ReadOnlyMemory<char> compute, QueryOptionParserContext context)
@@ -84,7 +102,15 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
 
     protected virtual FilterClause ParseFilter(ReadOnlyMemory<char> filter, QueryOptionParserContext context)
     {
-        throw new NotImplementedException();
+        IFilterOptionTokenizer tokenizer = _serviceProvider?.GetService<IFilterOptionTokenizer>()
+            ?? new FilterOptionTokenizer(ExpressionLexerFactory.Default);
+
+        QueryToken token = tokenizer.Tokenize(filter.Span.ToString(), context.TokenizerContext);
+
+        IFilterOptionParser parser = _serviceProvider?.GetService<IFilterOptionParser>()
+            ?? new FilterOptionParser();
+
+        return parser.Parse(token, context);
     }
 
     protected virtual OrderByClause ParseOrderBy(ReadOnlyMemory<char> orderBy, QueryOptionParserContext context)
@@ -97,6 +123,6 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         IOrderByOptionParser parser = _serviceProvider?.GetService<IOrderByOptionParser>()
             ?? new OrderByOptionParser();
 
-        return parser.ParseOrderBy(token, context);
+        return parser.Parse(token, context);
     }
 }

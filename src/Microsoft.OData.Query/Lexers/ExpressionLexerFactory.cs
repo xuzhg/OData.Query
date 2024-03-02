@@ -16,7 +16,7 @@ public class ExpressionLexerFactory : ILexerFactory
     internal static ExpressionLexerFactory Default = new ExpressionLexerFactory();
 
     /// <summary>
-    /// Gets the token processed.
+    /// Create the lexer.
     /// </summary>
     public IExpressionLexer CreateLexer(string text, LexerOptions options)
     {

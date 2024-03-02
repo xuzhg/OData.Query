@@ -31,7 +31,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     /// </summary>
     /// <param name="apply">The $apply expression string to Tokenize.</param>
     /// <returns>The order by token tokenized.</returns>
-    public virtual ApplyToken ParseApply(string apply, QueryTokenizerContext context)
+    public virtual ApplyToken Tokenize(string apply, QueryTokenizerContext context)
     {
         Debug.Assert(apply != null, "apply != null");
 
@@ -46,23 +46,23 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         {
             if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableIdentifierCaseSensitive))
             {
-                transformationTokens.Add(ParseAggregate(lexer, context));
+                transformationTokens.Add(TokenizeAggregate(lexer, context));
             }
             else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordFilter, context.EnableIdentifierCaseSensitive))
             {
-                transformationTokens.Add(ParseFilter(lexer, context));
+                transformationTokens.Add(TokenizeFilter(lexer, context));
             }
             else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordGroupBy, context.EnableIdentifierCaseSensitive))
             {
-                transformationTokens.Add(ParseGroupBy(lexer, context));
+                transformationTokens.Add(TokenizeGroupBy(lexer, context));
             }
             else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableIdentifierCaseSensitive))
             {
-                transformationTokens.Add(ParseCompute(lexer, context));
+                transformationTokens.Add(TokenizeCompute(lexer, context));
             }
             else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordExpand, context.EnableIdentifierCaseSensitive))
             {
-                transformationTokens.Add(ParseExpand(lexer, context));
+                transformationTokens.Add(TokenizeExpand(lexer, context));
             }
             else
             {
@@ -86,8 +86,8 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         return new ApplyToken(transformationTokens);
     }
 
-    // parses $apply aggregate transformation (.e.g. aggregate(UnitPrice with sum as TotalUnitPrice))
-    protected virtual AggregateToken ParseAggregate(IExpressionLexer lexer, QueryTokenizerContext context)
+    // Tokenize $apply aggregate transformation (.e.g. aggregate(UnitPrice with sum as TotalUnitPrice))
+    protected virtual AggregateToken TokenizeAggregate(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // Debug.Assert(TokenIdentifierIs(ExpressionConstants.KeywordAggregate), "token identifier is aggregate");
         lexer.NextToken();
@@ -104,7 +104,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         List<AggregateTokenBase> statements = new List<AggregateTokenBase>();
         while (true)
         {
-            statements.Add(ParseAggregateExpression(lexer, context));
+            statements.Add(TokenizeAggregateExpression(lexer, context));
 
             if (lexer.CurrentToken.Kind != ExpressionKind.Comma)
             {
@@ -125,7 +125,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         return new AggregateToken(statements);
     }
 
-    internal AggregateTokenBase ParseAggregateExpression(IExpressionLexer lexer, QueryTokenizerContext context)
+    internal AggregateTokenBase TokenizeAggregateExpression(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         //try
         //{
@@ -173,12 +173,12 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     }
 
     /// <summary>
-    /// parses $apply groupby transformation (.e.g. groupby(ProductID, CategoryId, aggregate(UnitPrice with sum as TotalUnitPrice))
+    /// Tokenize $apply groupby transformation (.e.g. groupby(ProductID, CategoryId, aggregate(UnitPrice with sum as TotalUnitPrice))
     /// </summary>
     /// <param name="tokenizer"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected virtual GroupByToken ParseGroupBy(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual GroupByToken TokenizeGroupBy(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         //  Debug.Assert(TokenIdentifierIs(ExpressionConstants.KeywordGroupBy), "token identifier is groupby");
         lexer.NextToken();
@@ -203,7 +203,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         var properties = new List<EndPathToken>();
         while (true)
         {
-            var expression = ParsePrimary(lexer, context) as EndPathToken;
+            var expression = TokenizePrimary(lexer, context) as EndPathToken;
 
             if (expression == null)
             {
@@ -238,7 +238,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
             if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableIdentifierCaseSensitive))
             {
-                transformationToken = ParseAggregate(lexer, context);
+                transformationToken = TokenizeAggregate(lexer, context);
             }
             else
             {
@@ -258,12 +258,12 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     }
 
     /// <summary>
-    /// parses $apply filter transformation (.e.g. filter(ProductName eq 'Aniseed Syrup'))
+    /// Tokenize $apply filter transformation (.e.g. filter(ProductName eq 'Aniseed Syrup'))
     /// </summary>
     /// <param name="tokenizer"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected virtual QueryToken ParseFilter(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeFilter(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // Debug.Assert(TokenIdentifierIs(ExpressionConstants.KeywordFilter), "token identifier is filter");
         lexer.NextToken();
@@ -274,10 +274,10 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     }
 
     /// <summary>
-    /// Parses $apply compute expression (.e.g. compute(UnitPrice mul SalesPrice as computePrice)
+    /// Tokenize $apply compute expression (.e.g. compute(UnitPrice mul SalesPrice as computePrice)
     /// </summary>
     /// <returns></returns>
-    protected virtual ComputeToken ParseCompute(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual ComputeToken TokenizeCompute(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         Debug.Assert(lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableIdentifierCaseSensitive), "token identifier is compute");
 
@@ -295,7 +295,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
         while (true)
         {
-            ComputeExpressionToken computed = ParseComputeExpression(lexer, context);
+            ComputeExpressionToken computed = TokenizeComputeExpression(lexer, context);
 
             transformationTokens.Add(computed);
 
@@ -319,13 +319,13 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     }
 
     /// <summary>
-    /// Parse compute expression text into a token.
+    /// Tokenize compute expression text into a token.
     /// </summary>
     /// <returns>The lexical token representing the compute expression text.</returns>
-    internal ComputeExpressionToken ParseComputeExpression(IExpressionLexer lexer, QueryTokenizerContext context)
+    internal ComputeExpressionToken TokenizeComputeExpression(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // expression
-        QueryToken expression = ParseExpression(lexer, context);
+        QueryToken expression = TokenizeExpression(lexer, context);
 
         // "as" alias
         // StringLiteralToken alias = ParseAggregateAs(tokenizer, context);
@@ -336,10 +336,10 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     }
 
     /// <summary>
-    /// 
+    /// Tokenize the 'expand' expression within $apply.
     /// </summary>
     /// <returns></returns>
-    protected virtual ExpandToken ParseExpand(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual ExpandToken TokenizeExpand(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         //Debug.Assert(TokenIdentifierIs(TokenConstants.KeywordExpand), "token identifier is expand");
 
@@ -357,7 +357,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
         // First token must be Path
         //var termParser = new SelectExpandTermParser(this.lexer, this.maxDepth - 1, false);
-        PathSegmentToken pathToken = null;// Parse(allowRef: true);
+        SegmentToken pathToken = null;// Parse(allowRef: true);
 
         QueryToken filterToken = null;
         ExpandToken nestedExpand = null;
@@ -373,10 +373,10 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
                 switch (lexer.GetIdentifier().ToString())
                 {
                     case TokenConstants.KeywordFilter:
-                        filterToken = ParseFilter(lexer, context);
+                        filterToken = TokenizeFilter(lexer, context);
                         break;
                     case TokenConstants.KeywordExpand:
-                        ExpandToken tempNestedExpand = ParseExpand(lexer, context);
+                        ExpandToken tempNestedExpand = TokenizeExpand(lexer, context);
                         nestedExpand = nestedExpand == null
                             ? tempNestedExpand
                             : new ExpandToken(nestedExpand.ExpandItems.Concat(tempNestedExpand.ExpandItems));

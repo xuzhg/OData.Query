@@ -155,6 +155,15 @@ public enum QueryTokenKind
     /// </summary>
     CountSegment = 32,
 
+    /// <summary>
+    /// Segment in $select, $expand,...
+    /// </summary>
+    PathSegment,
+
+    Top,
+
+    Skip,
+
     Search,
     Apply,
     SkipToken,

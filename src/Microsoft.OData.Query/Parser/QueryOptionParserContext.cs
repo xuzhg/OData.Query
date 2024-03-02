@@ -9,6 +9,13 @@ using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
+/// <summary>
+/// Settings used by <see cref="ODataUriParser"/>.
+/// </summary>
+public class ODataQueryParserOptions
+{ }
+
+
 public class QueryOptionParserContext
 {
     private QueryTokenizerContext _tokenizerContext = new QueryTokenizerContext();
@@ -75,7 +82,7 @@ public class QueryOptionParserContext
     {
         if (!_parameters.Add(parameter))
         {
-            throw new OQueryParserException(Error.Format(SRResources.QueryOptionParser_RangeVariableAlreadyDeclared, parameter));
+            throw new OQueryParserException(Error.Format(SRResources.QueryTokenizer_RangeVariableAlreadyDeclared, parameter));
         }
     }
 
