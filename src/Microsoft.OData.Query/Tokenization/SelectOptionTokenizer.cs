@@ -5,8 +5,6 @@
 
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
-using System.Data;
-using System.Globalization;
 
 namespace Microsoft.OData.Query.Tokenization;
 

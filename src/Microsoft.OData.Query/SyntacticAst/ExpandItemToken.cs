@@ -189,7 +189,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
         SelectToken selectOption,
         ExpandToken expandOption,
         ComputeToken computeOption,
-        IEnumerable<QueryToken> applyOptions)
+        ApplyToken applyOptions)
         : base(pathToNavigationProp, filterOption, orderByOptions, topOption, skipOption, countQueryOption, searchOption, selectOption, computeOption)
     {
         ExpandOption = expandOption;
@@ -221,7 +221,7 @@ public sealed class ExpandItemToken : SelectExpandItemToken
     /// <summary>
     /// Gets the apply options for this expand term.
     /// </summary>
-    public IEnumerable<QueryToken> ApplyOptions { get; private set; }
+    public ApplyToken ApplyOptions { get; private set; }
 
     /// <summary>
     /// Gets the kind of this expand term.
