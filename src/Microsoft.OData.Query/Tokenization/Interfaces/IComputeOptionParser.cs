@@ -7,12 +7,12 @@ using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Tokenization;
 
-public interface IComputeOptionParser
+public interface IComputeOptionTokenizer
 {
     /// <summary>
     /// Parses $compute query option.
     /// </summary>
     /// <param name="compute">The $compute expression string to parse.</param>
     /// <returns>The compute token.</returns>
-    ComputeToken ParseCompute(string compute, QueryTokenizerContext context);
+    ComputeToken Tokenize(string compute, QueryTokenizerContext context);
 }

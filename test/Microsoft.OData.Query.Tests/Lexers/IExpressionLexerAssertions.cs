@@ -5,26 +5,26 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Lexers;
 using Xunit;
 
-namespace Microsoft.OData.Query.Tests.Tokenization;
+namespace Microsoft.OData.Query.Tests.Lexers;
 
-public static class IOTokenizerAssertions
+public static class IExpressionLexerAssertions
 {
-    public static (OTokenKind, string, int)[] GetTokens(this IOTokenizer tokenizer)
+    public static (ExpressionKind, string, int)[] GetTokens(this IExpressionLexer lexer)
     {
-        Assert.NotNull(tokenizer);
+        Assert.NotNull(lexer);
 
-        IList<(OTokenKind, string, int)> tokens = new List<(OTokenKind, string, int)>();
-        while (tokenizer.NextToken())
+        IList<(ExpressionKind, string, int)> tokens = new List<(ExpressionKind, string, int)>();
+        while (lexer.NextToken())
         {
-            OToken token = tokenizer.CurrentToken;
+            ExpressionToken token = lexer.CurrentToken;
 
             tokens.Add((token.Kind, token.Text.ToString(), token.Position));
         }
 
-        Assert.Equal(OTokenKind.EndOfInput, tokenizer.CurrentToken.Kind);
+        Assert.Equal(ExpressionKind.EndOfInput, lexer.CurrentToken.Kind);
         return tokens.ToArray();
     }
 }

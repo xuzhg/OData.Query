@@ -3,9 +3,9 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-namespace Microsoft.OData.Query.Tests.Tokenization
+namespace Microsoft.OData.Query.Tests.Lexers
 {
-    internal class OTokenKindTests
+    internal class ExpressionKindTests
     {
     }
 }

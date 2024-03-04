@@ -1,7 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using Microsoft.OData.Query.Lexers;
-using Microsoft.OData.Query.Tokenization;
 
 LexerOptions options = new LexerOptions();
 
@@ -44,7 +43,7 @@ while (true)
             Console.WriteLine(" ├──" + token.ToString());
         }
     }
-    catch (OTokenizationException ex)
+    catch (ExpressionLexerException ex)
     {
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(ex.Message);

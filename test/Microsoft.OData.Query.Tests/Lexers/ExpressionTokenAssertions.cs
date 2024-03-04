@@ -3,20 +3,20 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Lexers;
 using Xunit;
 
-namespace Microsoft.OData.Query.Tests.Tokenization;
+namespace Microsoft.OData.Query.Tests.Lexers;
 
-public static class OTokenAssertions
+public static class ExpressionTokenAssertions
 {
-    public static void ShouldBeToken(this (OTokenKind, string, int) token, OTokenKind kind, int startingPosition)
+    public static void ShouldBeToken(this (ExpressionKind, string, int) token, ExpressionKind kind, int startingPosition)
     {
         Assert.Equal(kind, token.Item1);
         Assert.Equal(startingPosition, token.Item3);
     }
 
-    public static void ShouldBeToken(this (OTokenKind, string, int) token, OTokenKind kind, string text, int startingPosition)
+    public static void ShouldBeToken(this (ExpressionKind, string, int) token, ExpressionKind kind, string text, int startingPosition)
     {
         Assert.Equal(kind, token.Item1);
         Assert.Equal(text, token.Item2);

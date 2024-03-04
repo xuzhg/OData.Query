@@ -3,48 +3,47 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
-
 public class OQueryOptionParser : IOQueryOptionParser
 {
-    private readonly IOTokenizerFactory _tokenizerFactory;
+    private readonly ILexerFactory _lexerFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OQueryOptionParser" /> class.
     /// </summary>
-    /// <param name="tokenizerFactory">The required tokenizer.</param>
+    /// <param name="lexerFactory">The required tokenizer.</param>
     /// <exception cref="ArgumentNullException"></exception>
-    public OQueryOptionParser(IOTokenizerFactory tokenizerFactory)
+    public OQueryOptionParser(ILexerFactory lexerFactory)
     {
-        _tokenizerFactory = tokenizerFactory ?? throw new ArgumentNullException(nameof(tokenizerFactory));
+        _lexerFactory = lexerFactory ?? throw new ArgumentNullException(nameof(lexerFactory));
     }
 
     public virtual QueryToken ParseQuery(string query, QueryOptionParserContext context)
     {
-        IOTokenizer tokenizer = _tokenizerFactory.CreateTokenizer(query, new OTokenizerContext());
+        IExpressionLexer lexer = _lexerFactory.CreateLexer(query, LexerOptions.Default);
 
-        while (tokenizer.NextToken())
+        while (lexer.NextToken())
         {
-            OToken token = tokenizer.CurrentToken;
+            ExpressionToken token = lexer.CurrentToken;
 
-            if (token.Kind == OTokenKind.Dollar)
+            if (token.Kind == ExpressionKind.Dollar)
             {
-                if (!tokenizer.NextToken())
+                if (!lexer.NextToken())
                 {
                     break;
                 }
 
-                token = tokenizer.CurrentToken;
+                token = lexer.CurrentToken;
             }
 
-            if (token.Kind != OTokenKind.Identifier)
-            {
-                continue;
-            }
+            //if (token.Kind != lexer.Identifier)
+            //{
+            //    continue;
+            //}
 
             ReadOnlySpan<char> identifier = token.Text.StartsWith("$", StringComparison.Ordinal) ? token.Text[1..] : token.Text;
             if (identifier.Equals("filter", StringComparison.OrdinalIgnoreCase))

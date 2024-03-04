@@ -5,7 +5,6 @@
 
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
@@ -14,20 +13,8 @@ namespace Microsoft.OData.Query.Parser;
 /// </summary>
 public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
 {
-    private IOTokenizerFactory _tokenizerFactory;
-
     public OrderByOptionParser()
     { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OrderByOptionParser" /> class.
-    /// </summary>
-    /// <param name="factory"></param>
-    public OrderByOptionParser(IOTokenizerFactory factory)
-    {
-        _tokenizerFactory = factory;
-    }
-
 
     public virtual OrderByClause Parse(OrderByToken orderBy, QueryOptionParserContext context)
     {
