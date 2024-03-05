@@ -6,19 +6,19 @@
 namespace Microsoft.OData.Query.SyntacticAst;
 
 /// <summary>
-/// Query token representing an Compute token.
+/// Query token representing a Compute token.
 /// </summary>
 public sealed class ComputeToken : ApplyTransformationToken
 {
-    private readonly IEnumerable<ComputeExpressionToken> _expressions;
+    private readonly IEnumerable<ComputeItemToken> _items;
 
     /// <summary>
-    /// Create an ComputeToken.
+    /// Initializes a new instance of the <see cref="ComputeToken" /> class.
     /// </summary>
-    /// <param name="expressions">The list of ComputeExpressionToken.</param>
-    public ComputeToken(IEnumerable<ComputeExpressionToken> expressions)
+    /// <param name="items">The list of ComputeItemToken.</param>
+    public ComputeToken(IEnumerable<ComputeItemToken> items)
     {
-        _expressions = expressions ?? throw new ArgumentNullException(nameof(expressions));
+        _items = items ?? throw new ArgumentNullException(nameof(items));
     }
 
     /// <summary>
@@ -27,7 +27,7 @@ public sealed class ComputeToken : ApplyTransformationToken
     public override QueryTokenKind Kind => QueryTokenKind.Compute;
 
     /// <summary>
-    /// Gets the list of ComputeExpressionToken.
+    /// Gets the list of ComputeItemToken.
     /// </summary>
-    public IEnumerable<ComputeExpressionToken> Expressions => _expressions;
+    public IEnumerable<ComputeItemToken> Items => _items;
 }

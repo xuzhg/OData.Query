@@ -16,7 +16,7 @@ public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
     public OrderByOptionParser()
     { }
 
-    public virtual OrderByClause Parse(OrderByToken orderBy, QueryOptionParserContext context)
+    public virtual OrderByClause Parse(OrderByToken orderBy, QueryParserContext context)
     {
         OrderByClause head = null;
         OrderByClause previous = null;
@@ -52,7 +52,7 @@ public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
     /// <param name="thenBy"> The next OrderBy node, or null if there is no orderby after this.</param>
     /// <param name="orderByToken">The order-by token to bind.</param>
     /// <returns>Returns the combined entityCollection including the ordering.</returns>
-    private OrderByClause ProcessSingleOrderBy(OrderByToken orderByToken, QueryOptionParserContext context)
+    private OrderByClause ProcessSingleOrderBy(OrderByToken orderByToken, QueryParserContext context)
     {
        // ExceptionUtils.CheckArgumentNotNull(state, "state");
        // ExceptionUtils.CheckArgumentNotNull(orderByToken, "orderByToken");

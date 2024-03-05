@@ -18,5 +18,5 @@ public interface IApplyOptionParser
     /// </summary>
     /// <param name="apply">The $apply expression string to parse.</param>
     /// <returns>The apply token parsed.</returns>
-    ApplyClause Parse(ApplyToken apply, QueryOptionParserContext context);
+    ApplyClause Parse(ApplyToken apply, QueryParserContext context);
 }

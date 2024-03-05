@@ -9,5 +9,5 @@ namespace Microsoft.OData.Query.Parser;
 
 public interface ISelectOptionParser
 {
-    SelectToken ParseSelect(string select, QueryOptionParserContext context);
+    SelectToken ParseSelect(string select, QueryParserContext context);
 }

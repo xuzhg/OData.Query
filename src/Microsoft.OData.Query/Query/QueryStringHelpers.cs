@@ -73,7 +73,7 @@ internal static class QueryStringHelpers
     /// <param name="value">The value of the query option.</param>
     /// <returns>Whether value successfully retrieved.</returns>
     public static bool TryGetQueryOption(this IDictionary<string, ReadOnlyMemory<char>> queryOptions,
-        string name, QueryOptionParserContext context, out ReadOnlyMemory<char> value)
+        string name, Parser.QueryParserContext context, out ReadOnlyMemory<char> value)
     {
         value = null;
         if (name == null)

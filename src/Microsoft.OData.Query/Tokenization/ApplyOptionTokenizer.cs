@@ -291,11 +291,11 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
         lexer.NextToken();
 
-        List<ComputeExpressionToken> transformationTokens = new List<ComputeExpressionToken>();
+        List<ComputeItemToken> transformationTokens = new List<ComputeItemToken>();
 
         while (true)
         {
-            ComputeExpressionToken computed = TokenizeComputeExpression(lexer, context);
+            ComputeItemToken computed = TokenizeComputeExpression(lexer, context);
 
             transformationTokens.Add(computed);
 
@@ -322,7 +322,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     /// Tokenize compute expression text into a token.
     /// </summary>
     /// <returns>The lexical token representing the compute expression text.</returns>
-    internal ComputeExpressionToken TokenizeComputeExpression(IExpressionLexer lexer, QueryTokenizerContext context)
+    internal ComputeItemToken TokenizeComputeExpression(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // expression
         QueryToken expression = TokenizeExpression(lexer, context);

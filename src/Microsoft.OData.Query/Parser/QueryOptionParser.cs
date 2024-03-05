@@ -32,7 +32,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="token">The query token on the input.</param>
     /// <returns>The bound query node output.</returns>
-    protected virtual QueryNode Bind(QueryToken token, QueryOptionParserContext context)
+    protected virtual QueryNode Bind(QueryToken token, QueryParserContext context)
     {
         //ExceptionUtils.CheckArgumentNotNull(token, "token");
         context.EnterRecurse();
@@ -141,7 +141,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="rangeVariableToken">The parameter token to bind.</param>
     /// <returns>The bound query node.</returns>
-    protected virtual SingleValueNode BindRangeVariable(RangeVariableToken rangeVariableToken, QueryOptionParserContext context)
+    protected virtual SingleValueNode BindRangeVariable(RangeVariableToken rangeVariableToken, QueryParserContext context)
     {
         RangeVariable variable = context.GetRangeVariable(rangeVariableToken.Name);
         if (variable == null)
@@ -157,7 +157,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="literalToken">The literal token to bind.</param>
     /// <returns>The bound literal token.</returns>
-    protected virtual QueryNode BindLiteral(LiteralToken literalToken, QueryOptionParserContext context)
+    protected virtual QueryNode BindLiteral(LiteralToken literalToken, QueryParserContext context)
     {
         if (!string.IsNullOrEmpty(literalToken.OriginalText))
         {
@@ -177,7 +177,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="binaryOperatorToken">The binary operator token to bind.</param>
     /// <returns>The bound binary operator token.</returns>
-    protected virtual QueryNode BindBinaryOperator(BinaryOperatorToken binaryOperatorToken, QueryOptionParserContext context)
+    protected virtual QueryNode BindBinaryOperator(BinaryOperatorToken binaryOperatorToken, QueryParserContext context)
     {
         SingleValueNode left = Bind(binaryOperatorToken.Left, context) as SingleValueNode;
         if (left == null)
@@ -203,7 +203,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="unaryOperatorToken">The unary operator token to bind.</param>
     /// <returns>The bound unary operator token.</returns>
-    protected virtual QueryNode BindUnaryOperator(UnaryOperatorToken unaryOperatorToken, QueryOptionParserContext context)
+    protected virtual QueryNode BindUnaryOperator(UnaryOperatorToken unaryOperatorToken, QueryParserContext context)
     {
         SingleValueNode operand = Bind(unaryOperatorToken.Operand, context) as SingleValueNode;
         if (operand == null)
@@ -234,7 +234,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="lambdaToken">The LambdaToken to bind.</param>
     /// <returns>A bound Any or All node.</returns>
-    protected virtual QueryNode BindAnyAll(LambdaToken lambdaToken, QueryOptionParserContext context)
+    protected virtual QueryNode BindAnyAll(LambdaToken lambdaToken, QueryParserContext context)
     {
         //ExceptionUtils.CheckArgumentNotNull(lambdaToken, "LambdaToken");
 
@@ -291,7 +291,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="endPathToken">The property access token to bind.</param>
     /// <returns>The bound property access token.</returns>
-    protected virtual QueryNode BindEndPath(EndPathToken endPathToken, QueryOptionParserContext context)
+    protected virtual QueryNode BindEndPath(EndPathToken endPathToken, QueryParserContext context)
     {
         QueryNode parent = DetermineParentNode(endPathToken, context);
 
@@ -341,7 +341,7 @@ public abstract class QueryOptionParser
         throw new Exception("ODataErrorStrings.MetadataBinder_PropertyAccessSourceNotSingleValue(endPathToken.Identifier)");
     }
 
-    private QueryNode DetermineParentNode(EndPathToken segmentToken, QueryOptionParserContext context)
+    private QueryNode DetermineParentNode(EndPathToken segmentToken, QueryParserContext context)
     {
         //ExceptionUtils.CheckArgumentNotNull(segmentToken, "segmentToken");
         //ExceptionUtils.CheckArgumentNotNull(state, "state");

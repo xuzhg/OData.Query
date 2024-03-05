@@ -9,5 +9,5 @@ namespace Microsoft.OData.Query.Parser;
 
 public interface ISearchOptionParser
 {
-    SearchToken ParseSearch(string search, QueryOptionParserContext context);
+    SearchToken ParseSearch(string search, QueryParserContext context);
 }

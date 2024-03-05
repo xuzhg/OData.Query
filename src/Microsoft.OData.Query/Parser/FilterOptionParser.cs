@@ -12,7 +12,7 @@ namespace Microsoft.OData.Query.Parser;
 
 public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
 {
-    public virtual FilterClause Parse(QueryToken filter, QueryOptionParserContext context)
+    public virtual FilterClause Parse(QueryToken filter, QueryParserContext context)
     {
         QueryNode expressionNode = Bind(filter, context);
 

@@ -36,7 +36,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
     /// <param name="query">The odata query string, it should be escaped query string.</param>
     /// <param name="context"></param>
     /// <returns></returns>
-    public virtual ValueTask<ODataQueryOption> ParseQueryAsync(string query, QueryOptionParserContext context)
+    public virtual ValueTask<ODataQueryOption> ParseQueryAsync(string query, QueryParserContext context)
     {
         IDictionary<string, ReadOnlyMemory<char>> queryOptionsDict = QueryStringHelpers.SplitQuery(query);
 
@@ -76,7 +76,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
     /// <param name="apply"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected virtual ApplyClause ParseApply(ReadOnlyMemory<char> apply, QueryOptionParserContext context)
+    protected virtual ApplyClause ParseApply(ReadOnlyMemory<char> apply, QueryParserContext context)
     {
         IApplyOptionTokenizer tokenizer = _serviceProvider?.GetService<IApplyOptionTokenizer>()
             ?? new ApplyOptionTokenizer(ExpressionLexerFactory.Default);
@@ -89,18 +89,18 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         return parser.Parse(token, context);
     }
 
-    protected virtual ComputeClause ParseCompute(ReadOnlyMemory<char> compute, QueryOptionParserContext context)
+    protected virtual ComputeClause ParseCompute(ReadOnlyMemory<char> compute, QueryParserContext context)
     {
         // Need add the aggregate properties into context
         throw new NotImplementedException();
     }
 
-    protected virtual SearchClause ParseSearch(ReadOnlyMemory<char> search, QueryOptionParserContext context)
+    protected virtual SearchClause ParseSearch(ReadOnlyMemory<char> search, QueryParserContext context)
     {
         throw new NotImplementedException();
     }
 
-    protected virtual FilterClause ParseFilter(ReadOnlyMemory<char> filter, QueryOptionParserContext context)
+    protected virtual FilterClause ParseFilter(ReadOnlyMemory<char> filter, QueryParserContext context)
     {
         IFilterOptionTokenizer tokenizer = _serviceProvider?.GetService<IFilterOptionTokenizer>()
             ?? new FilterOptionTokenizer(ExpressionLexerFactory.Default);
@@ -113,7 +113,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         return parser.Parse(token, context);
     }
 
-    protected virtual OrderByClause ParseOrderBy(ReadOnlyMemory<char> orderBy, QueryOptionParserContext context)
+    protected virtual OrderByClause ParseOrderBy(ReadOnlyMemory<char> orderBy, QueryParserContext context)
     {
         IOrderByOptionTokenizer tokenizer = _serviceProvider?.GetService<IOrderByOptionTokenizer>()
             ?? new OrderByOptionTokenizer(ExpressionLexerFactory.Default);

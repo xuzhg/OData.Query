@@ -5,7 +5,7 @@
 
 namespace Microsoft.OData.Query.Parser;
 
-public class OrderByOptionParserContext : QueryOptionParserContext
+public class OrderByOptionParserContext : QueryParserContext
 {
     public OrderByOptionParserContext(Type elementType) :
         base(elementType)

@@ -97,6 +97,15 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Key word &apos;{0}&apos; expected at position &apos;{1}&apos; in &apos;{2}&apos;..
+        /// </summary>
+        internal static string QueryTokenizer_KeyWordExpected {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_KeyWordExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The max depth must be greater than or equal to zero..
         /// </summary>
         internal static string QueryTokenizer_NegativeMaxDepth {

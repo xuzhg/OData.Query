@@ -131,9 +131,9 @@ public enum QueryTokenKind
     Compute = 27,
 
     /// <summary>
-    /// $compute expression token
+    /// $compute item token
     /// </summary>
-    ComputeExpression = 28,
+    ComputeItem = 28,
 
     /// <summary>
     /// $apply aggregate statement to a entity set token

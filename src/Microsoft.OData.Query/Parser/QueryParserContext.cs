@@ -15,22 +15,18 @@ namespace Microsoft.OData.Query.Parser;
 public class ODataQueryParserOptions
 { }
 
-
-public class QueryOptionParserContext
+/// <summary>
+/// Query parser context.
+/// </summary>
+public class QueryParserContext
 {
     private QueryTokenizerContext _tokenizerContext = new QueryTokenizerContext();
 
-    public bool IgnoreUnknownQuery { get; set; }
-
-    public bool EnableIdentifierCaseSensitive
-    {
-        get => _tokenizerContext.EnableIdentifierCaseSensitive;
-        set => _tokenizerContext.EnableIdentifierCaseSensitive = value;
-    }
-
-    public bool EnableNoDollarSignOption { get; set; } = true;
-
-    public QueryOptionParserContext(Type elementType)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="QueryParserContext" /> class.
+    /// </summary>
+    /// <param name="elementType">The target element type for this query.</param>
+    public QueryParserContext(Type elementType)
     {
         ElementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
 
@@ -40,6 +36,21 @@ public class QueryOptionParserContext
 
         Resolver = new MetadataResolver();
     }
+
+    public bool IgnoreUnknownQuery { get; set; }
+
+    public bool EnableIdentifierCaseSensitive
+    {
+        get => _tokenizerContext.EnableIdentifierCaseSensitive;
+        set => _tokenizerContext.EnableIdentifierCaseSensitive = value;
+    }
+
+    /// <summary>
+    /// Gets or Sets an option whether no dollar query options is enabled.
+    /// If it is enabled, the '$' prefix of system query options becomes optional.
+    /// For example, "select" and "$select" are equivalent in this case.
+    /// </summary>
+    public bool EnableNoDollarSignOption { get; set; } = true;
 
     public IMetadataResolver Resolver { get; set; }
 

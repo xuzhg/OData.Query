@@ -7,12 +7,15 @@ using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Tokenization;
 
+/// <summary>
+/// Tokenize the $compute query expression and produces the lexical object model.
+/// </summary>
 public interface IComputeOptionTokenizer
 {
     /// <summary>
-    /// Parses $compute query option.
+    /// Tokenize $compute query option.
     /// </summary>
-    /// <param name="compute">The $compute expression string to parse.</param>
-    /// <returns>The compute token.</returns>
-    ComputeToken Tokenize(string compute, QueryTokenizerContext context);
+    /// <param name="compute">The $compute expression string to tokenize.</param>
+    /// <returns>The compute token tokenized.</returns>
+    ValueTask<ComputeToken> TokenizeAsync(string compute, QueryTokenizerContext context);
 }

@@ -14,7 +14,7 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
     public ApplyOptionParser()
     { }
 
-    public virtual ApplyClause Parse(ApplyToken apply, QueryOptionParserContext context)
+    public virtual ApplyClause Parse(ApplyToken apply, QueryParserContext context)
     {
         List<TransformationNode> transformations = new List<TransformationNode>();
         foreach (QueryToken token in apply.Transformations)
@@ -54,7 +54,7 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
         return new ApplyClause(transformations);
     }
 
-    protected virtual AggregateTransformationNode BindAggregate(AggregateToken token, QueryOptionParserContext context)
+    protected virtual AggregateTransformationNode BindAggregate(AggregateToken token, QueryParserContext context)
     {
         IEnumerable<AggregateTokenBase> aggregateTokens = MergeEntitySetAggregates(token.AggregateExpressions, context);
         List<AggregateExpressionBase> statements = new List<AggregateExpressionBase>();
@@ -67,7 +67,7 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
         return new AggregateTransformationNode(statements);
     }
 
-    private static IEnumerable<AggregateTokenBase> MergeEntitySetAggregates(IEnumerable<AggregateTokenBase> tokens, QueryOptionParserContext context)
+    private static IEnumerable<AggregateTokenBase> MergeEntitySetAggregates(IEnumerable<AggregateTokenBase> tokens, QueryParserContext context)
     {
         List<AggregateTokenBase> mergedTokens = new List<AggregateTokenBase>();
         Dictionary<string, AggregateTokenBase> entitySetTokens = new Dictionary<string, AggregateTokenBase>();
@@ -102,7 +102,7 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
         return mergedTokens.Concat(entitySetTokens.Values).ToList();
     }
 
-    protected virtual AggregateExpressionBase BindAggregateExpressionToken(AggregateTokenBase aggregateToken, QueryOptionParserContext context)
+    protected virtual AggregateExpressionBase BindAggregateExpressionToken(AggregateTokenBase aggregateToken, QueryParserContext context)
     {
         switch (aggregateToken.Kind)
         {
@@ -135,7 +135,7 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
         return null;
     }
 
-    protected virtual GroupByTransformationNode BindGroupByToken(GroupByToken token, QueryOptionParserContext context)
+    protected virtual GroupByTransformationNode BindGroupByToken(GroupByToken token, QueryParserContext context)
     {
         List<GroupByPropertyNode> properties = new List<GroupByPropertyNode>();
 
@@ -192,10 +192,10 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
         return new GroupByTransformationNode(properties, aggregate, null);
     }
 
-    protected virtual ComputeTransformationNode BindComputeToken(ComputeToken token, QueryOptionParserContext context)
+    protected virtual ComputeTransformationNode BindComputeToken(ComputeToken token, QueryParserContext context)
     {
         var statements = new List<ComputeExpression>();
-        foreach (ComputeExpressionToken statementToken in token.Expressions)
+        foreach (ComputeItemToken statementToken in token.Items)
         {
             var singleValueNode = (SingleValueNode)Bind(statementToken.Expression, context);
             statements.Add(new ComputeExpression(singleValueNode, statementToken.Alias, singleValueNode.NodeType));

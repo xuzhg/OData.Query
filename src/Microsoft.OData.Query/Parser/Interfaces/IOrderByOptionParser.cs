@@ -17,5 +17,5 @@ public interface IOrderByOptionParser
     /// </summary>
     /// <param name="orderBy">The $orderby expression string to parse.</param>
     /// <returns>The order by token parsed.</returns>
-    OrderByClause Parse(OrderByToken orderBy, QueryOptionParserContext context);
+    OrderByClause Parse(OrderByToken orderBy, QueryParserContext context);
 }

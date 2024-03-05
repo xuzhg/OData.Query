@@ -21,5 +21,5 @@ public interface IODataQueryOptionParser
     /// <param name="query"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    ValueTask<ODataQueryOption> ParseQueryAsync(string query, QueryOptionParserContext context);
+    ValueTask<ODataQueryOption> ParseQueryAsync(string query, Parser.QueryParserContext context);
 }
