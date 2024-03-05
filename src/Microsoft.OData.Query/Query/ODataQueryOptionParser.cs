@@ -36,7 +36,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
     /// <param name="query">The odata query string, it should be escaped query string.</param>
     /// <param name="context"></param>
     /// <returns></returns>
-    public virtual ValueTask<ODataQueryOption> ParseQueryAsync(string query, QueryParserContext context)
+    public virtual async ValueTask<ODataQueryOption> ParseQueryAsync(string query, QueryParserContext context)
     {
         IDictionary<string, ReadOnlyMemory<char>> queryOptionsDict = QueryStringHelpers.SplitQuery(query);
 
@@ -64,10 +64,10 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         // $orderBy
         if (queryOptionsDict.TryGetQueryOption(QueryStringConstants.OrderBy, context, out ReadOnlyMemory<char> orderBy))
         {
-            queryOption.OrderBy = ParseOrderBy(orderBy, context);
+            queryOption.OrderBy = await ParseOrderBy(orderBy, context);
         }
 
-        return ValueTask.FromResult(queryOption);
+        return await ValueTask.FromResult(queryOption);
     }
 
     /// <summary>
@@ -113,12 +113,12 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         return parser.Parse(token, context);
     }
 
-    protected virtual OrderByClause ParseOrderBy(ReadOnlyMemory<char> orderBy, QueryParserContext context)
+    protected virtual async ValueTask<OrderByClause> ParseOrderBy(ReadOnlyMemory<char> orderBy, QueryParserContext context)
     {
         IOrderByOptionTokenizer tokenizer = _serviceProvider?.GetService<IOrderByOptionTokenizer>()
             ?? new OrderByOptionTokenizer(ExpressionLexerFactory.Default);
 
-        OrderByToken token = tokenizer.Tokenize(orderBy.Span.ToString(), context.TokenizerContext);
+        OrderByToken token = await tokenizer.TokenizeAsync(orderBy.Span.ToString(), context.TokenizerContext);
 
         IOrderByOptionParser parser = _serviceProvider?.GetService<IOrderByOptionParser>()
             ?? new OrderByOptionParser();

@@ -31,7 +31,7 @@ public class OrderByOptionTokenizer : QueryTokenizer, IOrderByOptionTokenizer
     /// </summary>
     /// <param name="orderBy">The $orderby expression string to Tokenize.</param>
     /// <returns>The order by token tokenized.</returns>
-    public virtual OrderByToken Tokenize(string orderBy, QueryTokenizerContext context)
+    public virtual async ValueTask<OrderByToken> TokenizeAsync(string orderBy, QueryTokenizerContext context)
     {
         Debug.Assert(orderBy != null, "orderBy != null");
 
@@ -76,6 +76,6 @@ public class OrderByOptionTokenizer : QueryTokenizer, IOrderByOptionTokenizer
 
         lexer.ValidateToken(ExpressionKind.EndOfInput);
 
-        return headToken;
+        return await ValueTask.FromResult(headToken);
     }
 }
