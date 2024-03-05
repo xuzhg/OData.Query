@@ -40,7 +40,7 @@ public abstract class QueryTokenizer
     /// Tokenize the 'or' operator.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    protected QueryToken TokenizeLogicalOr(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeLogicalOr(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
         QueryToken left = TokenizeLogicalAnd(lexer, context);
@@ -59,7 +59,7 @@ public abstract class QueryTokenizer
     /// Tokenize the 'and' operator.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken TokenizeLogicalAnd(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeLogicalAnd(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
         QueryToken left = this.TokenizeComparison(lexer, context);
@@ -78,7 +78,7 @@ public abstract class QueryTokenizer
     /// Tokenize the 'eq', 'ne', 'lt', 'gt', 'le', and 'ge' operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken TokenizeComparison(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeComparison(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
         QueryToken left = TokenizeAdditive(lexer, context);
@@ -127,7 +127,7 @@ public abstract class QueryTokenizer
     /// Tokenize the 'add', 'sub' operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken TokenizeAdditive(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeAdditive(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
         QueryToken left = TokenizeMultiplicative(lexer, context);
@@ -158,7 +158,7 @@ public abstract class QueryTokenizer
     /// Tokenize the '-', 'not' unary operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken TokenizeUnary(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeUnary(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
 
@@ -201,7 +201,7 @@ public abstract class QueryTokenizer
     /// Tokenize the 'has' and 'in' operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken TokenizeInHas(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeInHas(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
         QueryToken left = TokenizePrimary(lexer, context);
@@ -276,7 +276,7 @@ public abstract class QueryTokenizer
         return expr;
     }
 
-    private QueryToken TokenizeIdentifier(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
+    protected virtual QueryToken TokenizeIdentifier(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
     {
         lexer.ValidateToken(ExpressionKind.Identifier);
 
@@ -297,7 +297,7 @@ public abstract class QueryTokenizer
     /// </summary>
     /// <param name="parent">The parent of the segment node.</param>
     /// <returns>The lexical token representing the $count segment.</returns>
-    private QueryToken TokenizeCountSegment(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
+    protected virtual QueryToken TokenizeCountSegment(IExpressionLexer lexer, QueryTokenizerContext context, QueryToken parent)
     {
         lexer.NextToken();
 
@@ -310,7 +310,7 @@ public abstract class QueryTokenizer
     /// Tokenize the start of primary expressions.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken TokenizePrimaryStart(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizePrimaryStart(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         switch (lexer.CurrentToken.Kind)
         {
@@ -475,7 +475,7 @@ public abstract class QueryTokenizer
     /// Tokenize parenthesized expressions.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    private QueryToken TokenizeParenExpression(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual QueryToken TokenizeParenExpression(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         if (lexer.CurrentToken.Kind != ExpressionKind.OpenParen)
         {
