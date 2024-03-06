@@ -15,6 +15,10 @@ public class FilterOptionTokenizer : QueryTokenizer, IFilterOptionTokenizer
 {
     private ILexerFactory _lexerFactory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FilterOptionTokenizer" /> class.
+    /// </summary>
+    /// <param name="factory"></param>
     public FilterOptionTokenizer(ILexerFactory factory)
     {
         _lexerFactory = factory;
@@ -25,11 +29,13 @@ public class FilterOptionTokenizer : QueryTokenizer, IFilterOptionTokenizer
     /// </summary>
     /// <param name="filter">The $filter expression string to tokenize.</param>
     /// <returns>The filter token tokenized.</returns>
-    public virtual QueryToken Tokenize(string filter, QueryTokenizerContext context)
+    public virtual async ValueTask<QueryToken> TokenizeAsync(string filter, QueryTokenizerContext context)
     {
         IExpressionLexer lexer = _lexerFactory.CreateLexer(filter, LexerOptions.Default);
         lexer.NextToken(); // move to first token
 
-        return TokenizeExpression(lexer, context);
+        QueryToken result = TokenizeExpression(lexer, context);
+
+        return await ValueTask.FromResult(result);
     }
 }

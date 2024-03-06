@@ -22,7 +22,6 @@ public class SearchOptionTokenizerTests
         _searchTokenizer = new SearchOptionTokenizer(ExpressionLexerFactory.Default);
     }
 
-    
     [Theory]
     [InlineData("Any")]
     [InlineData("\"A AND BC AND DEF\"")] // one phrase

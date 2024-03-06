@@ -11,6 +11,24 @@ namespace Microsoft.OData.Query.Tests.SyntacticAst;
 
 public static class QueryTokenAssertions
 {
+    public static LiteralToken ShouldBeLiteralToken(this QueryToken token, object expectedValue)
+    {
+        Assert.NotNull(token);
+        LiteralToken literalToken = Assert.IsType<LiteralToken>(token);
+        Assert.Equal(QueryTokenKind.Literal, literalToken.Kind);
+        Assert.Equal(expectedValue, literalToken.Value);
+        return literalToken;
+    }
+
+    public static EndPathToken ShouldBeEndPathToken(this QueryToken token, string expectedName)
+    {
+        Assert.NotNull(token);
+        EndPathToken propertyAccessQueryToken = Assert.IsType<EndPathToken>(token);
+        Assert.Equal(QueryTokenKind.EndPath, propertyAccessQueryToken.Kind);
+        Assert.Equal(expectedName, propertyAccessQueryToken.Identifier);
+        return propertyAccessQueryToken;
+    }
+
     public static BinaryOperatorToken ShouldBeBinaryOperatorQueryToken(this QueryToken token, BinaryOperatorKind expectedOperatorKind)
     {
         Assert.NotNull(token);

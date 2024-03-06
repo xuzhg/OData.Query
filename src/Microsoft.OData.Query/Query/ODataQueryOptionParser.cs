@@ -58,7 +58,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         // $filter
         if (queryOptionsDict.TryGetQueryOption(QueryStringConstants.Filter, context, out ReadOnlyMemory<char> filter))
         {
-            queryOption.Filter = ParseFilter(filter, context);
+            queryOption.Filter = await ParseFilter(filter, context);
         }
 
         // $orderBy
@@ -100,12 +100,12 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         throw new NotImplementedException();
     }
 
-    protected virtual FilterClause ParseFilter(ReadOnlyMemory<char> filter, QueryParserContext context)
+    protected virtual async ValueTask<FilterClause> ParseFilter(ReadOnlyMemory<char> filter, QueryParserContext context)
     {
         IFilterOptionTokenizer tokenizer = _serviceProvider?.GetService<IFilterOptionTokenizer>()
             ?? new FilterOptionTokenizer(ExpressionLexerFactory.Default);
 
-        QueryToken token = tokenizer.Tokenize(filter.Span.ToString(), context.TokenizerContext);
+        QueryToken token = await tokenizer.TokenizeAsync(filter.Span.ToString(), context.TokenizerContext);
 
         IFilterOptionParser parser = _serviceProvider?.GetService<IFilterOptionParser>()
             ?? new FilterOptionParser();
