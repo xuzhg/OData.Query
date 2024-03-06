@@ -18,7 +18,7 @@ public class ODataQueryOptionParserTests
         // Arrange
         IODataQueryOptionParser parser = new ODataQueryOptionParser(null);
         string query = "?$orderby=Name";
-        Query.Parser.QueryParserContext context = new Query.Parser.QueryParserContext(typeof(Person));
+        QueryParserContext context = new QueryParserContext(typeof(Person));
 
         // Act
         var result = await parser.ParseQueryAsync(query, context);
@@ -34,7 +34,7 @@ public class ODataQueryOptionParserTests
         // Arrange
         IODataQueryOptionParser parser = new ODataQueryOptionParser(null);
         string query = "?$orderby=location/street";
-        Query.Parser.QueryParserContext context = new Query.Parser.QueryParserContext(typeof(Person));
+        QueryParserContext context = new QueryParserContext(typeof(Person));
 
         // Act
         var result = await parser.ParseQueryAsync(query, context);

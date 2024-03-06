@@ -17,5 +17,5 @@ public interface IApplyOptionTokenizer
     /// </summary>
     /// <param name="apply">The $apply expression string to tokenize.</param>
     /// <returns>The apply token tokenized.</returns>
-    ApplyToken Tokenize(string apply, QueryTokenizerContext context);
+    ValueTask<ApplyToken> TokenizeAsync(string apply, QueryTokenizerContext context);
 }

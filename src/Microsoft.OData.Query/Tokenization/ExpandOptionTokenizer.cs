@@ -25,7 +25,7 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
     /// </summary>
     /// <param name="expand">The $expand expression string to tokenize.</param>
     /// <returns>The expand token tokenized.</returns>
-    public virtual ExpandToken Tokenize(string expand, QueryTokenizerContext context)
+    public virtual async ValueTask<ExpandToken> TokenizeAsync(string expand, QueryTokenizerContext context)
     {
         IExpressionLexer lexer = _lexerFactory.CreateLexer(expand, LexerOptions.Default);
         lexer.NextToken(); // move to first token
@@ -84,7 +84,7 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
             throw new QueryTokenizerException("ODataErrorStrings.UriSelectParser_TermIsNotValid(this.lexer.ExpressionText)");
         }
 
-        return new ExpandToken(itemTokens);
+        return await ValueTask.FromResult(new ExpandToken(itemTokens));
     }
 
     /// <summary>

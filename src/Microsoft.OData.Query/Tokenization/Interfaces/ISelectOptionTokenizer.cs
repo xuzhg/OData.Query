@@ -17,5 +17,5 @@ public interface ISelectOptionTokenizer
     /// </summary>
     /// <param name="select">The $select expression string to tokenize.</param>
     /// <returns>The select token tokenized.</returns>
-    SelectToken Tokenize(string select, QueryTokenizerContext context);
+    ValueTask<SelectToken> TokenizeAsync(string select, QueryTokenizerContext context);
 }

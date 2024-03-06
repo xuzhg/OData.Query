@@ -17,5 +17,5 @@ public interface IExpandOptionTokenizer
     /// </summary>
     /// <param name="expand">The $expand expression string to tokenize.</param>
     /// <returns>The expand token tokenized.</returns>
-    ExpandToken Tokenize(string expand, QueryTokenizerContext context);
+    ValueTask<ExpandToken> TokenizeAsync(string expand, QueryTokenizerContext context);
 }

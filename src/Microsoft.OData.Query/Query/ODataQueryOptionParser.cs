@@ -46,7 +46,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         // $apply
         if (queryOptionsDict.TryGetQueryOption(QueryStringConstants.Apply, context, out ReadOnlyMemory<char> apply))
         {
-            queryOption.Apply = ParseApply(apply, context);
+            queryOption.Apply = await ParseApply(apply, context);
         }
 
         // $compute
@@ -76,12 +76,12 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
     /// <param name="apply"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected virtual ApplyClause ParseApply(ReadOnlyMemory<char> apply, QueryParserContext context)
+    protected virtual async ValueTask<ApplyClause> ParseApply(ReadOnlyMemory<char> apply, QueryParserContext context)
     {
         IApplyOptionTokenizer tokenizer = _serviceProvider?.GetService<IApplyOptionTokenizer>()
             ?? new ApplyOptionTokenizer(ExpressionLexerFactory.Default);
 
-        ApplyToken token = tokenizer.Tokenize(apply.Span.ToString(), context.TokenizerContext);
+        ApplyToken token = await tokenizer.TokenizeAsync(apply.Span.ToString(), context.TokenizerContext);
 
         IApplyOptionParser parser = _serviceProvider?.GetService<IApplyOptionParser>()
             ?? new ApplyOptionParser();

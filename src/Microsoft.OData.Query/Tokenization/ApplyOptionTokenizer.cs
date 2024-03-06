@@ -31,7 +31,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     /// </summary>
     /// <param name="apply">The $apply expression string to Tokenize.</param>
     /// <returns>The order by token tokenized.</returns>
-    public virtual ApplyToken Tokenize(string apply, QueryTokenizerContext context)
+    public virtual async ValueTask<ApplyToken> TokenizeAsync(string apply, QueryTokenizerContext context)
     {
         Debug.Assert(apply != null, "apply != null");
 
@@ -83,7 +83,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
         lexer.ValidateToken(ExpressionKind.EndOfInput);
 
-        return new ApplyToken(transformationTokens);
+        return await ValueTask.FromResult(new ApplyToken(transformationTokens));
     }
 
     // Tokenize $apply aggregate transformation (.e.g. aggregate(UnitPrice with sum as TotalUnitPrice))
