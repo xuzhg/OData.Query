@@ -15,6 +15,8 @@ namespace Microsoft.OData.Query.Tokenization;
 /// </summary>
 public class OrderByOptionTokenizer : QueryTokenizer, IOrderByOptionTokenizer
 {
+    internal static OrderByOptionTokenizer Default = new OrderByOptionTokenizer(ExpressionLexerFactory.Default);
+
     private ILexerFactory _lexerFactory;
 
     /// <summary>

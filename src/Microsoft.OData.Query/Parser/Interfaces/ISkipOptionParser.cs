@@ -5,7 +5,7 @@
 
 namespace Microsoft.OData.Query.Parser;
 
-public interface ISelectOptionParser
+public interface ISkipOptionParser
 {
-    ValueTask<SelectClause> ParseAsync(string select, QueryParserContext context);
+    ValueTask<long> ParseAsync(string skip, QueryParserContext context);
 }

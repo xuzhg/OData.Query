@@ -3,7 +3,9 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Parser;
+using System.Linq.Expressions;
 
 namespace Microsoft.OData.Query;
 
@@ -22,4 +24,26 @@ public interface IODataQueryOptionParser
     /// <param name="context"></param>
     /// <returns></returns>
     ValueTask<ODataQueryOption> ParseQueryAsync(string query, Parser.QueryParserContext context);
+}
+
+
+
+public interface IODataQueryOptionApplier
+{
+    ValueTask<IQueryable> ApplyAsync(IQueryable source, string query, QueryParserContext context);
+}
+
+public interface IFilterQueryApplier
+{
+    ValueTask<IQueryable> ApplyAsync(IQueryable source, string filter, QueryParserContext context);
+}
+
+public interface IOrderByQueryApplier
+{
+    ValueTask<IQueryable> ApplyAsync(IQueryable source, string orderBy, QueryParserContext context);
+}
+
+public interface IFilterQueryBinder
+{
+    ValueTask<Expression> BindAsync(FilterClause filterClause, Parser.QueryParserContext context);
 }

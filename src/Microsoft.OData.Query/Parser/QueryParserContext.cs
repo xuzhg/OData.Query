@@ -93,7 +93,7 @@ public class QueryParserContext
     {
         if (!_parameters.Add(parameter))
         {
-            throw new OQueryParserException(Error.Format(SRResources.QueryTokenizer_RangeVariableAlreadyDeclared, parameter));
+            throw new QueryParserException(Error.Format(SRResources.QueryTokenizer_RangeVariableAlreadyDeclared, parameter));
         }
     }
 

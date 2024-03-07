@@ -44,6 +44,7 @@ public class ComputeClause { }
 
 public class ODataQueryOption
 {
+
     public ApplyClause Apply { get; set; }
 
     public FilterClause Filter { get; set; }
@@ -57,4 +58,6 @@ public class ODataQueryOption
     public ComputeClause Compute { get; set; }
 
     public OrderByClause OrderBy { get; set; }
+
+    public bool? Count { get; set; }
 }

@@ -97,6 +97,15 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for &apos;{1}&apos; query option found. The &apos;{1}&apos; query option requires an integer value..
+        /// </summary>
+        internal static string QueryParser_InvalidIntegerQueryOptionValue {
+            get {
+                return ResourceManager.GetString("QueryParser_InvalidIntegerQueryOptionValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key word &apos;{0}&apos; expected at position &apos;{1}&apos; in &apos;{2}&apos;..
         /// </summary>
         internal static string QueryTokenizer_KeyWordExpected {

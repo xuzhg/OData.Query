@@ -3,6 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Parser;
@@ -18,4 +19,6 @@ public interface IOrderByOptionParser
     /// <param name="orderBy">The $orderby expression string to parse.</param>
     /// <returns>The order by token parsed.</returns>
     OrderByClause Parse(OrderByToken orderBy, QueryParserContext context);
+
+    ValueTask<OrderByClause> ParseAsync(string orderBy, QueryParserContext context);
 }

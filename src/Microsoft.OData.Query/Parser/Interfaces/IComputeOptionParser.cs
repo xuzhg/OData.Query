@@ -5,7 +5,7 @@
 
 namespace Microsoft.OData.Query.Parser;
 
-public interface ISelectOptionParser
+public interface IComputeOptionParser
 {
-    ValueTask<SelectClause> ParseAsync(string select, QueryParserContext context);
+    ValueTask<ComputeClause> ParseAsync(string compute, QueryParserContext context);
 }

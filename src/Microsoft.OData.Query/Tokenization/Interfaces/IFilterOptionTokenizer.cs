@@ -13,7 +13,7 @@ namespace Microsoft.OData.Query.Tokenization;
 public interface IFilterOptionTokenizer
 {
     /// <summary>
-    /// Tokenize the $filter expression like "Name eq 'Sam'" to a search tree.
+    /// Tokenize the $filter expression like "Name eq 'Sam'".
     /// </summary>
     /// <param name="filter">The $filter expression string to tokenize.</param>
     /// <returns>The filter token tokenized.</returns>

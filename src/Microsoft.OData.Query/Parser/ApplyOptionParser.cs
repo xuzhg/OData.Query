@@ -6,13 +6,62 @@
 using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
+using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
+/// <summary>
+/// The default parser to parse $apply clause.
+/// </summary>
 public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplyOptionParser" /> class.
+    /// </summary>
     public ApplyOptionParser()
+        : this(ApplyOptionTokenizer.Default)
     { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplyOptionParser" /> class.
+    /// </summary>
+    /// <param name="tokenizer"></param>
+    public ApplyOptionParser(IApplyOptionTokenizer tokenizer)
+    {
+        Tokenizer = tokenizer ?? throw new ArgumentNullException(nameof(tokenizer));
+    }
+
+    /// <summary>
+    /// Gets the tokenizer.
+    /// </summary>
+    public IApplyOptionTokenizer Tokenizer { get; }
+
+    /// <summary>
+    /// Parses the $apply expression.
+    /// </summary>
+    /// <param name="apply">The $apply expression string to parse.</param>
+    /// <param name="context">The parser context.</param>
+    /// <returns>The apply token parsed.</returns>
+    public virtual async ValueTask<ApplyClause> ParseAsync(string apply, QueryParserContext context)
+    {
+        if (string.IsNullOrEmpty(apply))
+        {
+            throw new ArgumentNullException(nameof(apply));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        ApplyToken applyToken = await Tokenizer.TokenizeAsync(apply, context.TokenizerContext);
+        if (applyToken == null)
+        {
+            throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
+        }
+
+        return Parse(applyToken, context);
+    }
 
     public virtual ApplyClause Parse(ApplyToken apply, QueryParserContext context)
     {

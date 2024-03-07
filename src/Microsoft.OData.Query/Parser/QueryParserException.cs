@@ -8,12 +8,12 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// Represents a query option parser exception.
 /// </summary>
-public class OQueryParserException : Exception
+public class QueryParserException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="OQueryParserException" /> class.
+    /// Initializes a new instance of the <see cref="QueryParserException" /> class.
     /// </summary>
     /// <param name="message">The exception message.</param>
-    public OQueryParserException(string message) : base(message)
+    public QueryParserException(string message) : base(message)
     { }
 }

@@ -13,6 +13,8 @@ namespace Microsoft.OData.Query.Tokenization;
 /// </summary>
 public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionTokenizer
 {
+    internal static ExpandOptionTokenizer Default = new ExpandOptionTokenizer(ExpressionLexerFactory.Default);
+
     private ILexerFactory _lexerFactory;
 
     public ExpandOptionTokenizer(ILexerFactory factory)

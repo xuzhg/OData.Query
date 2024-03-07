@@ -5,6 +5,7 @@
 
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
+using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
@@ -13,8 +14,27 @@ namespace Microsoft.OData.Query.Parser;
 /// </summary>
 public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OrderByOptionParser" /> class.
+    /// </summary>
     public OrderByOptionParser()
-    { }
+        : this(OrderByOptionTokenizer.Default)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FilterOptionParser" /> class.
+    /// </summary>
+    /// <param name="tokenizer">The filter option tokenizer.</param>
+    public OrderByOptionParser(IOrderByOptionTokenizer tokenizer)
+    {
+        Tokenizer = tokenizer;
+    }
+
+    /// <summary>
+    /// Gets the tokenizer.
+    /// </summary>
+    public IOrderByOptionTokenizer Tokenizer { get; }
 
     public virtual OrderByClause Parse(OrderByToken orderBy, QueryParserContext context)
     {
@@ -43,6 +63,33 @@ public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
         }
 
         return head;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="orderBy"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public virtual async ValueTask<OrderByClause> ParseAsync(string orderBy, QueryParserContext context)
+    {
+        if (string.IsNullOrEmpty(orderBy))
+        {
+            throw new ArgumentNullException(nameof(orderBy));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        OrderByToken orderByToken = await Tokenizer.TokenizeAsync(orderBy, context.TokenizerContext);
+        if (orderByToken == null)
+        {
+            throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
+        }
+
+        return Parse(orderByToken, context);
     }
 
     /// <summary>

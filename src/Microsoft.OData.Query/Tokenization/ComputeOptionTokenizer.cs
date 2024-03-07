@@ -16,6 +16,8 @@ namespace Microsoft.OData.Query.Tokenization;
 /// </summary>
 public class ComputeOptionTokenizer : QueryTokenizer, IComputeOptionTokenizer
 {
+    internal static ComputeOptionTokenizer Default = new ComputeOptionTokenizer(ExpressionLexerFactory.Default);
+
     private ILexerFactory _lexerFactory;
 
     /// <summary>

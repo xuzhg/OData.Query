@@ -13,6 +13,8 @@ namespace Microsoft.OData.Query.Tokenization;
 /// </summary>
 public class FilterOptionTokenizer : QueryTokenizer, IFilterOptionTokenizer
 {
+    internal static FilterOptionTokenizer Default = new FilterOptionTokenizer(ExpressionLexerFactory.Default);
+
     private ILexerFactory _lexerFactory;
 
     /// <summary>

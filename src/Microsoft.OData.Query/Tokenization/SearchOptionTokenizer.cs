@@ -14,6 +14,8 @@ namespace Microsoft.OData.Query.Tokenization;
 /// </summary>
 public class SearchOptionTokenizer : QueryTokenizer, ISearchOptionTokenizer
 {
+    internal static SearchOptionTokenizer Default = new SearchOptionTokenizer(ExpressionLexerFactory.Default);
+
     private ILexerFactory _lexerFactory;
 
     /// <summary>

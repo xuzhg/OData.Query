@@ -162,4 +162,7 @@
   <data name="ExpressionLexer_InvalidCharacter" xml:space="preserve">
     <value>Syntax error: character '{0}' is not valid at position {1} in '{2}'.</value>
   </data>
+  <data name="QueryParser_InvalidIntegerQueryOptionValue" xml:space="preserve">
+    <value>Invalid value '{0}' for '{1}' query option found. The '{1}' query option requires an integer value.</value>
+  </data>
 </root>
