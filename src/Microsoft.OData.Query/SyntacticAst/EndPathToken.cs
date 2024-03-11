@@ -15,7 +15,7 @@ public sealed class EndPathToken : PathToken
     /// </summary>
     /// <param name="identifier">The Identifier of the property to access.</param>
     /// <param name="nextToken">The NextToken token to access the property on. </param>
-    public EndPathToken(string identifier, QueryToken nextToken)
+    public EndPathToken(string identifier, IQueryToken nextToken)
     {
         if (string.IsNullOrEmpty(identifier))
         {
@@ -36,7 +36,7 @@ public sealed class EndPathToken : PathToken
     /// If this is null, then the property access has no NextToken. That usually means to access the property
     /// on the implicit parameter for the expression, the result on which the expression is being applied.
     /// </summary>
-    public override QueryToken NextToken { get; set; }
+    public override IQueryToken NextToken { get; set; }
 
     /// <summary>
     /// The Identifier of the property to access.

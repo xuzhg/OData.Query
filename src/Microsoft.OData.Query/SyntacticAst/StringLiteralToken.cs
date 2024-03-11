@@ -5,10 +5,10 @@
 
 namespace Microsoft.OData.Query.SyntacticAst;
 
-public class StringLiteralToken : QueryToken
+public sealed class StringLiteralToken : IQueryToken
 {
     /// <summary>
-    /// Constructor for the StringLiteralToken
+    /// Initializes a new instance of the <see cref="StringLiteralToken" /> class.
     /// </summary>
     /// <param name="text">The text value for this token</param>
     internal StringLiteralToken(string text)
@@ -17,9 +17,9 @@ public class StringLiteralToken : QueryToken
     }
 
     /// <summary>
-    /// The kind of the query token.
+    /// Gets the kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.StringLiteral;
+    public QueryTokenKind Kind => QueryTokenKind.StringLiteral;
 
     /// <summary>
     /// The original text value of the literal.

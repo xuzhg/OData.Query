@@ -17,5 +17,5 @@ public interface IFilterOptionTokenizer
     /// </summary>
     /// <param name="filter">The $filter expression string to tokenize.</param>
     /// <returns>The filter token tokenized.</returns>
-    ValueTask<QueryToken> TokenizeAsync(string filter, QueryTokenizerContext context);
+    ValueTask<IQueryToken> TokenizeAsync(string filter, QueryTokenizerContext context);
 }

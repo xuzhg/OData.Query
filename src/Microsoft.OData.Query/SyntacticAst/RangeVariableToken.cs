@@ -6,12 +6,12 @@
 namespace Microsoft.OData.Query.SyntacticAst;
 
 /// <summary>
-/// Lexical token representing the parameter for an Any/All query.
+/// Lexical token representing the parameter for range variable query.
 /// </summary>
-public sealed class RangeVariableToken : QueryToken
+public sealed class RangeVariableToken : IQueryToken
 {
     /// <summary>
-    /// Create a new RangeVariableToken
+    /// Initializes a new instance of the <see cref="RangeVariableToken" /> class.
     /// </summary>
     /// <param name="name">The name of the visitor for the Any/All query.</param>
     public RangeVariableToken(string name)
@@ -20,9 +20,9 @@ public sealed class RangeVariableToken : QueryToken
     }
 
     /// <summary>
-    /// The kind of the query token.
+    /// Gets the kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.RangeVariable;
+    public QueryTokenKind Kind => QueryTokenKind.RangeVariable;
 
     /// <summary>
     /// The name of the parameter.

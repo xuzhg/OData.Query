@@ -28,7 +28,7 @@ public class SearchOptionTokenizerTests
     public async ValueTask SearchTokenizer_CanTokenizeSearchWordAndPhrase(string search)
     {
         // Arrange & Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         token.ShouldBeStringLiteralToken(search);
@@ -41,7 +41,7 @@ public class SearchOptionTokenizerTests
         string search = "A and BC and DEF";
 
         // Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         var binaryToken1 = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.And);
@@ -58,7 +58,7 @@ public class SearchOptionTokenizerTests
         string search = "A BC DEF";
 
         // Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         var binaryToken1 = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.And);
@@ -75,7 +75,7 @@ public class SearchOptionTokenizerTests
         string search = "foo or bar";
 
         // Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         var binaryToken = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.Or);
@@ -90,7 +90,7 @@ public class SearchOptionTokenizerTests
         string search = "(A  OR BC) AND DEF";
 
         // Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         var binaryToken1 = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.And);
@@ -107,7 +107,7 @@ public class SearchOptionTokenizerTests
         string search = "(A BC) DEF";
 
         // Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         var binaryToken1 = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.And);
@@ -124,7 +124,7 @@ public class SearchOptionTokenizerTests
         string search = "not foo";
 
         // Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         var unaryToken = token.ShouldBeUnaryOperatorQueryToken(UnaryOperatorKind.Not);
@@ -138,7 +138,7 @@ public class SearchOptionTokenizerTests
         string search = "a and bc or def and not (efj and keh and xyz)";
 
         // Act
-        QueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
+        IQueryToken token = await _searchTokenizer.TokenizeAsync(search, QueryTokenizerContext.Default);
 
         // Assert
         var binaryToken1 = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.Or);

@@ -8,7 +8,7 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing the $apply Query
 /// </summary>
-public sealed class ApplyToken : QueryToken
+public sealed class ApplyToken : IQueryToken
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyToken" /> class.
@@ -16,15 +16,15 @@ public sealed class ApplyToken : QueryToken
     /// <param name="expression">The associated expression.</param>
     /// <param name="parameter">The parameter denoting source type.</param>
     /// <param name="parent">The parent token.  Pass null if this property has no parent.</param>
-    public ApplyToken(IList<QueryToken> transformations)
+    public ApplyToken(IList<IQueryToken> transformations)
     {
         Transformations = transformations;
     }
 
-    public IEnumerable<QueryToken> Transformations { get; }
+    public IEnumerable<IQueryToken> Transformations { get; }
 
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.Apply;
+    public QueryTokenKind Kind => QueryTokenKind.Apply;
 }

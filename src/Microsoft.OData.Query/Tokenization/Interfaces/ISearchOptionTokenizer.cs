@@ -17,5 +17,5 @@ public interface ISearchOptionTokenizer
     /// </summary>
     /// <param name="search">The $search expression string to tokenize.</param>
     /// <returns>The search token tokenized.</returns>
-    ValueTask<QueryToken> TokenizeAsync(string search, QueryTokenizerContext context);
+    ValueTask<IQueryToken> TokenizeAsync(string search, QueryTokenizerContext context);
 }

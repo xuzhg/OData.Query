@@ -9,14 +9,16 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// Lexical token representing a segment in a path.
 /// </summary>
 ///
-public abstract class PathToken : QueryToken
+public abstract class PathToken : IQueryToken
 {
+    public abstract QueryTokenKind Kind { get; }
+
     /// <summary>
     /// The NextToken in the path(can either be the parent or the child depending on whether the tree has
     /// been normalized for expand or not.
     /// TODO: need to revisit this and the rest of the syntactic parser to make it ready for public consumption.
     /// </summary>
-    public abstract QueryToken NextToken { get; set; }
+    public abstract IQueryToken NextToken { get; set; }
 
     /// <summary>
     /// The name of the property to access.
@@ -65,7 +67,7 @@ public abstract class PathToken : QueryToken
 /// <summary>
 /// Lexical token representing a System token such as $count
 /// </summary>
-public class SegmentToken : QueryToken
+public class SegmentToken : IQueryToken
 {
     /// <summary>
     /// Build a new System Token
@@ -89,7 +91,7 @@ public class SegmentToken : QueryToken
     /// </summary>
     public string Identifier { get; }
 
-    public override QueryTokenKind Kind => QueryTokenKind.PathSegment;
+    public QueryTokenKind Kind => QueryTokenKind.PathSegment;
 
     /// <summary>
     /// Is this token namespace or container qualified.

@@ -11,149 +11,154 @@ namespace Microsoft.OData.Query.SyntacticAst;
 public enum QueryTokenKind
 {
     /// <summary>
+    /// The unknown token.
+    /// </summary>
+    Unknown,
+
+    /// <summary>
     /// The binary operator.
     /// </summary>
-    BinaryOperator = 3,
+    BinaryOperator,
 
     /// <summary>
     /// The unary operator.
     /// </summary>
-    UnaryOperator = 4,
+    UnaryOperator,
 
     /// <summary>
     /// The literal value.
     /// </summary>
-    Literal = 5,
+    Literal,
 
     /// <summary>
     /// The function call.
     /// </summary>
-    FunctionCall = 6,
+    FunctionCall,
 
     /// <summary>
     /// The property access.
     /// </summary>
-    EndPath = 7,
+    EndPath,
 
     /// <summary>
     /// The order by operation.
     /// </summary>
-    OrderBy = 8,
+    OrderBy,
 
     /// <summary>
     /// A query option.
     /// </summary>
-    CustomQueryOption = 9,
+    CustomQueryOption,
 
     /// <summary>
     /// The Select query.
     /// </summary>
-    Select = 10,
+    Select,
 
     /// <summary>
     /// The *.
     /// </summary>
-    Star = 11,
+    Star,
 
     /// <summary>
     /// The Expand query.
     /// </summary>
-    Expand = 13,
+    Expand,
 
     /// <summary>
     /// Type segment.
     /// </summary>
-    TypeSegment = 14,
+    TypeSegment,
 
     /// <summary>
     /// Any query.
     /// </summary>
-    Any = 15,
+    Any,
 
     /// <summary>
     /// Non root segment.
     /// </summary>
-    InnerPath = 16,
+    InnerPath,
 
     /// <summary>
     /// type segment.
     /// </summary>
-    DottedIdentifier = 17,
+    DottedIdentifier,
 
     /// <summary>
     /// Parameter token.
     /// </summary>
-    RangeVariable = 18,
+    RangeVariable,
 
     /// <summary>
     /// All query.
     /// </summary>
-    All = 19,
-
-    /// <summary>
-    /// ExpandTerm Token
-    /// </summary>
-    ExpandTerm = 20,
+    All,
 
     /// <summary>
     /// FunctionParameterToken
     /// </summary>
-    FunctionParameter = 21,
+    FunctionParameter,
 
     /// <summary>
     /// FunctionParameterAlias
     /// </summary>
-    FunctionParameterAlias = 22,
+    FunctionParameterAlias,
 
     /// <summary>
     /// the string literal for search query
     /// </summary>
-    StringLiteral = 23,
+    StringLiteral,
 
     /// <summary>
     /// $apply aggregate token
     /// </summary>
-    Aggregate = 24,
+    Aggregate,
 
     /// <summary>
     /// $apply aggregate statement to a property token
     /// </summary>
-    AggregateExpression = 25,
+    AggregateExpression,
 
     /// <summary>
     /// $apply group by token
     /// </summary>
-    AggregateGroupBy = 26,
+    AggregateGroupBy,
 
     /// <summary>
     /// $compute token
     /// </summary>
-    Compute = 27,
+    Compute,
 
     /// <summary>
     /// $compute item token
     /// </summary>
-    ComputeItem = 28,
+    ComputeItem,
 
     /// <summary>
     /// $apply aggregate statement to a entity set token
     /// </summary>
-    EntitySetAggregateExpression = 29,
+    EntitySetAggregateExpression,
 
     /// <summary>
     /// In operator.
     /// </summary>
-    In = 30,
+    In,
 
     /// <summary>
     /// SelectItem Token
     /// </summary>
-    SelectItem = 31,
+    SelectItem,
+
+    /// <summary>
+    /// ExpandItem Token
+    /// </summary>
+    ExpandItem,
 
     /// <summary>
     /// $count segment
     /// </summary>
-    CountSegment = 32,
+    CountSegment,
 
     /// <summary>
     /// Segment in $select, $expand,...

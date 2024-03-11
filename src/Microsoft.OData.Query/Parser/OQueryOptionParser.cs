@@ -22,7 +22,7 @@ public class OQueryOptionParser : IOQueryOptionParser
         _lexerFactory = lexerFactory ?? throw new ArgumentNullException(nameof(lexerFactory));
     }
 
-    public virtual QueryToken ParseQuery(string query, QueryParserContext context)
+    public virtual IQueryToken ParseQuery(string query, QueryParserContext context)
     {
         IExpressionLexer lexer = _lexerFactory.CreateLexer(query, LexerOptions.Default);
 

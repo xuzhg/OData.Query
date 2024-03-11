@@ -17,6 +17,10 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
 
     private ILexerFactory _lexerFactory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExpandOptionTokenizer" /> class.
+    /// </summary>
+    /// <param name="factory"></param>
     public ExpandOptionTokenizer(ILexerFactory factory)
     {
         _lexerFactory = factory;
@@ -32,13 +36,14 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
         IExpressionLexer lexer = _lexerFactory.CreateLexer(expand, LexerOptions.Default);
         lexer.NextToken(); // move to first token
 
-        List<ExpandItemToken> itemTokens = new List<ExpandItemToken>();
+        ExpandToken expandToken = new ExpandToken();
+     //   List<ExpandItemToken> itemTokens = new List<ExpandItemToken>();
         ExpandItemToken starItemToken = null;
 
         // This happens if it was just whitespace. e.g. ~/Customers?$expand=     &...
         if (lexer.CurrentToken.Kind == ExpressionKind.EndOfInput)
         {
-            return new ExpandToken(itemTokens);
+            return expandToken;
         }
 
         // Process first term
@@ -47,11 +52,11 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
             starItemToken = TokenizeExpandItem(lexer, context);
 
             // ???
-            itemTokens.Add(starItemToken);
+            expandToken.Add(starItemToken);
         }
         else
         {
-            itemTokens.Add(TokenizeExpandItem(lexer, context));
+            expandToken.Add(TokenizeExpandItem(lexer, context));
         }
 
         // If it was a list of terms, then commas will be separating them
@@ -62,7 +67,7 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
 
             if (lexer.CurrentToken.Kind != ExpressionKind.EndOfInput && lexer.CurrentToken.Kind != ExpressionKind.Star)
             {
-                itemTokens.Add(TokenizeExpandItem(lexer, context));
+                expandToken.Add(TokenizeExpandItem(lexer, context));
             }
             else if (lexer.CurrentToken.Kind == ExpressionKind.Star)
             {
@@ -86,7 +91,7 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
             throw new QueryTokenizerException("ODataErrorStrings.UriSelectParser_TermIsNotValid(this.lexer.ExpressionText)");
         }
 
-        return await ValueTask.FromResult(new ExpandToken(itemTokens));
+        return await ValueTask.FromResult(expandToken);
     }
 
     /// <summary>
@@ -97,13 +102,13 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
     {
         SegmentToken pathToken = TokenizePathSegment(lexer, context);
 
-        QueryToken filterOption = null;
+        IQueryToken filterOption = null;
         IEnumerable<OrderByToken> orderByOptions = null;
         long? topOption = null;
         long? skipOption = null;
         bool? countOption = null;
         long? levelsOption = null;
-        QueryToken searchOption = null;
+        IQueryToken searchOption = null;
         SelectToken selectOption = null;
         ExpandToken expandOption = null;
         ComputeToken computeOption = null;

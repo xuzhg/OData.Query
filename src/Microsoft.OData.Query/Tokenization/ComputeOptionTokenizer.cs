@@ -81,7 +81,7 @@ public class ComputeOptionTokenizer : QueryTokenizer, IComputeOptionTokenizer
     protected virtual ComputeItemToken TokenizeComputeItem(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // compute expression
-        QueryToken expression = TokenizeExpression(lexer, context);
+        IQueryToken expression = TokenizeExpression(lexer, context);
 
         if (!lexer.IsCurrentTokenIdentifier("as", true))
         {

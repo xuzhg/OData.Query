@@ -8,14 +8,14 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing a unary operator.
 /// </summary>
-public class UnaryOperatorToken : QueryToken
+public sealed class UnaryOperatorToken : IQueryToken
 {
     /// <summary>
     /// Create a new UnaryOperatorToken given the operator and operand
     /// </summary>
     /// <param name="operatorKind">The operator represented by this node.</param>
     /// <param name="operand">The operand.</param>
-    public UnaryOperatorToken(UnaryOperatorKind operatorKind, QueryToken operand)
+    public UnaryOperatorToken(UnaryOperatorKind operatorKind, IQueryToken operand)
     {
         OperatorKind = operatorKind;
         Operand = operand ?? throw new ArgumentNullException(nameof(operand));
@@ -24,7 +24,7 @@ public class UnaryOperatorToken : QueryToken
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.UnaryOperator;
+    public QueryTokenKind Kind => QueryTokenKind.UnaryOperator;
 
     /// <summary>
     /// The operator represented by this node.
@@ -34,5 +34,5 @@ public class UnaryOperatorToken : QueryToken
     /// <summary>
     /// The operand.
     /// </summary>
-    public QueryToken Operand { get; }
+    public IQueryToken Operand { get; }
 }

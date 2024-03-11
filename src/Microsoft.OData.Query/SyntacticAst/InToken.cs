@@ -8,14 +8,14 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing an In operation.
 /// </summary>
-public class InToken : QueryToken
+public sealed class InToken : IQueryToken
 {
     /// <summary>
     /// Create a new InToken given the left and right query tokens.
     /// </summary>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
-    public InToken(QueryToken left, QueryToken right)
+    public InToken(IQueryToken left, IQueryToken right)
     {
         Left = left ?? throw new ArgumentNullException(nameof(left));
         Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -24,15 +24,15 @@ public class InToken : QueryToken
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.In;
+    public QueryTokenKind Kind => QueryTokenKind.In;
 
     /// <summary>
     /// The left operand.
     /// </summary>
-    public QueryToken Left { get; }
+    public IQueryToken Left { get; }
 
     /// <summary>
     /// The right operand.
     /// </summary>
-    public QueryToken Right { get; }
+    public IQueryToken Right { get; }
 }

@@ -32,12 +32,12 @@ public class SearchOptionTokenizer : QueryTokenizer, ISearchOptionTokenizer
     /// </summary>
     /// <param name="search">The $search expression string to tokenize.</param>
     /// <returns>The search token tokenized.</returns>
-    public virtual async ValueTask<QueryToken> TokenizeAsync(string search, QueryTokenizerContext context)
+    public virtual async ValueTask<IQueryToken> TokenizeAsync(string search, QueryTokenizerContext context)
     {
         IExpressionLexer lexer = _lexerFactory.CreateLexer(search, LexerOptions.Default);
         lexer.NextToken(); // move to first token
 
-        QueryToken result = TokenizeExpression(lexer, context);
+        IQueryToken result = TokenizeExpression(lexer, context);
 
         lexer.ValidateToken(ExpressionKind.EndOfInput);
 
@@ -48,14 +48,14 @@ public class SearchOptionTokenizer : QueryTokenizer, ISearchOptionTokenizer
     /// Tokenize the or operator.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    protected override QueryToken TokenizeLogicalOr(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected override IQueryToken TokenizeLogicalOr(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = TokenizeLogicalAnd(lexer, context);
+        IQueryToken left = TokenizeLogicalAnd(lexer, context);
         while (lexer.IsCurrentTokenIdentifier("or", true))
         {
             lexer.NextToken();
-            QueryToken right = TokenizeLogicalAnd(lexer, context);
+            IQueryToken right = TokenizeLogicalAnd(lexer, context);
             left = new BinaryOperatorToken(BinaryOperatorKind.Or, left, right);
         }
 
@@ -67,10 +67,10 @@ public class SearchOptionTokenizer : QueryTokenizer, ISearchOptionTokenizer
     /// Tokenize the and operator.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    protected override QueryToken TokenizeLogicalAnd(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected override IQueryToken TokenizeLogicalAnd(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
-        QueryToken left = TokenizeUnary(lexer, context);
+        IQueryToken left = TokenizeUnary(lexer, context);
 
         while (lexer.IsCurrentTokenIdentifier("and", true)
             || lexer.IsCurrentTokenIdentifier("not", true)
@@ -84,7 +84,7 @@ public class SearchOptionTokenizer : QueryTokenizer, ISearchOptionTokenizer
                 lexer.NextToken();
             }
 
-            QueryToken right = TokenizeUnary(lexer, context);
+            IQueryToken right = TokenizeUnary(lexer, context);
             left = new BinaryOperatorToken(BinaryOperatorKind.And, left, right);
         }
 
@@ -96,13 +96,13 @@ public class SearchOptionTokenizer : QueryTokenizer, ISearchOptionTokenizer
     /// Tokenize the -, not unary operators.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    protected override QueryToken TokenizeUnary(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected override IQueryToken TokenizeUnary(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         context.EnterRecurse();
         if (lexer.IsCurrentTokenIdentifier("not", true))
         {
             lexer.NextToken();
-            QueryToken operand = TokenizeUnary(lexer, context);
+            IQueryToken operand = TokenizeUnary(lexer, context);
 
             context.LeaveRecurse();
             return new UnaryOperatorToken(UnaryOperatorKind.Not, operand);
@@ -116,9 +116,9 @@ public class SearchOptionTokenizer : QueryTokenizer, ISearchOptionTokenizer
     /// Tokenize the primary expressions.
     /// </summary>
     /// <returns>The lexical token representing the expression.</returns>
-    protected override QueryToken TokenizePrimary(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected override IQueryToken TokenizePrimary(IExpressionLexer lexer, QueryTokenizerContext context)
     {
-        QueryToken expr;
+        IQueryToken expr;
         context.EnterRecurse();
 
         switch (lexer.CurrentToken.Kind)

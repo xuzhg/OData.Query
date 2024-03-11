@@ -54,7 +54,7 @@ public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        QueryToken token = await Tokenizer.TokenizeAsync(select, context.TokenizerContext);
+        IQueryToken token = await Tokenizer.TokenizeAsync(select, context.TokenizerContext);
         if (token == null)
         {
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");

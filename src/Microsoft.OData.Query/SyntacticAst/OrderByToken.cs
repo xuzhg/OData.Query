@@ -10,7 +10,7 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing an order by operation.
 /// </summary>
-public sealed class OrderByToken : QueryToken
+public sealed class OrderByToken : IQueryToken
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderByToken" /> class.
@@ -18,7 +18,7 @@ public sealed class OrderByToken : QueryToken
     /// <param name="expression">The expression according to which to order the results.</param>
     /// <param name="direction">The direction of the ordering.</param>
     /// <param name="thenBy">The next orderby to perform after performing this orderby, can be null in the case of only a single orderby expression.</param>
-    public OrderByToken(QueryToken expression, OrderByDirection direction)
+    public OrderByToken(IQueryToken expression, OrderByDirection direction)
     {
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Direction = direction;
@@ -28,7 +28,7 @@ public sealed class OrderByToken : QueryToken
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.OrderBy;
+    public QueryTokenKind Kind => QueryTokenKind.OrderBy;
 
     /// <summary>
     /// The direction of the ordering.
@@ -38,7 +38,7 @@ public sealed class OrderByToken : QueryToken
     /// <summary>
     /// The expression according to which to order the results.
     /// </summary>
-    public QueryToken Expression { get; }
+    public IQueryToken Expression { get; }
 
     /// <summary>
     /// Gets/sets the next orderby token.

@@ -56,7 +56,7 @@ public class SearchOptionParser : QueryOptionParser, ISearchOptionParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        QueryToken token = await Tokenizer.TokenizeAsync(search, context.TokenizerContext);
+        IQueryToken token = await Tokenizer.TokenizeAsync(search, context.TokenizerContext);
         if (token == null)
         {
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");

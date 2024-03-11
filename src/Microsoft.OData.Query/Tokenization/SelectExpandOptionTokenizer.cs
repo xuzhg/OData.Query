@@ -17,7 +17,7 @@ public abstract class SelectExpandOptionTokenizer : QueryTokenizer
     /// Tokenize the filter option in the select/expand option text.
     /// </summary>
     /// <returns>The filter option for select/expand</returns>
-    protected virtual QueryToken TokenizeInnerFilter(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual IQueryToken TokenizeInnerFilter(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // advance to the equal sign
         lexer.NextToken();
@@ -131,7 +131,7 @@ public abstract class SelectExpandOptionTokenizer : QueryTokenizer
     /// Tokenize the search option in the select/expand option text.
     /// </summary>
     /// <returns>The search option for select/expand</returns>
-    protected virtual QueryToken TokenizeInnerSearch(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual IQueryToken TokenizeInnerSearch(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // advance to the equal sign
         lexer.NextToken();

@@ -11,7 +11,7 @@ namespace Microsoft.OData.Query.Tests.SyntacticAst;
 
 public static class QueryTokenAssertions
 {
-    public static LiteralToken ShouldBeLiteralToken(this QueryToken token, object expectedValue)
+    public static LiteralToken ShouldBeLiteralToken(this IQueryToken token, object expectedValue)
     {
         Assert.NotNull(token);
         LiteralToken literalToken = Assert.IsType<LiteralToken>(token);
@@ -20,7 +20,7 @@ public static class QueryTokenAssertions
         return literalToken;
     }
 
-    public static EndPathToken ShouldBeEndPathToken(this QueryToken token, string expectedName)
+    public static EndPathToken ShouldBeEndPathToken(this IQueryToken token, string expectedName)
     {
         Assert.NotNull(token);
         EndPathToken propertyAccessQueryToken = Assert.IsType<EndPathToken>(token);
@@ -29,7 +29,7 @@ public static class QueryTokenAssertions
         return propertyAccessQueryToken;
     }
 
-    public static BinaryOperatorToken ShouldBeBinaryOperatorQueryToken(this QueryToken token, BinaryOperatorKind expectedOperatorKind)
+    public static BinaryOperatorToken ShouldBeBinaryOperatorQueryToken(this IQueryToken token, BinaryOperatorKind expectedOperatorKind)
     {
         Assert.NotNull(token);
         BinaryOperatorToken propertyAccessQueryToken = Assert.IsType<BinaryOperatorToken>(token);
@@ -38,7 +38,7 @@ public static class QueryTokenAssertions
         return propertyAccessQueryToken;
     }
 
-    public static UnaryOperatorToken ShouldBeUnaryOperatorQueryToken(this QueryToken token, UnaryOperatorKind expectedOperatorKind)
+    public static UnaryOperatorToken ShouldBeUnaryOperatorQueryToken(this IQueryToken token, UnaryOperatorKind expectedOperatorKind)
     {
         Assert.NotNull(token);
         UnaryOperatorToken propertyAccessQueryToken = Assert.IsType<UnaryOperatorToken>(token);
@@ -47,7 +47,7 @@ public static class QueryTokenAssertions
         return propertyAccessQueryToken;
     }
 
-    public static StringLiteralToken ShouldBeStringLiteralToken(this QueryToken token, string text)
+    public static StringLiteralToken ShouldBeStringLiteralToken(this IQueryToken token, string text)
     {
         Assert.NotNull(token);
         StringLiteralToken stringLiteralToken = Assert.IsType<StringLiteralToken>(token);

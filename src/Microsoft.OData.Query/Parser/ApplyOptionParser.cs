@@ -66,7 +66,7 @@ public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
     public virtual ApplyClause Parse(ApplyToken apply, QueryParserContext context)
     {
         List<TransformationNode> transformations = new List<TransformationNode>();
-        foreach (QueryToken token in apply.Transformations)
+        foreach (IQueryToken token in apply.Transformations)
         {
             switch (token.Kind)
             {

@@ -10,7 +10,7 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing a binary operator.
 /// </summary>
-public class BinaryOperatorToken : QueryToken
+public class BinaryOperatorToken : IQueryToken
 {
     /// <summary>
     /// Create a new BinaryOperatorToken given the operator, left and right query.
@@ -18,7 +18,7 @@ public class BinaryOperatorToken : QueryToken
     /// <param name="operatorKind">The operator represented by this node.</param>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
-    public BinaryOperatorToken(BinaryOperatorKind operatorKind, QueryToken left, QueryToken right)
+    public BinaryOperatorToken(BinaryOperatorKind operatorKind, IQueryToken left, IQueryToken right)
     {
         OperatorKind = operatorKind;
         Left = left ?? throw new ArgumentNullException(nameof(left));
@@ -28,7 +28,7 @@ public class BinaryOperatorToken : QueryToken
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.BinaryOperator;
+    public QueryTokenKind Kind => QueryTokenKind.BinaryOperator;
 
     /// <summary>
     /// The operator represented by this node.
@@ -38,10 +38,10 @@ public class BinaryOperatorToken : QueryToken
     /// <summary>
     /// The left operand.
     /// </summary>
-    public QueryToken Left { get; }
+    public IQueryToken Left { get; }
 
     /// <summary>
     /// The right operand.
     /// </summary>
-    public QueryToken Right { get; }
+    public IQueryToken Right { get; }
 }

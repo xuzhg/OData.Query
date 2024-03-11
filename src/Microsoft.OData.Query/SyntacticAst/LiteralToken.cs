@@ -8,7 +8,7 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing a literal value.
 /// </summary>
-public class LiteralToken : QueryToken
+public class LiteralToken : IQueryToken
 {
     /// <summary>
     /// Create a new LiteralToken given value and originalText
@@ -47,7 +47,7 @@ public class LiteralToken : QueryToken
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.Literal;
+    public virtual QueryTokenKind Kind => QueryTokenKind.Literal;
 
     /// <summary>
     /// The value of the literal. This is a parsed primitive value.

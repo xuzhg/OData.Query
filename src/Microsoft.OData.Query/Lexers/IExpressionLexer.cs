@@ -14,6 +14,7 @@ public interface IExpressionLexer
     /// Gets the whole expression text to lexer.
     /// </summary>
     string ExpressionText { get; }
+    // ReadOnlyMemory<char> ExpressionText { get; }
 
     /// <summary>
     /// Gets the expression token processed.

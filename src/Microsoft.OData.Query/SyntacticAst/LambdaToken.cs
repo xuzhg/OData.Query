@@ -8,7 +8,7 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing the Any/All Query
 /// </summary>
-public abstract class LambdaToken : QueryToken
+public abstract class LambdaToken : IQueryToken
 {
     /// <summary>
     /// Create a AnyAllQueryToken given the expression, parameter, and parent
@@ -16,7 +16,7 @@ public abstract class LambdaToken : QueryToken
     /// <param name="expression">The associated expression.</param>
     /// <param name="parameter">The parameter denoting source type.</param>
     /// <param name="parent">The parent token.  Pass null if this property has no parent.</param>
-    protected LambdaToken(QueryToken expression, string parameter, QueryToken parent)
+    protected LambdaToken(IQueryToken expression, string parameter, IQueryToken parent)
     {
         Expression = expression;
         Parameter = parameter;
@@ -24,14 +24,19 @@ public abstract class LambdaToken : QueryToken
     }
 
     /// <summary>
+    /// Gets the kind of this token.
+    /// </summary>
+    public virtual QueryTokenKind Kind { get; }
+
+    /// <summary>
     /// The parent token.
     /// </summary>
-    public QueryToken Parent { get; }
+    public IQueryToken Parent { get; }
 
     /// <summary>
     /// The expression.
     /// </summary>
-    public QueryToken Expression { get; }
+    public IQueryToken Expression { get; }
 
     /// <summary>
     /// The parameter.

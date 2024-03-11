@@ -12,7 +12,7 @@ public interface IOQueryOptionParser
 {
  //   FilterClause ParseFilter(string filter, QueryOptionParserContext context);
 
-    QueryToken ParseQuery(string query, QueryParserContext context);
+    IQueryToken ParseQuery(string query, QueryParserContext context);
 
  //   QueryToken ParseQuery(QueryOptionParserContext context);
 }

@@ -16,7 +16,7 @@ public sealed class AnyToken : LambdaToken
     /// <param name="expression">The associated expression.</param>
     /// <param name="parameter">The parameter denoting source type.</param>
     /// <param name="parent">The parent token.  Pass null if this property has no parent.</param>
-    public AnyToken(QueryToken expression, string parameter, QueryToken parent)
+    public AnyToken(IQueryToken expression, string parameter, IQueryToken parent)
         : base(expression, parameter, parent)
     {
     }

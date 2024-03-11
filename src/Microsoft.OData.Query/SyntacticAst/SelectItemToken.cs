@@ -20,7 +20,7 @@ public sealed class SelectItemToken : SelectExpandItemToken
     }
 
     /// <summary>
-    /// Create an select term using only the property and its subexpand/select
+    /// Create an select term using only the property and its sub-expand/select
     /// </summary>
     /// <param name="pathToProperty">the path to the property for this select term</param>
     /// <param name="selectOption">the sub select for this token</param>
@@ -42,7 +42,7 @@ public sealed class SelectItemToken : SelectExpandItemToken
     /// <param name="selectOption">the select option for this select term</param>
     /// <param name="computeOption">the compute option for this select term</param>
     public SelectItemToken(SegmentToken pathToProperty,
-        QueryToken filterOption, IEnumerable<OrderByToken> orderByOptions, long? topOption, long? skipOption, bool? countQueryOption, QueryToken searchOption, SelectToken selectOption, ComputeToken computeOption)
+        IQueryToken filterOption, IEnumerable<OrderByToken> orderByOptions, long? topOption, long? skipOption, bool? countQueryOption, IQueryToken searchOption, SelectToken selectOption, ComputeToken computeOption)
         : base(pathToProperty, filterOption, orderByOptions, topOption, skipOption, countQueryOption, searchOption, selectOption, computeOption)
     {
     }

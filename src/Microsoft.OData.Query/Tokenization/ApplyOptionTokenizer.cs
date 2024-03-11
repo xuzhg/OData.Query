@@ -40,7 +40,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         IExpressionLexer lexer = _lexerFactory.CreateLexer(apply, LexerOptions.Default);
         lexer.NextToken(); // move to first token
 
-        IList<QueryToken> transformationTokens = new List<QueryToken>();
+        IList<IQueryToken> transformationTokens = new List<IQueryToken>();
 
         context.EnterRecurse();
 
@@ -265,7 +265,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     /// <param name="tokenizer"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected virtual QueryToken TokenizeFilter(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual IQueryToken TokenizeFilter(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // Debug.Assert(TokenIdentifierIs(ExpressionConstants.KeywordFilter), "token identifier is filter");
         lexer.NextToken();
@@ -327,7 +327,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     internal ComputeItemToken TokenizeComputeExpression(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // expression
-        QueryToken expression = TokenizeExpression(lexer, context);
+        IQueryToken expression = TokenizeExpression(lexer, context);
 
         // "as" alias
         // StringLiteralToken alias = ParseAggregateAs(tokenizer, context);
@@ -355,13 +355,14 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
         lexer.NextToken();
 
-        List<ExpandItemToken> termTokens = new List<ExpandItemToken>();
+        ExpandToken expandToken = new ExpandToken();
+       // List<ExpandItemToken> termTokens = new List<ExpandItemToken>();
 
         // First token must be Path
         //var termParser = new SelectExpandTermParser(this.lexer, this.maxDepth - 1, false);
         SegmentToken pathToken = null;// Parse(allowRef: true);
 
-        QueryToken filterToken = null;
+        IQueryToken filterToken = null;
         ExpandToken nestedExpand = null;
 
         // Followed (optionally) by filter and expand
@@ -379,9 +380,17 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
                         break;
                     case TokenConstants.KeywordExpand:
                         ExpandToken tempNestedExpand = TokenizeExpand(lexer, context);
-                        nestedExpand = nestedExpand == null
-                            ? tempNestedExpand
-                            : new ExpandToken(nestedExpand.ExpandItems.Concat(tempNestedExpand.ExpandItems));
+                        if (nestedExpand == null)
+                        {
+                            nestedExpand = tempNestedExpand;
+                        }
+                        else
+                        {
+                            nestedExpand.AddRange(tempNestedExpand);
+                        }
+                        //nestedExpand = nestedExpand == null
+                        //    ? tempNestedExpand
+                        //    : new ExpandToken(nestedExpand.ExpandItems.Concat(tempNestedExpand.ExpandItems));
                         break;
                     default:
                         throw new QueryParserException("ODataErrorStrings.UriQueryExpressionParser_KeywordOrIdentifierExpected(supportedKeywords, this.lexer.CurrentToken.Position, this.lexer.ExpressionText)");
@@ -396,7 +405,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         }
 
         ExpandItemToken expandTermToken = new ExpandItemToken(pathToken, filterToken, null, null, null, null, null, null, null, nestedExpand);
-        termTokens.Add(expandTermToken);
+        expandToken.Add(expandTermToken);
 
         // ")"
         if (lexer.CurrentToken.Kind != ExpressionKind.CloseParen)
@@ -406,6 +415,6 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
         lexer.NextToken();
 
-        return new ExpandToken(termTokens);
+        return expandToken;
     }
 }

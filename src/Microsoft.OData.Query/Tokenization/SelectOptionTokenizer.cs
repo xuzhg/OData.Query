@@ -9,7 +9,7 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Tokenization;
 
 /// <summary>
-/// Tokenize the $select query expression and produces the lexical object model.
+/// Tokenizes the $select query expression and produces the lexical object model.
 /// </summary>
 public class SelectOptionTokenizer : SelectExpandOptionTokenizer, ISelectOptionTokenizer
 {
@@ -17,6 +17,10 @@ public class SelectOptionTokenizer : SelectExpandOptionTokenizer, ISelectOptionT
 
     private ILexerFactory _lexerFactory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SelectOptionTokenizer" /> class.
+    /// </summary>
+    /// <param name="factory">The lexer factory.</param>
     public SelectOptionTokenizer(ILexerFactory factory)
     {
         _lexerFactory = factory;
@@ -32,26 +36,26 @@ public class SelectOptionTokenizer : SelectExpandOptionTokenizer, ISelectOptionT
         IExpressionLexer lexer = _lexerFactory.CreateLexer(select, LexerOptions.Default);
         lexer.NextToken(); // move to first token
 
-        List<SelectItemToken> itemTokens = new List<SelectItemToken>();
+        SelectToken selectToken = new SelectToken();
 
-        // This happens if it was just whitespace. e.g. fake.svc/Customers?$select=     &...
+        // This happens if it was just whitespace. e.g. ~/odata/Customers?$select=     &...
         if (lexer.CurrentToken.Kind == ExpressionKind.EndOfInput)
         {
-            return new SelectToken(itemTokens);
+            return selectToken;
         }
 
         // Process first term
-        itemTokens.Add(TokenizeSelectItem(lexer, context));
+        selectToken.Add(TokenizeSelectItem(lexer, context));
 
         // If it was a list of terms, then commas will be separating them
         while (lexer.CurrentToken.Kind == ExpressionKind.Comma)
         {
-            // Move over the ',' to the next term
+            // Move over the ',' to the next item
             lexer.NextToken();
 
             if (lexer.CurrentToken.Kind != ExpressionKind.EndOfInput)
             {
-                itemTokens.Add(TokenizeSelectItem(lexer, context));
+                selectToken.Add(TokenizeSelectItem(lexer, context));
             }
             else
             {
@@ -65,7 +69,7 @@ public class SelectOptionTokenizer : SelectExpandOptionTokenizer, ISelectOptionT
             throw new QueryTokenizerException("ODataErrorStrings.UriSelectParser_TermIsNotValid(lexer.ExpressionText)");
         }
 
-        return await ValueTask.FromResult(new SelectToken(itemTokens));
+        return await ValueTask.FromResult(selectToken);
     }
 
     /// <summary>
@@ -88,12 +92,12 @@ selectItem     = STAR
 
         // QueryToken selectItem = TokenizePrimary(lexer, context);
 
-        QueryToken filterOption = null;
+        IQueryToken filterOption = null;
         IEnumerable<OrderByToken> orderByOptions = null;
         long? topOption = null;
         long? skipOption = null;
         bool? countOption = null;
-        QueryToken searchOption = null;
+        IQueryToken searchOption = null;
         SelectToken selectOption = null;
         ComputeToken computeOption = null;
 

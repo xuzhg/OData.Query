@@ -54,7 +54,7 @@ public class ComputeOptionParser : QueryOptionParser, IComputeOptionParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        QueryToken token = await Tokenizer.TokenizeAsync(compute, context.TokenizerContext);
+        IQueryToken token = await Tokenizer.TokenizeAsync(compute, context.TokenizerContext);
         if (token == null)
         {
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");

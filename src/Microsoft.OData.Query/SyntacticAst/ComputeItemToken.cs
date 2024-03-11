@@ -8,14 +8,14 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Query token representing an Aggregate token.
 /// </summary>
-public sealed class ComputeItemToken : QueryToken
+public sealed class ComputeItemToken : IQueryToken
 {
     /// <summary>
     /// Create an ComputeExpressionToken.
     /// </summary>
     /// <param name="expression">The computation token.</param>
     /// <param name="alias">The alias for the computation.</param>
-    public ComputeItemToken(QueryToken expression, string alias)
+    public ComputeItemToken(IQueryToken expression, string alias)
     {
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
 
@@ -29,12 +29,12 @@ public sealed class ComputeItemToken : QueryToken
     /// <summary>
     /// Gets the kind of this token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.ComputeItem;
+    public QueryTokenKind Kind => QueryTokenKind.ComputeItem;
 
     /// <summary>
     /// Gets the QueryToken.
     /// </summary>
-    public QueryToken Expression { get; }
+    public IQueryToken Expression { get; }
 
     /// <summary>
     /// Gets the alias of the computation.

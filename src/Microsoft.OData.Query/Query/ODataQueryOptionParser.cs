@@ -118,7 +118,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         IFilterOptionTokenizer tokenizer = _serviceProvider?.GetService<IFilterOptionTokenizer>()
             ?? new FilterOptionTokenizer(ExpressionLexerFactory.Default);
 
-        QueryToken token = await tokenizer.TokenizeAsync(filter.Span.ToString(), context.TokenizerContext);
+        IQueryToken token = await tokenizer.TokenizeAsync(filter.Span.ToString(), context.TokenizerContext);
 
         IFilterOptionParser parser = _serviceProvider?.GetService<IFilterOptionParser>()
             ?? new FilterOptionParser();

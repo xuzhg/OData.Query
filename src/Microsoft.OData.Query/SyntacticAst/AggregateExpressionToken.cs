@@ -16,7 +16,7 @@ public sealed class AggregateExpressionToken : AggregateTokenBase
     /// <param name="expression">The aggregate expression.</param>
     /// <param name="method">The aggregation method.</param>
     /// <param name="alias">The alias for this query token.</param>
-    public AggregateExpressionToken(QueryToken expression, AggregationMethod method, string alias)
+    public AggregateExpressionToken(IQueryToken expression, AggregationMethod method, string alias)
     {
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Method = method;
@@ -48,7 +48,7 @@ public sealed class AggregateExpressionToken : AggregateTokenBase
     /// <summary>
     /// Gets the expression.
     /// </summary>
-    public QueryToken Expression { get; }
+    public IQueryToken Expression { get; }
 
     ///// <summary>
     ///// Gets the aggregate method definition.

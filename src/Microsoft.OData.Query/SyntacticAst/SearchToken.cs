@@ -8,10 +8,10 @@ namespace Microsoft.OData.Query.SyntacticAst;
 /// <summary>
 /// Lexical token representing a search operation.
 /// </summary>
-public sealed class SearchToken : QueryToken
+public sealed class SearchToken : IQueryToken
 {
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.Search;
+    public QueryTokenKind Kind => QueryTokenKind.Search;
 }

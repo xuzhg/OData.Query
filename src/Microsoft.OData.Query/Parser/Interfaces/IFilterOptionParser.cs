@@ -16,7 +16,7 @@ public interface IFilterOptionParser
     /// <param name="filter">The $filter expression string to parse.</param>
     /// <returns>The filter token.</returns>
 
-    FilterClause Parse(QueryToken filter, QueryParserContext context);
+    FilterClause Parse(IQueryToken filter, QueryParserContext context);
 
     ValueTask<FilterClause> ParseAsync(string filter, QueryParserContext context);
 }

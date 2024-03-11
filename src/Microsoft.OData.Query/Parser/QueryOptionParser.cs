@@ -4,17 +4,10 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Diagnostics;
-using System.Dynamic;
-using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Metadata;
-using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
 
 namespace Microsoft.OData.Query.Parser;
 
@@ -32,7 +25,7 @@ public abstract class QueryOptionParser
     /// </summary>
     /// <param name="token">The query token on the input.</param>
     /// <returns>The bound query node output.</returns>
-    protected virtual QueryNode Bind(QueryToken token, QueryParserContext context)
+    protected virtual QueryNode Bind(IQueryToken token, QueryParserContext context)
     {
         //ExceptionUtils.CheckArgumentNotNull(token, "token");
         context.EnterRecurse();

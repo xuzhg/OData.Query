@@ -29,7 +29,7 @@ public class FilterOptionTokenizerTests
         string filter = "Name eq 'Sam'";
 
         // Act
-        QueryToken token = await _filterTokenizer.TokenizeAsync(filter, QueryTokenizerContext.Default);
+        IQueryToken token = await _filterTokenizer.TokenizeAsync(filter, QueryTokenizerContext.Default);
 
         // Assert
         Assert.Equal(QueryTokenKind.BinaryOperator, token.Kind);

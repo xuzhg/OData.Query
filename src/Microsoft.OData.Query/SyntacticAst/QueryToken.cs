@@ -6,17 +6,17 @@
 namespace Microsoft.OData.Query.SyntacticAst;
 
 /// <summary>
-/// Base class for all lexical tokens of OData query.
+/// Represents all lexical tokens of OData query.
 /// </summary>
-public abstract class QueryToken
+public interface IQueryToken
 {
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public abstract QueryTokenKind Kind { get; }
+    QueryTokenKind Kind { get; }
 }
 
-public class TopToken : QueryToken
+public class TopToken : IQueryToken
 {
     public TopToken(long top)
     {
@@ -28,28 +28,28 @@ public class TopToken : QueryToken
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.Top;
+    public QueryTokenKind Kind => QueryTokenKind.Top;
 }
 
-public class SkipTokenToken : QueryToken
+public class SkipTokenToken : IQueryToken
 {
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.SkipToken;
+    public QueryTokenKind Kind => QueryTokenKind.SkipToken;
 }
 
-public class DeltaTokenToken : QueryToken
+public class DeltaTokenToken : IQueryToken
 {
     /// <summary>
     /// The kind of the query token.
     /// </summary>
-    public override QueryTokenKind Kind => QueryTokenKind.DeltaToken;
+    public QueryTokenKind Kind => QueryTokenKind.DeltaToken;
 }
 
 public class QueryTree
 {
-    public QueryToken Filter { get; set; }
+    public IQueryToken Filter { get; set; }
 
     public OrderByToken OrderBy { get; set; }
 
@@ -61,7 +61,7 @@ public class QueryTree
 
     public ApplyToken Apply { get; set; }
 
-    public QueryToken Search { get; set; }
+    public IQueryToken Search { get; set; }
 
     public SkipTokenToken SkipToken { get; set; }
 

@@ -39,7 +39,7 @@ public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
     /// </summary>
     public IFilterOptionTokenizer Tokenizer { get; }
 
-    public virtual FilterClause Parse(QueryToken filter, QueryParserContext context)
+    public virtual FilterClause Parse(IQueryToken filter, QueryParserContext context)
     {
         QueryNode expressionNode = Bind(filter, context);
 
@@ -79,7 +79,7 @@ public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        QueryToken token = await Tokenizer.TokenizeAsync(filter, context.TokenizerContext);
+        IQueryToken token = await Tokenizer.TokenizeAsync(filter, context.TokenizerContext);
         if (token == null)
         {
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
