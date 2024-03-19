@@ -41,7 +41,7 @@ public class SelectOptionParser : QueryOptionParser, ISelectOptionParser
     /// </summary>
     /// <param name="select">The $select expression string to parse.</param>
     /// <param name="context">The query parser context.</param>
-    /// <returns>The filter token.</returns>
+    /// <returns>The select clause parsed.</returns>
     public virtual async ValueTask<SelectClause> ParseAsync(string select, QueryParserContext context)
     {
         if (string.IsNullOrEmpty(select))

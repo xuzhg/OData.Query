@@ -13,6 +13,9 @@ namespace Microsoft.OData.Query.Tokenization;
 /// </summary>
 public class SelectOptionTokenizer : SelectExpandOptionTokenizer, ISelectOptionTokenizer
 {
+    /// <summary>
+    /// The default instance.
+    /// </summary>
     internal static SelectOptionTokenizer Default = new SelectOptionTokenizer(ExpressionLexerFactory.Default);
 
     private ILexerFactory _lexerFactory;
@@ -20,14 +23,22 @@ public class SelectOptionTokenizer : SelectExpandOptionTokenizer, ISelectOptionT
     /// <summary>
     /// Initializes a new instance of the <see cref="SelectOptionTokenizer" /> class.
     /// </summary>
-    /// <param name="factory">The lexer factory.</param>
-    public SelectOptionTokenizer(ILexerFactory factory)
+    public SelectOptionTokenizer()
+        : this(ExpressionLexerFactory.Default)
     {
-        _lexerFactory = factory;
     }
 
     /// <summary>
-    /// Tokenize the $select expression.
+    /// Initializes a new instance of the <see cref="SelectOptionTokenizer" /> class.
+    /// </summary>
+    /// <param name="factory">The lexer factory.</param>
+    public SelectOptionTokenizer(ILexerFactory factory)
+    {
+        _lexerFactory = factory ?? throw new ArgumentNullException(nameof(factory));
+    }
+
+    /// <summary>
+    /// Tokenizes the $select expression.
     /// </summary>
     /// <param name="select">The $select expression string to tokenize.</param>
     /// <returns>The select token tokenized.</returns>
@@ -117,7 +128,7 @@ selectItem     = STAR
 
             while (lexer.CurrentToken.Kind != ExpressionKind.CloseParen)
             {
-                string text = context.EnableIdentifierCaseSensitive
+                string text = context.EnableCaseInsensitive
                    ? lexer.CurrentToken.Text.ToString().ToLowerInvariant()
                    : lexer.CurrentToken.Text.ToString();
 

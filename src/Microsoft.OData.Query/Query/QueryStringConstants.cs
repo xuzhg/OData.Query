@@ -25,6 +25,9 @@ internal static class QueryStringConstants
     /// <summary>An expand query option name.</summary>
     public const string Expand = "$expand";
 
+    /// <summary>An expand query option name.</summary>
+    public const string Search = "$search";
+
     /// <summary>An compute query option name.</summary>
     public const string Compute = "$compute";
 

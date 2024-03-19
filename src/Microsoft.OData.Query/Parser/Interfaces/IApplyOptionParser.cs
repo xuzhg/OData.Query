@@ -9,7 +9,7 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
-/// Parser which consumes the $apply query expression and produces the lexical object model.
+/// Parser which consumes the $apply query expression and produces the abstract search node.
 /// </summary>
 public interface IApplyOptionParser
 {

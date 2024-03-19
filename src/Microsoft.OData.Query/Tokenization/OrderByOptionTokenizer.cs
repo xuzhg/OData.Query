@@ -11,7 +11,7 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Tokenization;
 
 /// <summary>
-/// Tokenize the $orderby query expression and produces the lexical object model.
+/// Tokenizes the $orderby query expression and produces the lexical object model.
 /// </summary>
 public class OrderByOptionTokenizer : QueryTokenizer, IOrderByOptionTokenizer
 {

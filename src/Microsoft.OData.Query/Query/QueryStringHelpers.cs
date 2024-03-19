@@ -73,7 +73,7 @@ internal static class QueryStringHelpers
     /// <param name="value">The value of the query option.</param>
     /// <returns>Whether value successfully retrieved.</returns>
     public static bool TryGetQueryOption(this IDictionary<string, ReadOnlyMemory<char>> queryOptions,
-        string name, Parser.QueryParserContext context, out ReadOnlyMemory<char> value)
+        string name, QueryParserContext context, out ReadOnlyMemory<char> value)
     {
         value = null;
         if (name == null)
@@ -84,8 +84,8 @@ internal static class QueryStringHelpers
         // Trim name to prevent caller from passing in untrimmed name for comparison with already trimmed keys in queryOptions dictionary.
         string trimmedName = name.Trim();
 
-        bool isCaseInsensitiveEnabled = context.EnableIdentifierCaseSensitive;
-        bool isNoDollarQueryOptionsEnabled = context.EnableNoDollarSignOption;
+        bool isCaseInsensitiveEnabled = context.EnableCaseInsensitive;
+        bool isNoDollarQueryOptionsEnabled = context.EnableNoDollarPrefix;
 
         if (!isCaseInsensitiveEnabled && !isNoDollarQueryOptionsEnabled)
         {

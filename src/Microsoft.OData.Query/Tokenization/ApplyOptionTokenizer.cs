@@ -46,23 +46,23 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
 
         while (true)
         {
-            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableIdentifierCaseSensitive))
+            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableCaseInsensitive))
             {
                 transformationTokens.Add(TokenizeAggregate(lexer, context));
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordFilter, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordFilter, context.EnableCaseInsensitive))
             {
                 transformationTokens.Add(TokenizeFilter(lexer, context));
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordGroupBy, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordGroupBy, context.EnableCaseInsensitive))
             {
                 transformationTokens.Add(TokenizeGroupBy(lexer, context));
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableCaseInsensitive))
             {
                 transformationTokens.Add(TokenizeCompute(lexer, context));
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordExpand, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordExpand, context.EnableCaseInsensitive))
             {
                 transformationTokens.Add(TokenizeExpand(lexer, context));
             }
@@ -238,7 +238,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
         {
             lexer.NextToken();
 
-            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableIdentifierCaseSensitive))
+            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAggregate, context.EnableCaseInsensitive))
             {
                 transformationToken = TokenizeAggregate(lexer, context);
             }
@@ -281,7 +281,7 @@ public class ApplyOptionTokenizer : QueryTokenizer, IApplyOptionTokenizer
     /// <returns></returns>
     protected virtual ComputeToken TokenizeCompute(IExpressionLexer lexer, QueryTokenizerContext context)
     {
-        Debug.Assert(lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableIdentifierCaseSensitive), "token identifier is compute");
+        Debug.Assert(lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordCompute, context.EnableCaseInsensitive), "token identifier is compute");
 
         lexer.NextToken();
 

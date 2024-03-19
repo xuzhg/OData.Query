@@ -14,7 +14,8 @@ public class QueryTokenizerContext
 {
     internal static QueryTokenizerContext Default = new QueryTokenizerContext();
 
-    public bool EnableIdentifierCaseSensitive { get; set; } = true;
+    public bool EnableCaseInsensitive { get; set; } = true;
+
     public bool EnableNoDollarPrefix { get; set; } = true;
 
     /// <summary>

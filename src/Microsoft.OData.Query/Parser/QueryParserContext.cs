@@ -39,10 +39,10 @@ public class QueryParserContext
 
     public bool IgnoreUnknownQuery { get; set; }
 
-    public bool EnableIdentifierCaseSensitive
+    public bool EnableCaseInsensitive
     {
-        get => _tokenizerContext.EnableIdentifierCaseSensitive;
-        set => _tokenizerContext.EnableIdentifierCaseSensitive = value;
+        get => _tokenizerContext.EnableCaseInsensitive;
+        set => _tokenizerContext.EnableCaseInsensitive = value;
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class QueryParserContext
     /// If it is enabled, the '$' prefix of system query options becomes optional.
     /// For example, "select" and "$select" are equivalent in this case.
     /// </summary>
-    public bool EnableNoDollarSignOption { get; set; } = true;
+    public bool EnableNoDollarPrefix { get; set; } = true;
 
     public IMetadataResolver Resolver { get; set; }
 

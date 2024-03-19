@@ -3,18 +3,8 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Ast;
-using Microsoft.OData.Query.Binders;
 using Microsoft.OData.Query.Commons;
-using Microsoft.OData.Query.Lexers;
-using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.Parser;
-using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
-using Microsoft.VisualBasic;
-using System.Data;
-using System.Globalization;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.OData.Query;
 
@@ -29,7 +19,6 @@ public class ODataQueryOptionParser<T> : ODataQueryOptionParser
 /// Engine Pipeline
 /// 1) 
 /// </summary>
-
 public class ODataQueryOptionParser : IODataQueryOptionParser
 {
     private readonly IServiceProvider _serviceProvider;
@@ -44,43 +33,91 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
     }
 
     /// <summary>
-    /// 
+    /// Parses the input query string to OData query nodes.
     /// </summary>
     /// <param name="query">The odata query string, it should be escaped query string.</param>
-    /// <param name="context"></param>
-    /// <returns></returns>
-    public virtual async ValueTask<ODataQueryOption> ParseQueryAsync(string query, QueryParserContext context)
+    /// <param name="context">The parser context.</param>
+    /// <returns>The OData query option parsed.</returns>
+    public virtual async ValueTask<ODataQueryOption> ParseAsync(string query, QueryParserContext context)
     {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            throw new ArgumentNullException(nameof(query));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
         IDictionary<string, ReadOnlyMemory<char>> queryOptionsDict = QueryStringHelpers.SplitQuery(query);
 
-        ODataQueryOption queryOption = new ODataQueryOption();
-
-        // We need parse the 'apply', 'compute' first.
-        // $apply
-        if (queryOptionsDict.TryGetQueryOption(QueryStringConstants.Apply, context, out ReadOnlyMemory<char> apply))
+        ODataQueryOption result = new ODataQueryOption();
+        foreach (var queryOptionItem in queryOptionsDict)
         {
-            queryOption.Apply = await ParseApply(apply, context);
+            string normalizedQueryOptionName = NormalizeQueryOption(queryOptionItem.Key, context);
+
+            switch (normalizedQueryOptionName)
+            {
+                case QueryStringConstants.Apply: // $apply
+                    await ParseApply(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Compute: // $compute
+                    await ParseCompute(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Filter: // $filter
+                    await ParseFilter(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.OrderBy: // $orderby
+                    await ParseOrderBy(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Select: // $select
+                    await ParseSelect(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Expand: // $select
+                    await ParseExpand(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Search: // $search
+                    await ParseSearch(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Count: // $count
+                    await ParseCount(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Index: // $index
+                    await ParseIndex(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Top: // $top
+                    await ParseTop(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.Skip: // $skip
+                    await ParseSkip(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.SkipToken: // $skiptoken
+                    await ParseSkipToken(queryOptionItem.Value, result, context);
+                    break;
+
+                case QueryStringConstants.DeltaToken: // $deltatoken
+                    await ParseDeltaToken(queryOptionItem.Value, result, context);
+                    break;
+
+                default:
+                    await ParseCustomized(queryOptionItem.Key, queryOptionItem.Value, result, context);
+                    break;
+            }
         }
 
-        // $compute
-        if (queryOptionsDict.TryGetQueryOption(QueryStringConstants.Compute, context, out ReadOnlyMemory<char> compute))
-        {
-            queryOption.Compute = ParseCompute(compute, context);
-        }
-
-        // $filter
-        if (queryOptionsDict.TryGetQueryOption(QueryStringConstants.Filter, context, out ReadOnlyMemory<char> filter))
-        {
-            queryOption.Filter = await ParseFilter(filter, context);
-        }
-
-        // $orderBy
-        if (queryOptionsDict.TryGetQueryOption(QueryStringConstants.OrderBy, context, out ReadOnlyMemory<char> orderBy))
-        {
-            queryOption.OrderBy = await ParseOrderBy(orderBy, context);
-        }
-
-        return await ValueTask.FromResult(queryOption);
+        return result;
     }
 
     /// <summary>
@@ -89,54 +126,252 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
     /// <param name="apply"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected virtual async ValueTask<ApplyClause> ParseApply(ReadOnlyMemory<char> apply, QueryParserContext context)
+    protected virtual async Task ParseApply(ReadOnlyMemory<char> apply, ODataQueryOption queryOption, QueryParserContext context)
     {
-        IApplyOptionTokenizer tokenizer = _serviceProvider?.GetService<IApplyOptionTokenizer>()
-            ?? new ApplyOptionTokenizer(ExpressionLexerFactory.Default);
+        if (queryOption.Apply != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Apply, context);
+        }
 
-        ApplyToken token = await tokenizer.TokenizeAsync(apply.Span.ToString(), context.TokenizerContext);
-
-        IApplyOptionParser parser = _serviceProvider?.GetService<IApplyOptionParser>()
-            ?? new ApplyOptionParser();
-
-        return parser.Parse(token, context);
+        IApplyOptionParser applyParser = _serviceProvider?.GetService<IApplyOptionParser>() ?? new ApplyOptionParser();
+        queryOption.Apply = await applyParser.ParseAsync(apply.Span.ToString(), context);
     }
 
-    protected virtual ComputeClause ParseCompute(ReadOnlyMemory<char> compute, QueryParserContext context)
+    protected virtual async Task ParseCompute(ReadOnlyMemory<char> compute, ODataQueryOption queryOption, QueryParserContext context)
     {
-        // Need add the aggregate properties into context
-        throw new NotImplementedException();
+        if (queryOption.Compute != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Compute, context);
+        }
+
+        IComputeOptionParser computeParser = _serviceProvider?.GetService<IComputeOptionParser>() ?? new ComputeOptionParser();
+        queryOption.Compute = await computeParser.ParseAsync(compute.Span.ToString(), context);
     }
 
-    protected virtual SearchClause ParseSearch(ReadOnlyMemory<char> search, QueryParserContext context)
+    protected virtual async Task ParseFilter(ReadOnlyMemory<char> filter, ODataQueryOption queryOption, QueryParserContext context)
     {
-        throw new NotImplementedException();
+        if (queryOption.Filter != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Filter, context);
+        }
+
+        IFilterOptionParser filterParser = _serviceProvider?.GetService<IFilterOptionParser>() ?? new FilterOptionParser();
+        queryOption.Filter = await filterParser.ParseAsync(filter.Span.ToString(), context);
     }
 
-    protected virtual async ValueTask<FilterClause> ParseFilter(ReadOnlyMemory<char> filter, QueryParserContext context)
+    protected virtual async Task ParseOrderBy(ReadOnlyMemory<char> orderBy, ODataQueryOption queryOption, QueryParserContext context)
     {
-        IFilterOptionTokenizer tokenizer = _serviceProvider?.GetService<IFilterOptionTokenizer>()
-            ?? new FilterOptionTokenizer(ExpressionLexerFactory.Default);
+        if (queryOption.OrderBy != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.OrderBy, context);
+        }
 
-        IQueryToken token = await tokenizer.TokenizeAsync(filter.Span.ToString(), context.TokenizerContext);
-
-        IFilterOptionParser parser = _serviceProvider?.GetService<IFilterOptionParser>()
-            ?? new FilterOptionParser();
-
-        return parser.Parse(token, context);
+        IOrderByOptionParser orderByParser = _serviceProvider?.GetService<IOrderByOptionParser>() ?? new OrderByOptionParser();
+        queryOption.OrderBy = await orderByParser.ParseAsync(orderBy.Span.ToString(), context);
     }
 
-    protected virtual async ValueTask<OrderByClause> ParseOrderBy(ReadOnlyMemory<char> orderBy, QueryParserContext context)
+    protected virtual async Task ParseSelect(ReadOnlyMemory<char> select, ODataQueryOption queryOption, QueryParserContext context)
     {
-        IOrderByOptionTokenizer tokenizer = _serviceProvider?.GetService<IOrderByOptionTokenizer>()
-            ?? new OrderByOptionTokenizer(ExpressionLexerFactory.Default);
+        if (queryOption.Select != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Select, context);
+        }
 
-        OrderByToken token = await tokenizer.TokenizeAsync(orderBy.Span.ToString(), context.TokenizerContext);
+        ISelectOptionParser selectParser = _serviceProvider?.GetService<ISelectOptionParser>() ?? new SelectOptionParser();
+        queryOption.Select = await selectParser.ParseAsync(select.Span.ToString(), context);
+    }
 
-        IOrderByOptionParser parser = _serviceProvider?.GetService<IOrderByOptionParser>()
-            ?? new OrderByOptionParser();
+    protected virtual async Task ParseExpand(ReadOnlyMemory<char> expand, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.Expand != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Expand, context);
+        }
 
-        return parser.Parse(token, context);
+        IExpandOptionParser expandParser = _serviceProvider?.GetService<IExpandOptionParser>() ?? new ExpandOptionParser();
+        queryOption.Expand = await expandParser.ParseAsync(expand.Span.ToString(), context);
+    }
+
+    protected virtual async Task ParseCount(ReadOnlyMemory<char> count, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.Count != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Count, context);
+        }
+
+        StringComparison comparison = context.EnableCaseInsensitive ?
+            StringComparison.OrdinalIgnoreCase :
+            StringComparison.Ordinal;
+
+        if (count.Span.Equals("true", comparison))
+        {
+            queryOption.Count = true;
+        }
+        else if (count.Span.Equals("false", comparison))
+        {
+            queryOption.Count = false;
+        }
+        else
+        {
+            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidDollarCount, count.Span.ToString()));
+        }
+
+        await Task.CompletedTask;
+    }
+
+    protected virtual async Task ParseTop(ReadOnlyMemory<char> top, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.Top != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Top, context);
+        }
+
+        long topValue;
+        if (!long.TryParse(top.Span, out topValue) || topValue < 0)
+        {
+            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidIntegerOptionValue, top.Span.ToString(), "$top"));
+        }
+
+        await Task.CompletedTask;
+    }
+
+    protected virtual async Task ParseSkip(ReadOnlyMemory<char> skip, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.Skip != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Skip, context);
+        }
+
+        long skipValue;
+        if (!long.TryParse(skip.Span, out skipValue) || skipValue < 0)
+        {
+            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidIntegerOptionValue, skip.Span.ToString(), "$skip"));
+        }
+
+        await Task.CompletedTask;
+    }
+
+    protected virtual async Task ParseIndex(ReadOnlyMemory<char> index, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.Index != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Index, context);
+        }
+
+        long indexValue;
+        if (!long.TryParse(index.Span, out indexValue) || indexValue < 0)
+        {
+            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidIntegerOptionValue, index.Span.ToString(), "$index"));
+        }
+
+        await Task.CompletedTask;
+    }
+
+    protected virtual async Task ParseSearch(ReadOnlyMemory<char> search, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.Search != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Search, context);
+        }
+
+        ISearchOptionParser searchParser = _serviceProvider?.GetService<ISearchOptionParser>() ?? new SearchOptionParser();
+        queryOption.Search = await searchParser.ParseAsync(search.Span.ToString(), context);
+    }
+
+    protected virtual async Task ParseSkipToken(ReadOnlyMemory<char> skipToken, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.SkipToken != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.SkipToken, context);
+        }
+
+        queryOption.SkipToken = skipToken.Span.ToString();
+        await Task.CompletedTask;
+    }
+
+    protected virtual async Task ParseDeltaToken(ReadOnlyMemory<char> deltaToken, ODataQueryOption queryOption, QueryParserContext context)
+    {
+        if (queryOption.DeltaToken != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.DeltaToken, context);
+        }
+
+        queryOption.DeltaToken = deltaToken.Span.ToString();
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    /// <param name="result"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    protected virtual async Task ParseCustomized(string key, ReadOnlyMemory<char> value, ODataQueryOption result, QueryParserContext context)
+    {
+        // by default, nothing here
+        await Task.CompletedTask;
+    }
+
+    private static void ThrowQueryParameterMoreThanOnce(string queryName, QueryParserContext context)
+    {
+        throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_QueryParameterMustBeSpecifiedOnce,
+            queryName,
+            context.EnableCaseInsensitive ? "Enabled" : "Disabled",
+            context.EnableNoDollarPrefix ? "Enabled" : "Disabled"));
+    }
+
+    /// <summary>
+    /// Gets query options according to case sensitivity and whether no dollar query options is enabled.
+    /// </summary>
+    /// <param name="queryOptionName">The query option key from request.</param>
+    /// <param name="buildInName">The built-in system query option key name, it should start with "$", for example: $select.</param>
+    /// <param name="context">The query parser context.</param>
+    /// <returns>true/false.</returns>
+    private static bool IsSystemQueryOption(string queryOptionName, string buildInName, QueryParserContext context)
+    {
+        if (string.IsNullOrEmpty(queryOptionName))
+        {
+            return false;
+        }
+
+        string changedQueryOptionName = queryOptionName;
+        if (context.EnableCaseInsensitive)
+        {
+            changedQueryOptionName = queryOptionName.ToLowerInvariant();
+        }
+
+        // Comparing like: "queryName == $select"
+        if (changedQueryOptionName.Equals(buildInName, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        // Comparing like: "queryName == select"
+        if (context.EnableNoDollarPrefix &&
+            changedQueryOptionName.AsSpan().Equals(buildInName.AsSpan().Slice(1), StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static string NormalizeQueryOption(string queryOptionName, QueryParserContext context)
+    {
+        if (string.IsNullOrEmpty(queryOptionName))
+        {
+            return queryOptionName;
+        }
+
+        string changedQueryOptionName = queryOptionName;
+        if (context.EnableNoDollarPrefix && !queryOptionName.StartsWith("$", StringComparison.Ordinal))
+        {
+            changedQueryOptionName = $"${changedQueryOptionName}";
+        }
+
+        return context.EnableCaseInsensitive ? changedQueryOptionName.ToLowerInvariant() : changedQueryOptionName;
     }
 }
 

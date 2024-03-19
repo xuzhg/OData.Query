@@ -128,7 +128,7 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
             // Look for all the supported query options
             while (lexer.CurrentToken.Kind != ExpressionKind.CloseParen)
             {
-                string text = context.EnableIdentifierCaseSensitive
+                string text = context.EnableCaseInsensitive
                    ? lexer.CurrentToken.Text.ToString().ToLowerInvariant()
                    : lexer.CurrentToken.Text.ToString();
 

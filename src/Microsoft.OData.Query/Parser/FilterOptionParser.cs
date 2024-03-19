@@ -17,6 +17,8 @@ namespace Microsoft.OData.Query.Parser;
 /// </summary>
 public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
 {
+    internal static readonly FilterOptionParser Default = new FilterOptionParser();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FilterOptionParser" /> class.
     /// </summary>

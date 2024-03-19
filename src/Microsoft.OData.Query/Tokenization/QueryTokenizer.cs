@@ -44,7 +44,7 @@ public abstract class QueryTokenizer
     {
         context.EnterRecurse();
         IQueryToken left = TokenizeLogicalAnd(lexer, context);
-        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordOr, context.EnableIdentifierCaseSensitive))
+        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordOr, context.EnableCaseInsensitive))
         {
             lexer.NextToken();
             IQueryToken right = this.TokenizeLogicalAnd(lexer, context);
@@ -63,7 +63,7 @@ public abstract class QueryTokenizer
     {
         context.EnterRecurse();
         IQueryToken left = this.TokenizeComparison(lexer, context);
-        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAnd, context.EnableIdentifierCaseSensitive))
+        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAnd, context.EnableCaseInsensitive))
         {
             lexer.NextToken();
             IQueryToken right = TokenizeComparison(lexer, context);
@@ -85,27 +85,27 @@ public abstract class QueryTokenizer
         while (true)
         {
             BinaryOperatorKind binaryOperatorKind;
-            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordEqual, context.EnableIdentifierCaseSensitive))
+            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordEqual, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.Equal;
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordNotEqual, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordNotEqual, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.NotEqual;
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordGreaterThan, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordGreaterThan, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.GreaterThan;
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordGreaterThanOrEqual, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordGreaterThanOrEqual, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual;
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordLessThan, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordLessThan, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.LessThan;
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordLessThanOrEqual, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordLessThanOrEqual, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.LessThanOrEqual;
             }
@@ -131,17 +131,17 @@ public abstract class QueryTokenizer
     {
         context.EnterRecurse();
         IQueryToken left = TokenizeMultiplicative(lexer, context);
-        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAdd, context.EnableIdentifierCaseSensitive) ||
-            lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordSub, context.EnableIdentifierCaseSensitive))
+        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAdd, context.EnableCaseInsensitive) ||
+            lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordSub, context.EnableCaseInsensitive))
         {
             BinaryOperatorKind binaryOperatorKind;
-            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAdd, context.EnableIdentifierCaseSensitive))
+            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAdd, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.Add;
             }
             else
             {
-                Debug.Assert(lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordSub, context.EnableIdentifierCaseSensitive), "Was a new binary operator added?");
+                Debug.Assert(lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordSub, context.EnableCaseInsensitive), "Was a new binary operator added?");
                 binaryOperatorKind = BinaryOperatorKind.Subtract;
             }
 
@@ -162,7 +162,7 @@ public abstract class QueryTokenizer
     {
         context.EnterRecurse();
 
-        if (lexer.CurrentToken.Kind == ExpressionKind.Minus || lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordNot, context.EnableIdentifierCaseSensitive))
+        if (lexer.CurrentToken.Kind == ExpressionKind.Minus || lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordNot, context.EnableCaseInsensitive))
         {
             ExpressionToken operatorToken = lexer.CurrentToken;
             lexer.NextToken();
@@ -207,13 +207,13 @@ public abstract class QueryTokenizer
         IQueryToken left = TokenizePrimary(lexer, context);
         while (true)
         {
-            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordIn, context.EnableIdentifierCaseSensitive))
+            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordIn, context.EnableCaseInsensitive))
             {
                 lexer.NextToken();
                 IQueryToken right = TokenizePrimary(lexer, context);
                 left = new InToken(left, right);
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordHas, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordHas, context.EnableCaseInsensitive))
             {
                 lexer.NextToken();
                 IQueryToken right = TokenizePrimary(lexer, context);
@@ -250,15 +250,15 @@ public abstract class QueryTokenizer
         while (lexer.CurrentToken.Kind == ExpressionKind.Slash)
         {
             lexer.NextToken();
-            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAny, context.EnableIdentifierCaseSensitive))
+            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAny, context.EnableCaseInsensitive))
             {
                 expr = TokenizeAnyAll(lexer, context, expr, true);
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAll, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordAll, context.EnableCaseInsensitive))
             {
                 expr = TokenizeAnyAll(lexer, context, expr, false);
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.QueryOptionCount, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.QueryOptionCount, context.EnableCaseInsensitive))
             {
                 expr = TokenizeCountSegment(lexer, context, expr);
             }
@@ -501,22 +501,22 @@ public abstract class QueryTokenizer
     {
         context.EnterRecurse();
         IQueryToken left = TokenizeUnary(lexer, context);
-        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordMultiply, context.EnableIdentifierCaseSensitive) ||
-            lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordDivide, context.EnableIdentifierCaseSensitive) ||
-            lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordModulo, context.EnableIdentifierCaseSensitive))
+        while (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordMultiply, context.EnableCaseInsensitive) ||
+            lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordDivide, context.EnableCaseInsensitive) ||
+            lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordModulo, context.EnableCaseInsensitive))
         {
             BinaryOperatorKind binaryOperatorKind;
-            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordMultiply, context.EnableIdentifierCaseSensitive))
+            if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordMultiply, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.Multiply;
             }
-            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordDivide, context.EnableIdentifierCaseSensitive))
+            else if (lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordDivide, context.EnableCaseInsensitive))
             {
                 binaryOperatorKind = BinaryOperatorKind.Divide;
             }
             else
             {
-                Debug.Assert(lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordModulo, context.EnableIdentifierCaseSensitive), "Was a new binary operator added?");
+                Debug.Assert(lexer.IsCurrentTokenIdentifier(TokenConstants.KeywordModulo, context.EnableCaseInsensitive), "Was a new binary operator added?");
                 binaryOperatorKind = BinaryOperatorKind.Modulo;
             }
 

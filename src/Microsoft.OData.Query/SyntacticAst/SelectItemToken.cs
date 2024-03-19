@@ -11,7 +11,7 @@ namespace Microsoft.OData.Query.SyntacticAst;
 public sealed class SelectItemToken : SelectExpandItemToken
 {
     /// <summary>
-    /// Initializes a new instance of  <see cref="SelectTermToken"/> class.
+    /// Initializes a new instance of  <see cref="SelectItemToken"/> class.
     /// </summary>
     /// <param name="pathToProperty">the path to the property for this select term</param>
     public SelectItemToken(SegmentToken pathToProperty)
@@ -20,7 +20,7 @@ public sealed class SelectItemToken : SelectExpandItemToken
     }
 
     /// <summary>
-    /// Create an select term using only the property and its sub-expand/select
+    /// Initializes a new instance of  <see cref="SelectItemToken"/> class.
     /// </summary>
     /// <param name="pathToProperty">the path to the property for this select term</param>
     /// <param name="selectOption">the sub select for this token</param>
@@ -30,7 +30,7 @@ public sealed class SelectItemToken : SelectExpandItemToken
     }
 
     /// <summary>
-    /// Create a select term using only the property and its supporting query options.
+    /// Initializes a new instance of  <see cref="SelectItemToken"/> class.
     /// </summary>
     /// <param name="pathToProperty">the path to the property for this select term</param>
     /// <param name="filterOption">the filter option for this select term</param>

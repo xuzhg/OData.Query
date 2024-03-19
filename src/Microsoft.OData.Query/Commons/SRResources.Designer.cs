@@ -79,11 +79,38 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A string like &quot;&apos;{0}&apos; is not a valid $count option. Valid values are &apos;true&apos;/&apos;false&apos;..
+        /// </summary>
+        internal static string QueryOptionParser_InvalidDollarCount {
+            get {
+                return ResourceManager.GetString("QueryOptionParser_InvalidDollarCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for &apos;{1}&apos; query option found. The &apos;{1}&apos; query option requires a non-negative integer value...
+        /// </summary>
+        internal static string QueryOptionParser_InvalidIntegerOptionValue {
+            get {
+                return ResourceManager.GetString("QueryOptionParser_InvalidIntegerOptionValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;(&apos; expected at position {0} in &apos;{1}&apos;..
         /// </summary>
         internal static string QueryOptionParser_OpenParenExpected {
             get {
                 return ResourceManager.GetString("QueryOptionParser_OpenParenExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query option &apos;{0}&apos; was specified more than once, but it must be specified at most once when case-insensitive &apos;{1}&apos; and No-dollar sign prefix &apos;{2}&apos;..
+        /// </summary>
+        internal static string QueryOptionParser_QueryParameterMustBeSpecifiedOnce {
+            get {
+                return ResourceManager.GetString("QueryOptionParser_QueryParameterMustBeSpecifiedOnce", resourceCulture);
             }
         }
         

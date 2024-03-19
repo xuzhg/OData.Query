@@ -21,7 +21,7 @@ public class ODataQueryOptionParserTests
         QueryParserContext context = new QueryParserContext(typeof(Person));
 
         // Act
-        var result = await parser.ParseQueryAsync(query, context);
+        var result = await parser.ParseAsync(query, context);
 
         // Assert
         Assert.NotNull(result);
@@ -37,7 +37,7 @@ public class ODataQueryOptionParserTests
         QueryParserContext context = new QueryParserContext(typeof(Person));
 
         // Act
-        var result = await parser.ParseQueryAsync(query, context);
+        var result = await parser.ParseAsync(query, context);
 
         // Assert
         Assert.NotNull(result);

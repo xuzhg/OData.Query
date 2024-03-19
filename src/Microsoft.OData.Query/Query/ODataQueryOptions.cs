@@ -43,7 +43,7 @@ public class ODataQueryOptions : IODataQueryOptionApplier
         }
 
         IODataQueryOptionParser parser = _serviceProvider.GetService<IODataQueryOptionParser>();
-        ODataQueryOption queryOption = await parser.ParseQueryAsync(query, context);
+        ODataQueryOption queryOption = await parser.ParseAsync(query, context);
 
         if (queryOption.Apply != null)
         {

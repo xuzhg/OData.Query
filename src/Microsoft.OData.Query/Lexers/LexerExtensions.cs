@@ -19,7 +19,7 @@ public static class LexerExtensions
     /// <param name="id">Identifier to check.</param>
     /// <returns>true if the current token is an identifier with the specified text.</returns>
     public static bool IsCurrentTokenIdentifier(this IExpressionLexer lexer, string id)
-        => lexer.IsCurrentTokenIdentifier(id, true);
+        => lexer.IsCurrentTokenIdentifier(id, false);
 
     /// <summary>
     /// Checks that the current token has the specified identifier.
@@ -27,7 +27,7 @@ public static class LexerExtensions
     /// <param name="id">Identifier to check.</param>
     /// <param name="enableCaseSensitive">bool value to enable case sensitive.</param>
     /// <returns>true if the current token is an identifier with the specified text.</returns>
-    public static bool IsCurrentTokenIdentifier(this IExpressionLexer lexer, string id, bool enableCaseSensitive)
+    public static bool IsCurrentTokenIdentifier(this IExpressionLexer lexer, string id, bool enableCaseInsensitive)
     {
         if (lexer == null)
         {
@@ -37,7 +37,7 @@ public static class LexerExtensions
         ExpressionToken token = lexer.CurrentToken;
 
         return token.Kind == ExpressionKind.Identifier
-            && token.Text.Equals(id, enableCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+            && token.Text.Equals(id, enableCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
