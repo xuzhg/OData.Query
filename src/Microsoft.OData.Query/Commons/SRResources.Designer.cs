@@ -70,6 +70,15 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The expression type &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string ExpressionVisitor_UnsupportedExpression {
+            get {
+                return ResourceManager.GetString("ExpressionVisitor_UnsupportedExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;)&apos; or &apos;,&apos; expected at position {0} in &apos;{1}&apos;..
         /// </summary>
         internal static string QueryOptionParser_CloseParenOrCommaExpected {

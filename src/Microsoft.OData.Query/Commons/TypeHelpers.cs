@@ -10,6 +10,30 @@ namespace Microsoft.OData.Query.Commons;
 /// </summary>
 internal static class TypeHelpers
 {
+    public static Type GetElementTypeOrSelf(this Type type)
+    {
+        if (type == null ||
+            type == typeof(string) ||
+            type.IsPrimitive ||
+            type.IsValueType ||
+            Nullable.GetUnderlyingType(type) != null)
+        {
+            return type;
+        }
+
+        if (type.IsArray)
+        {
+            return type.GetElementType();
+        }
+
+        if (type.IsCollection(out Type elementType))
+        {
+            return elementType;
+        }
+
+        return type;
+    }
+
     /// <summary>
     /// Return the underlying type or itself.
     /// </summary>

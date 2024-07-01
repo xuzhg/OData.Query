@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 namespace Microsoft.OData.Query.Binders;
 
 /// <summary>
-/// A interface to process the $filter
+/// An interface to process the $filter.
 /// </summary>
 public interface IFilterBinder
 {

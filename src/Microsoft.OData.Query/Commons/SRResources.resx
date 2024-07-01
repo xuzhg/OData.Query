@@ -174,4 +174,7 @@
   <data name="QueryParser_InvalidIntegerQueryOptionValue" xml:space="preserve">
     <value>Invalid value '{0}' for '{1}' query option found. The '{1}' query option requires an integer value.</value>
   </data>
+  <data name="ExpressionVisitor_UnsupportedExpression" xml:space="preserve">
+    <value>The expression type '{0}' is not supported.</value>
+  </data>
 </root>
