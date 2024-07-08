@@ -98,3 +98,13 @@ public class ConstantNode<T> : SingleValueNode where T: struct
     /// </summary>
     public override Type NodeType => typeof(T);
 }
+
+public class ConstantLongNode : ConstantNode<long>
+{
+    public ConstantLongNode(long constantValue) : base(constantValue) { }
+}
+
+public class ConstantBoolNode : ConstantNode<bool>
+{
+    public ConstantBoolNode(bool constantValue) : base(constantValue) { }
+}

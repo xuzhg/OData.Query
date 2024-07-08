@@ -245,7 +245,7 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
     /// </summary>
     /// <param name="pathToken">The path segment token</param>
     /// <returns>The expand option for select/expand</returns>
-    protected virtual ExpandToken TokenizeInnerExpand(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected override ExpandToken TokenizeInnerExpand(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         // advance to the equal sign
         lexer.NextToken();

@@ -177,4 +177,22 @@
   <data name="ExpressionVisitor_UnsupportedExpression" xml:space="preserve">
     <value>The expression type '{0}' is not supported.</value>
   </data>
+  <data name="ExpandPath_InvalidLastSegment" xml:space="preserve">
+    <value>The last segment '{0}' is invalid. The last segment must be a navigation property or type segment in $expand.</value>
+  </data>
+  <data name="ExpandPath_MultipleNavigationProperties" xml:space="preserve">
+    <value>Multiple navigation properties '{0}', '{1}'... are found in $expand. The last segment, and only the last segment, can be a navigation property in $expand.</value>
+  </data>
+  <data name="ExpandPath_LastSegmentMustBeNavigationPropertyOrTypeSegment" xml:space="preserve">
+    <value>The segment '{0}' of segment type kind '{1}' is invalid. The last segment must be a navigation property or type segment in $expand.</value>
+  </data>
+  <data name="SelectPath_CannotOnlyHaveTypeSegment" xml:space="preserve">
+    <value>TypeSegment '{0}' cannot be the only segment in a $select.</value>
+  </data>
+  <data name="SelectPath_NavPropSegmentCanOnlyBeLastSegment" xml:space="preserve">
+    <value>A navigation property '{0}' is in the middle of path. The navigation property can only be the last segment in $select.</value>
+  </data>
+  <data name="SelectPath_InvalidSelectPathSegmentType" xml:space="preserve">
+    <value>Found a segment '{0}' of type '{1} in a select path, but only TypeSegment, NavigationPropertySegment, PropertySegment, OperationSegment or OpenPropertySegments are allowed.</value>
+  </data>
 </root>

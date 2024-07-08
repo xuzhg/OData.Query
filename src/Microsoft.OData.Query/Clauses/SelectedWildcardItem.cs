@@ -3,12 +3,12 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Clauses;
+namespace Microsoft.OData.Query.Clauses;
 
-namespace Microsoft.OData.Query.Parser;
-
-public interface ISearchOptionParser
+/// <summary>
+/// Represents a '*' selection item, indicating that all structural properties should be selected.
+/// </summary>
+public sealed class SelectedWildcardItem : SelectedItem
 {
-   // SearchToken ParseSearch(string search, QueryParserContext context);
-    ValueTask<SearchClause> ParseAsync(string search, QueryParserContext context);
+    // $select=*
 }

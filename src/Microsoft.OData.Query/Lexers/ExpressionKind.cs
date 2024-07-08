@@ -6,7 +6,7 @@
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
-/// Enumeration values for token kinds.
+/// Enumeration values for expression kinds.
 /// </summary>
 public enum ExpressionKind
 {

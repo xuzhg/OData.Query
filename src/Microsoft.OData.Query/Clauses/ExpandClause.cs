@@ -3,12 +3,11 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Clauses;
+namespace Microsoft.OData.Query.Clauses;
 
-namespace Microsoft.OData.Query.Parser;
-
-public interface ISearchOptionParser
+/// <summary>
+/// Represents the combined semantic meaning of any expanded items in the uri.
+/// </summary>
+public class ExpandClause : List<ExpandedItem>
 {
-   // SearchToken ParseSearch(string search, QueryParserContext context);
-    ValueTask<SearchClause> ParseAsync(string search, QueryParserContext context);
 }

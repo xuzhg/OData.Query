@@ -3,8 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Ast;
-using Microsoft.OData.Query.Metadata;
+using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
 using Microsoft.OData.Query.Tokenization;
@@ -64,7 +63,7 @@ public class SearchOptionParser : QueryOptionParser, ISearchOptionParser
 
         QueryNode expressionNode = Bind(token, context);
 
-        SearchClause searchClause = new SearchClause(/*expressionResultNode, context.ImplicitRangeVariable*/);
+        SearchClause searchClause = new SearchClause((SingleValueNode)expressionNode/*, context.ImplicitRangeVariable*/);
 
         return searchClause;
     }

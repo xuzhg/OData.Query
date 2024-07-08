@@ -3,12 +3,11 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Clauses;
+namespace Microsoft.OData.Query.Clauses;
 
-namespace Microsoft.OData.Query.Parser;
-
-public interface ISearchOptionParser
+/// <summary>
+/// An item that has been selected by the query at the current level of the tree.
+/// </summary>
+public abstract class SelectedItem
 {
-   // SearchToken ParseSearch(string search, QueryParserContext context);
-    ValueTask<SearchClause> ParseAsync(string search, QueryParserContext context);
 }

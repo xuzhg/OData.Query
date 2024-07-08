@@ -3,10 +3,23 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Binders;
 using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Parser;
 
 namespace Microsoft.OData.Query;
+
+
+
+
+
+public class QueryOptionParser
+{
+    public virtual ValueTask<ODataQueryOption> ParseAsync(string query, QueryParserContext context)
+    {
+        return ValueTask.FromResult<ODataQueryOption>(null);
+    }
+}
 
 public class ODataQueryOptionParser<T> : ODataQueryOptionParser
 {

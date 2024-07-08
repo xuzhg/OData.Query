@@ -17,7 +17,7 @@ namespace Microsoft.OData.Query.Tokenization;
 public abstract class QueryTokenizer
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="IQueryTokenizer" /> class.
+    /// Initializes a new instance of the <see cref="QueryTokenizer" /> class.
     /// </summary>
     protected QueryTokenizer()
     { }

@@ -61,6 +61,33 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The last segment &apos;{0}&apos; is invalid. The last segment must be a navigation property or type segment in $expand..
+        /// </summary>
+        internal static string ExpandPath_InvalidLastSegment {
+            get {
+                return ResourceManager.GetString("ExpandPath_InvalidLastSegment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The segment &apos;{0}&apos; of segment type kind &apos;{1}&apos; is invalid. The last segment must be a navigation property or type segment in $expand..
+        /// </summary>
+        internal static string ExpandPath_LastSegmentMustBeNavigationPropertyOrTypeSegment {
+            get {
+                return ResourceManager.GetString("ExpandPath_LastSegmentMustBeNavigationPropertyOrTypeSegment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple navigation properties &apos;{0}&apos;, &apos;{1}&apos;... are found in $expand. The last segment, and only the last segment, can be a navigation property in $expand..
+        /// </summary>
+        internal static string ExpandPath_MultipleNavigationProperties {
+            get {
+                return ResourceManager.GetString("ExpandPath_MultipleNavigationProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Syntax error: character &apos;{0}&apos; is not valid at position {1} in &apos;{2}&apos;..
         /// </summary>
         internal static string ExpressionLexer_InvalidCharacter {
@@ -192,6 +219,33 @@ namespace Microsoft.OData.Query.Commons {
         internal static string QueryTokenizer_TokenKindExpected {
             get {
                 return ResourceManager.GetString("QueryTokenizer_TokenKindExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TypeSegment &apos;{0}&apos; cannot be the only segment in a $select..
+        /// </summary>
+        internal static string SelectPath_CannotOnlyHaveTypeSegment {
+            get {
+                return ResourceManager.GetString("SelectPath_CannotOnlyHaveTypeSegment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found a segment &apos;{0}&apos; of type &apos;{1} in a select path, but only TypeSegment, NavigationPropertySegment, PropertySegment, OperationSegment or OpenPropertySegments are allowed..
+        /// </summary>
+        internal static string SelectPath_InvalidSelectPathSegmentType {
+            get {
+                return ResourceManager.GetString("SelectPath_InvalidSelectPathSegmentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A navigation property &apos;{0}&apos; is in the middle of path. The navigation property can only be the last segment in $select..
+        /// </summary>
+        internal static string SelectPath_NavPropSegmentCanOnlyBeLastSegment {
+            get {
+                return ResourceManager.GetString("SelectPath_NavPropSegmentCanOnlyBeLastSegment", resourceCulture);
             }
         }
         

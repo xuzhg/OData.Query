@@ -164,7 +164,7 @@ public abstract class SelectExpandOptionTokenizer : QueryTokenizer
     /// </summary>
     /// <param name="pathToken">The path segment token</param>
     /// <returns>The expand option for select/expand</returns>
-    protected virtual SelectToken TokenizeInnerExpand(IExpressionLexer lexer, QueryTokenizerContext context)
+    protected virtual ExpandToken TokenizeInnerExpand(IExpressionLexer lexer, QueryTokenizerContext context)
     {
         throw new NotImplementedException();
     }

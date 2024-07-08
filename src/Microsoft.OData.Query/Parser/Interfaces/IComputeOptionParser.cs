@@ -3,6 +3,8 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Clauses;
+
 namespace Microsoft.OData.Query.Parser;
 
 public interface IComputeOptionParser
