@@ -5,5 +5,8 @@
 
 namespace Microsoft.OData.Query.Clauses;
 
-public class ComputeClause : List<ComputeItem>
+/// <summary>
+/// The result of parsing a $compute query option.
+/// </summary>
+public class ComputeClause : List<ComputedItem>
 { }
