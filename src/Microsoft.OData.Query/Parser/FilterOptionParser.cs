@@ -41,28 +41,6 @@ public class FilterOptionParser : QueryOptionParser, IFilterOptionParser
     /// </summary>
     public IFilterOptionTokenizer Tokenizer { get; }
 
-    public virtual FilterClause Parse(IQueryToken filter, QueryParserContext context)
-    {
-        QueryNode expressionNode = Bind(filter, context);
-
-        SingleValueNode expressionResultNode = expressionNode as SingleValueNode;
-        if (expressionResultNode == null ||
-            (expressionResultNode.NodeType != null && !expressionResultNode.NodeType.IsPrimitiveTypeKind()))
-        {
-            throw new Exception("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
-        }
-
-        PrimitiveTypeKind kind = expressionResultNode.NodeType.GetPrimitiveTypeKind();
-        if (kind != PrimitiveTypeKind.Boolean)
-        {
-            throw new Exception("ODataErrorStrings.MetadataBinder_FilterExpressionNotBooleanType");
-        }
-
-        FilterClause filterNode = new FilterClause(expressionResultNode, context.ImplicitRangeVariable);
-
-        return filterNode;
-    }
-
     /// <summary>
     /// Parses the $filter expression like "Name eq 'Sam'" to a search tree.
     /// </summary>

@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Parser;

@@ -11,7 +11,7 @@ using Microsoft.OData.Query.Tokenization;
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
-/// A default parser to parse a $expand clause.
+/// A default parser to parse an $expand clause.
 /// </summary>
 public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
 {
@@ -38,16 +38,16 @@ public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
     public IExpandOptionTokenizer Tokenizer { get; }
 
     /// <summary>
-    /// Parses the $select expression to a search tree.
+    /// Parses the $expand expression to a search tree.
     /// </summary>
-    /// <param name="select">The $select expression string to parse.</param>
+    /// <param name="expand">The $expand expression string to parse.</param>
     /// <param name="context">The query parser context.</param>
     /// <returns>The filter token.</returns>
-    public virtual async ValueTask<ExpandClause> ParseAsync(string select, QueryParserContext context)
+    public virtual async ValueTask<ExpandClause> ParseAsync(string expand, QueryParserContext context)
     {
-        if (string.IsNullOrEmpty(select))
+        if (string.IsNullOrEmpty(expand))
         {
-            throw new ArgumentNullException(nameof(select));
+            throw new ArgumentNullException(nameof(expand));
         }
 
         if (context == null)
@@ -55,7 +55,7 @@ public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        IQueryToken token = await Tokenizer.TokenizeAsync(select, context.TokenizerContext);
+        IQueryToken token = await Tokenizer.TokenizeAsync(expand, context.TokenizerContext);
         if (token == null)
         {
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");

@@ -1,0 +1,1 @@
+1) I learned a sentence says: Leadership only exists if people follow when they would have the feedom to not follow. Otherwise, it's just power.

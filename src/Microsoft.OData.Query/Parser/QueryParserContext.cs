@@ -15,6 +15,24 @@ namespace Microsoft.OData.Query.Parser;
 public class ODataQueryParserOptions
 { }
 
+public class QueryParserContext<T> : QueryParserContext
+{
+    public QueryParserContext()
+        : base (typeof(T))
+    {
+    }
+
+    public QueryParserContext(QueryParserSettings settings)
+        : base(typeof(T), settings)
+    {
+    }
+
+    public QueryParserContext(IServiceProvider serviceProvider)
+        : base(typeof(T), serviceProvider)
+    {
+    }
+}
+
 /// <summary>
 /// Query parser context.
 /// </summary>
@@ -27,14 +45,51 @@ public class QueryParserContext
     /// </summary>
     /// <param name="elementType">The target element type for this query.</param>
     public QueryParserContext(Type elementType)
+        : this (elementType, new QueryParserSettings())
+    {
+    }
+
+    public QueryParserContext(Type elementType, QueryParserSettings settings)
     {
         ElementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
+        Settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
         ImplicitRangeVariable = new RangeVariable("$it", elementType);
         RangeVariables = new Stack<RangeVariable>();
         RangeVariables.Push(ImplicitRangeVariable);
 
         Resolver = new MetadataResolver();
+    }
+
+    public QueryParserContext(Type elementType, IServiceProvider serviceProvider)
+    {
+        ElementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
+        ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+
+        Settings = ServiceProvider.GetService<QueryParserSettings>() ?? new QueryParserSettings();
+    }
+
+    /// <summary>
+    /// The settings for this instance of <see cref="QueryParserContext"/>. Refer to the documentation for the individual properties of <see cref="QueryParserSettings"/> for more information.
+    /// </summary>
+    public QueryParserSettings Settings { get; }
+
+    /// <summary>
+    /// The optional dependency injection container to get related services for query option parsing.
+    /// </summary>
+    public IServiceProvider ServiceProvider { get; }
+
+    public IFilterOptionParser FilterParser
+    {
+        get
+        {
+            if (ServiceProvider != null)
+            {
+                return ServiceProvider.GetService<IFilterOptionParser>();
+            }
+
+            return FilterOptionParser.Default;
+        }
     }
 
     public bool IgnoreUnknownQuery { get; set; }

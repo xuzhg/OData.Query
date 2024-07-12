@@ -10,8 +10,6 @@ using Microsoft.OData.Query.Nodes;
 namespace Microsoft.OData.Query;
 
 
-
-
 public class ODataQueryOption
 {
     public ApplyClause Apply { get; set; }

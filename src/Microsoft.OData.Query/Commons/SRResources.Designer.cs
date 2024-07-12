@@ -160,6 +160,15 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for $count query option found. The $count query option requires &apos;true&apos;/&apos;false&apos;..
+        /// </summary>
+        internal static string QueryParser_InvalidBooleanQueryOptionValue {
+            get {
+                return ResourceManager.GetString("QueryParser_InvalidBooleanQueryOptionValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for &apos;{1}&apos; query option found. The &apos;{1}&apos; query option requires an integer value..
         /// </summary>
         internal static string QueryParser_InvalidIntegerQueryOptionValue {

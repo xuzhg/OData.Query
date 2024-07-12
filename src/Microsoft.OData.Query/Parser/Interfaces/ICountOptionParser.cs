@@ -6,15 +6,15 @@
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
-/// A parser to parse a $index clause.
+/// A parser to parse a $count clause.
 /// </summary>
-public interface IIndexOptionParser
+public interface ICountOptionParser
 {
     /// <summary>
-    /// Parses the $index expression to an integer value.
+    /// Parses the $count expression to a boolean value.
     /// </summary>
-    /// <param name="index">The $index expression string to parse.</param>
+    /// <param name="count">The $count expression string to parse.</param>
     /// <param name="context">The query parser context.</param>
-    /// <returns>A value representing that $index option.</returns>
-    ValueTask<long> ParseAsync(string index, QueryParserContext context);
+    /// <returns>A value representing that $count option.</returns>
+    ValueTask<bool> ParseAsync(string count, QueryParserContext context);
 }

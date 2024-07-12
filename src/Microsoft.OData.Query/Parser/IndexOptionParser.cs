@@ -30,6 +30,8 @@ public class IndexOptionParser : IIndexOptionParser
             throw new ArgumentNullException(nameof(context));
         }
 
+        // A negative ordinal number indexes from the end of the collection,
+        // with -1 representing an insert as the last item in the collection.
         if (!long.TryParse(index, out long indexValue))
         {
             throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidIntegerQueryOptionValue, index, "$index"));

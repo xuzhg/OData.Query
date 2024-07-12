@@ -5,7 +5,16 @@
 
 namespace Microsoft.OData.Query.Parser;
 
+/// <summary>
+/// A parser to parse a $skip clause.
+/// </summary>
 public interface ISkipOptionParser
 {
+    /// <summary>
+    /// Parses the $skip expression to an integer value.
+    /// </summary>
+    /// <param name="skip">The $skip expression string to parse.</param>
+    /// <param name="context">The query parser context.</param>
+    /// <returns>A value representing that $skip option.</returns>
     ValueTask<long> ParseAsync(string skip, QueryParserContext context);
 }

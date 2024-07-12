@@ -5,6 +5,7 @@
 
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
+using System;
 
 namespace Microsoft.OData.Query.Tokenization;
 
@@ -33,6 +34,16 @@ public class FilterOptionTokenizer : QueryTokenizer, IFilterOptionTokenizer
     /// <returns>The filter token tokenized.</returns>
     public virtual async ValueTask<IQueryToken> TokenizeAsync(string filter, QueryTokenizerContext context)
     {
+        if (string.IsNullOrEmpty(filter))
+        {
+            throw new ArgumentNullException(nameof(filter));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
         IExpressionLexer lexer = _lexerFactory.CreateLexer(filter, LexerOptions.Default);
         lexer.NextToken(); // move to first token
 

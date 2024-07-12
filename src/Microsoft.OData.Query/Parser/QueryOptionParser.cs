@@ -21,7 +21,7 @@ public abstract class QueryOptionParser
     }
 
     /// <summary>
-    /// Visits a <see cref="QueryToken"/> in the lexical tree and binds it to metadata producing a semantic <see cref="QueryNode"/>.
+    /// Visits a <see cref="IQueryToken"/> in the lexical tree and binds it to metadata producing a semantic <see cref="QueryNode"/>.
     /// </summary>
     /// <param name="token">The query token on the input.</param>
     /// <returns>The bound query node output.</returns>
@@ -33,28 +33,28 @@ public abstract class QueryOptionParser
         switch (token.Kind)
         {
             case QueryTokenKind.Any:
-                result = this.BindAnyAll((AnyToken)token, context);
+                result = BindAnyAll((AnyToken)token, context);
                 break;
             case QueryTokenKind.All:
-                result = this.BindAnyAll((AllToken)token, context);
+                result = BindAnyAll((AllToken)token, context);
                 break;
             //case QueryTokenKind.InnerPath:
             //    result = this.BindInnerPathSegment((InnerPathToken)token, context);
             //    break;
             case QueryTokenKind.Literal:
-                result = this.BindLiteral((LiteralToken)token, context);
+                result = BindLiteral((LiteralToken)token, context);
                 break;
             //case QueryTokenKind.StringLiteral:
             //    result = this.BindStringLiteral((StringLiteralToken)token, context);
             //    break;
             case QueryTokenKind.BinaryOperator:
-                result = this.BindBinaryOperator((BinaryOperatorToken)token, context);
+                result = BindBinaryOperator((BinaryOperatorToken)token, context);
                 break;
             case QueryTokenKind.UnaryOperator:
-                result = this.BindUnaryOperator((UnaryOperatorToken)token, context);
+                result = BindUnaryOperator((UnaryOperatorToken)token, context);
                 break;
             case QueryTokenKind.EndPath:
-                result = this.BindEndPath((EndPathToken)token, context);
+                result = BindEndPath((EndPathToken)token, context);
                 break;
             //case QueryTokenKind.FunctionCall:
             //    result = this.BindFunctionCall((FunctionCallToken)token, context);
@@ -63,7 +63,7 @@ public abstract class QueryOptionParser
             //    result = this.BindCast((DottedIdentifierToken)token, context);
             //    break;
             case QueryTokenKind.RangeVariable:
-                result = this.BindRangeVariable((RangeVariableToken)token, context);
+                result = BindRangeVariable((RangeVariableToken)token, context);
                 break;
             //case QueryTokenKind.FunctionParameterAlias:
             //    result = this.BindParameterAlias((FunctionParameterAliasToken)token, context);

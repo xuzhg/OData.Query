@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.OData.Query.Commons;
+using Microsoft.OData.Query.Lexers;
 
 namespace Microsoft.OData.Query.Tokenization;
 
@@ -103,5 +104,14 @@ public class QueryTokenizerContext
         {
             throw new QueryTokenizerException(SRResources.QueryTokenizer_RecurseMismatch);
         }
+    }
+
+    internal LexerOptions CreateLexerOption()
+    {
+        return new LexerOptions
+        {
+            IgnoreWhitespace = true,
+            UseSemicolonDelimiter = false,
+        };
     }
 }

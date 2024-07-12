@@ -3,19 +3,37 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualBasic;
 using System.Data;
 using System.Reflection;
 
 namespace Microsoft.OData.Query.Parser;
 
+/// <summary>
+/// The Assembly resolver interface.
+/// </summary>
+public interface IAssemblyResolver
+{
+    /// <summary>
+    /// Gets a list of assemblies available for the application.
+    /// </summary>
+    /// <returns>A list of assemblies available for the application. </returns>
+    IEnumerable<Assembly> Assemblies { get; }
+}
+
 public interface IMetadataResolver
 {
+    Type ResolveType(string fullTypeName);
+
     PropertyInfo ResolveProperty(Type type, string propertyName);
 }
 
 public class MetadataResolver : IMetadataResolver
 {
+    public virtual Type ResolveType(string fullTypeName)
+    {
+        return null;
+    }
+
     public virtual PropertyInfo ResolveProperty(Type type, string propertyName)
     {
         // Search case-sensitive first

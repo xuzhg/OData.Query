@@ -13,7 +13,7 @@ namespace Microsoft.OData.Query.Clauses;
 public class ComputedItem
 {
     /// <summary>
-    /// Create a ComputeExpression.
+    /// Initializes a new instance of the <see cref="ComputedItem" /> class.
     /// </summary>
     /// <param name="expression">The compute expression.</param>
     /// <param name="alias">The compute alias.</param>
@@ -21,6 +21,7 @@ public class ComputedItem
     {
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Alias = alias;
+        ExpressionType = typeReference;
     }
 
     /// <summary>
