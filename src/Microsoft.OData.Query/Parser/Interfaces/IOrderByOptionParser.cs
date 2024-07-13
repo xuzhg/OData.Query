@@ -4,12 +4,11 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.OData.Query.Clauses;
-using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
-/// Parser which consumes the $orderby query expression and produces the lexical object model.
+/// A parser to parse a $orderby clause.
 /// </summary>
 public interface IOrderByOptionParser
 {
@@ -17,8 +16,6 @@ public interface IOrderByOptionParser
     /// Parses the $orderby expression.
     /// </summary>
     /// <param name="orderBy">The $orderby expression string to parse.</param>
-    /// <returns>The order by token parsed.</returns>
-    OrderByClause Parse(OrderByToken orderBy, QueryParserContext context);
-
+    /// <returns>The order by clause parsed.</returns>
     ValueTask<OrderByClause> ParseAsync(string orderBy, QueryParserContext context);
 }

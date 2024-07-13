@@ -42,7 +42,7 @@ public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
     /// </summary>
     /// <param name="expand">The $expand expression string to parse.</param>
     /// <param name="context">The query parser context.</param>
-    /// <returns>The filter token.</returns>
+    /// <returns>The expand clause parsed.</returns>
     public virtual async ValueTask<ExpandClause> ParseAsync(string expand, QueryParserContext context)
     {
         if (string.IsNullOrEmpty(expand))
@@ -55,16 +55,26 @@ public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        IQueryToken token = await Tokenizer.TokenizeAsync(expand, context.TokenizerContext);
+        ExpandToken token = await Tokenizer.TokenizeAsync(expand, context.TokenizerContext);
         if (token == null)
         {
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
         }
 
-        QueryNode expressionNode = Bind(token, context);
+        // TODO: Normalize the expand token
 
-        ExpandClause expandClause = new ExpandClause(/*expressionResultNode, context.ImplicitRangeVariable*/);
+        // $expand=Nav1;Nav2($expand=...;$select=...)
+        ExpandClause expandClause = new ExpandClause();
+        foreach (ExpandItemToken item in token)
+        {
+            expandClause.Add(BindExpandItem(item, context));
+        }
 
         return expandClause;
+    }
+
+    protected virtual ExpandedItem BindExpandItem(ExpandItemToken expandItem, QueryParserContext context)
+    {
+        return null;
     }
 }

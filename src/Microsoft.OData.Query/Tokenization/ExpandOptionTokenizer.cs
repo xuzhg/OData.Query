@@ -212,7 +212,7 @@ public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionT
     /// <returns>The level option for expand in long type</returns>
     protected virtual long? TokenizeInnerLevel(IExpressionLexer lexer, QueryTokenizerContext context)
     {
-        long? levelsOption = null;
+        //long? levelsOption = null;
 
         // advance to the equal sign
         lexer.NextToken();

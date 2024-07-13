@@ -24,9 +24,9 @@ public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FilterOptionParser" /> class.
+    /// Initializes a new instance of the <see cref="OrderByOptionParser" /> class.
     /// </summary>
-    /// <param name="tokenizer">The filter option tokenizer.</param>
+    /// <param name="tokenizer">The orderby option tokenizer.</param>
     public OrderByOptionParser(IOrderByOptionTokenizer tokenizer)
     {
         Tokenizer = tokenizer;
@@ -37,41 +37,11 @@ public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
     /// </summary>
     public IOrderByOptionTokenizer Tokenizer { get; }
 
-    public virtual OrderByClause Parse(OrderByToken orderBy, QueryParserContext context)
-    {
-        OrderByClause head = null;
-        OrderByClause previous = null;
-
-        OrderByToken token = orderBy;
-
-        // Go through the orderby tokens starting from the last one
-        while (token != null)
-        {
-            OrderByClause orderByClause = ProcessSingleOrderBy(token, context);
-
-            if (head == null)
-            {
-                head = orderByClause;
-            }
-            else
-            {
-                previous.ThenBy = orderByClause;
-            }
-
-            previous = orderByClause;
-
-            token = token.ThenBy;
-        }
-
-        return head;
-    }
-
     /// <summary>
-    /// 
+    /// Parses the $orderby expression.
     /// </summary>
-    /// <param name="orderBy"></param>
-    /// <param name="context"></param>
-    /// <returns></returns>
+    /// <param name="orderBy">The $orderby expression string to parse.</param>
+    /// <returns>The order by clause parsed.</returns>
     public virtual async ValueTask<OrderByClause> ParseAsync(string orderBy, QueryParserContext context)
     {
         if (string.IsNullOrEmpty(orderBy))
@@ -90,24 +60,31 @@ public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
         }
 
-        return Parse(orderByToken, context);
+        OrderByClause head = BindSingleOrderBy(orderByToken, context);
+        OrderByClause previous = head;
+        OrderByToken token = orderByToken.ThenBy;
+
+        while (token != null)
+        {
+            OrderByClause orderByClause = BindSingleOrderBy(token, context);
+            previous.ThenBy = orderByClause;
+            previous = orderByClause;
+            token = token.ThenBy;
+        }
+
+        return head;
     }
 
     /// <summary>
-    /// Processes the specified order-by token.
+    /// 
     /// </summary>
-    /// <param name="state">State to use for binding.</param>
-    /// <param name="thenBy"> The next OrderBy node, or null if there is no orderby after this.</param>
-    /// <param name="orderByToken">The order-by token to bind.</param>
-    /// <returns>Returns the combined entityCollection including the ordering.</returns>
-    private OrderByClause ProcessSingleOrderBy(OrderByToken orderByToken, QueryParserContext context)
+    /// <param name="orderByToken"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    protected virtual OrderByClause BindSingleOrderBy(OrderByToken orderByToken, QueryParserContext context)
     {
-       // ExceptionUtils.CheckArgumentNotNull(state, "state");
-       // ExceptionUtils.CheckArgumentNotNull(orderByToken, "orderByToken");
-
         QueryNode expressionNode = Bind(orderByToken.Expression, context);
 
-        //// The order-by expressions need to be primitive / enumeration types
         SingleValueNode expressionResultNode = expressionNode as SingleValueNode;
         //if (expressionResultNode == null ||
         //    (expressionResultNode.TypeReference != null &&
