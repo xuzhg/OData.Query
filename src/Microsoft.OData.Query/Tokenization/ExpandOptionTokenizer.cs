@@ -9,7 +9,7 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Tokenization;
 
 /// <summary>
-/// Tokenize the $expand query expression and produces the lexical object model.
+/// Tokenizes the $expand query expression and produces the lexical object model.
 /// </summary>
 public class ExpandOptionTokenizer : SelectExpandOptionTokenizer, IExpandOptionTokenizer
 {

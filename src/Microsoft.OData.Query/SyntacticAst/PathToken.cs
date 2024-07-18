@@ -82,7 +82,7 @@ public class SegmentToken : IQueryToken
     }
 
     /// <summary>
-    /// Get/set the NextToken in the path
+    /// Gets/sets the NextToken in the path
     /// </summary>
     public SegmentToken Next { get; set; }
 

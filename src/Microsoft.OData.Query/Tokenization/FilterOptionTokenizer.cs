@@ -5,12 +5,11 @@
 
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
-using System;
 
 namespace Microsoft.OData.Query.Tokenization;
 
 /// <summary>
-/// Tokenize the $filter query expression and produces the lexical object model.
+/// Tokenizes the $filter query expression and produces the lexical object model.
 /// </summary>
 public class FilterOptionTokenizer : QueryTokenizer, IFilterOptionTokenizer
 {
@@ -28,7 +27,7 @@ public class FilterOptionTokenizer : QueryTokenizer, IFilterOptionTokenizer
     }
 
     /// <summary>
-    /// Tokenize the $filter expression like "Name eq 'Sam'" to tokens.
+    /// Tokenizes the $filter expression like "Name eq 'Sam'" to tokens.
     /// </summary>
     /// <param name="filter">The $filter expression string to tokenize.</param>
     /// <returns>The filter token tokenized.</returns>
