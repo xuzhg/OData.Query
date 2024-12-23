@@ -11,3 +11,7 @@ public interface IOQueryOptionHandler
 
     ValueTask<object> ApplyTo(object entity, OQueryOptionSettings settings);
 }
+
+
+//  ?
+public delegate Task QueryDelegate(ODataQueryContext context);
