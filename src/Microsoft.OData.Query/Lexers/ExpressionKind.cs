@@ -10,8 +10,8 @@ namespace Microsoft.OData.Query.Lexers;
 /// </summary>
 public enum ExpressionKind
 {
-    /// <summary>Unknown.</summary>
-    Unknown,
+    /// <summary>None</summary>
+    None,
 
     /// <summary>Root.</summary>
     Root,
@@ -60,6 +60,9 @@ public enum ExpressionKind
 
     /// <summary>Character: $</summary>
     Dollar,
+
+    /// <summary>Character: %</summary>
+    Percent,
 
     /// <summary>Character: -</summary>
     Minus,

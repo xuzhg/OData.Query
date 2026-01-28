@@ -6,14 +6,14 @@
 using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
 /// Parser which consumes the query $orderby expression and produces the lexical object model.
 /// </summary>
-public class OrderByOptionParser : QueryOptionParser, IOrderByOptionParser
+public class OrderByOptionParser : QueryBinder, IOrderByOptionParser
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderByOptionParser" /> class.

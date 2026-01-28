@@ -5,7 +5,7 @@
 
 using Microsoft.OData.Query.Parser;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 using Xunit;
 
 namespace Microsoft.OData.Query.Tests.Parser;

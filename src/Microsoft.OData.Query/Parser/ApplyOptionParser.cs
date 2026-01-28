@@ -7,14 +7,14 @@ using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
 /// The default parser to parse $apply clause.
 /// </summary>
-public class ApplyOptionParser : QueryOptionParser, IApplyOptionParser
+public class ApplyOptionParser : QueryBinder, IApplyOptionParser
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ApplyOptionParser" /> class.

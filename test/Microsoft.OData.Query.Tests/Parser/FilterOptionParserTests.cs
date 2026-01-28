@@ -6,7 +6,7 @@
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.Parser;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 using System.Threading.Tasks;
 using System;
 using Xunit;

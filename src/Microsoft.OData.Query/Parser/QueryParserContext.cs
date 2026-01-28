@@ -5,7 +5,7 @@
 
 using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Nodes;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Parser;
 
@@ -90,6 +90,17 @@ public class QueryParserContext
 
             return FilterOptionParser.Default;
         }
+    }
+
+    internal IFilterParser GetOrCreateFilterParser()
+    {
+        if (ServiceProvider != null)
+        {
+            return ServiceProvider.GetService<IFilterParser>();
+        }
+
+
+        return new FilterParser();
     }
 
     public bool IgnoreUnknownQuery { get; set; }

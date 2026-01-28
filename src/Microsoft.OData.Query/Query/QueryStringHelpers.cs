@@ -17,7 +17,7 @@ internal static class QueryStringHelpers
     /// </summary>
     /// <param name="query">The escaped query string.</param>
     /// <returns>The key value pairs.</returns>
-    public static IDictionary<string, ReadOnlyMemory<char>> SplitQuery(string query)
+    public static IDictionary<string, ReadOnlyMemory<char>> SplitQuery(ReadOnlyMemory<char> query)
     {
         IDictionary<string, ReadOnlyMemory<char>> queryOptions
             = new Dictionary<string, ReadOnlyMemory<char>>();

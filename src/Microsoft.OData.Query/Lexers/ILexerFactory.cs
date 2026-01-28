@@ -13,5 +13,8 @@ public interface ILexerFactory
     /// <summary>
     /// Create the <see cref="IExpressionLexer"/>.
     /// </summary>
-    IExpressionLexer CreateLexer(string text, LexerOptions options);
+    /// <param name="text">The expression text.</param>
+    /// <param name="options">The lexer options.</param>
+    /// <returns>The created expression lexer.</returns>
+    IExpressionLexer CreateLexer(ReadOnlyMemory<char> text, LexerOptions options);
 }

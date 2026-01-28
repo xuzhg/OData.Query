@@ -4,19 +4,19 @@
 //-----------------------------------------------------------------------
 
 using System.Linq.Expressions;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Binders;
 
 public class FilterBinder : IFilterBinder
 {
-    public FilterBinder(IFilterOptionTokenizer tokenizer, IQueryNodeBinder nodeBinder)
+    public FilterBinder(IFilterTokenizer tokenizer, IQueryNodeBinder nodeBinder)
     {
         Tokenizer = tokenizer;
         NodeBinder = nodeBinder;
     }
 
-    public IFilterOptionTokenizer Tokenizer { get; }
+    public IFilterTokenizer Tokenizer { get; }
 
     public IQueryNodeBinder NodeBinder { get; }
 

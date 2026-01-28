@@ -6,7 +6,7 @@
 namespace Microsoft.OData.Query.SyntacticAst;
 
 /// <summary>
-/// Query token representing an Aggregate token.
+/// Query token representing a compute item expression token.
 /// </summary>
 public sealed class ComputeItemToken : IQueryToken
 {
@@ -23,6 +23,7 @@ public sealed class ComputeItemToken : IQueryToken
         {
             throw new ArgumentNullException(nameof(alias));
         }
+
         Alias = alias;
     }
 

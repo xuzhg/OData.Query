@@ -6,18 +6,17 @@
 namespace Microsoft.OData.Query.Lexers;
 
 /// <summary>
-/// Lexer is conversion of a text into meaningful lexical tokens.
+/// Lexer is a conversion of a text into meaningful lexical tokens.
 /// </summary>
 public interface IExpressionLexer
 {
     /// <summary>
-    /// Gets the whole expression text to lexer.
+    /// Gets the whole expression source text to lexer.
     /// </summary>
-    string ExpressionText { get; }
-    // ReadOnlyMemory<char> ExpressionText { get; }
+    ReadOnlyMemory<char> ExpressionText { get; }
 
     /// <summary>
-    /// Gets the expression token processed.
+    /// Gets the token being processed.
     /// </summary>
     ExpressionToken CurrentToken { get; }
 
@@ -32,11 +31,5 @@ public interface IExpressionLexer
     /// </summary>
     /// <param name="token">The output next token.</param>
     /// <returns>True if contains next token, false no next token.</returns>
-    bool TryPeekNextToken(out ExpressionToken token);
-
-    //  ExpressionToken GetToken(ReadOnlySpan<char> text, LexerOptions options);
-
-   // ExpressionToken GetToken(ref ReadOnlySpan<char> text, LexerOptions options);
-
-   // (ExpressionToken, ReadOnlySpan<char>) GetToken(ReadOnlySpan<char> text, LexerOptions options);
+    bool PeekNextToken(out ExpressionToken token);
 }

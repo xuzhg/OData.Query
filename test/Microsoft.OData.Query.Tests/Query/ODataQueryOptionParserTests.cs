@@ -3,6 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.OData.Query.Parser;
 using Microsoft.OData.Query.Tests.Models;
@@ -21,7 +22,7 @@ public class ODataQueryOptionParserTests
         QueryParserContext context = new QueryParserContext(typeof(Person));
 
         // Act
-        var result = await parser.ParseAsync(query, context);
+        var result = await parser.ParseAsync(query.AsMemory(), context);
 
         // Assert
         Assert.NotNull(result);
@@ -37,7 +38,7 @@ public class ODataQueryOptionParserTests
         QueryParserContext context = new QueryParserContext(typeof(Person));
 
         // Act
-        var result = await parser.ParseAsync(query, context);
+        var result = await parser.ParseAsync(query.AsMemory(), context);
 
         // Assert
         Assert.NotNull(result);

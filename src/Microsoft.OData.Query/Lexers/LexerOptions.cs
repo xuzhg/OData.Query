@@ -31,3 +31,30 @@ public class LexerOptions
     /// </summary>
     public bool UseSemicolonDelimiter { get; set; } = false;
 }
+
+
+
+/// <summary>
+/// Represents a lexical expression lexer options.
+/// </summary>
+public class LexerSettings
+{
+    /// <summary>
+    /// Ignores whitespace.
+    /// What's whitespace?
+    /// There are characters which belong to UnicodeCategory.Control but are considered as white spaces besides ' ':
+    /// U+0009 = HORIZONTAL TAB, '\t'
+    /// U+000a = LINE FEED, '\n'
+    /// U+000b = VERTICAL TAB, '\v'
+    /// U+000c = FORM FEED, '\f'
+    /// U+000d = CARRIAGE RETURN, '\r'
+    /// U+0085 = NEXT LINE
+    /// U+00a0 = NO-BREAK SPACE
+    /// </summary>
+    public bool IgnoreWhitespace { get; set; } = true;
+
+    /// <summary>
+    /// flag to indicate whether to delimit on a semicolon.
+    /// </summary>
+    public bool UseSemicolonDelimiter { get; set; } = false;
+}

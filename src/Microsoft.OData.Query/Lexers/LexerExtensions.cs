@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.OData.Query.Commons;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Lexers;
 
@@ -37,7 +37,7 @@ public static class LexerExtensions
         ExpressionToken token = lexer.CurrentToken;
 
         return token.Kind == ExpressionKind.Identifier
-            && token.Text.Equals(id, enableCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            && token.Span.Equals(id, enableCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -64,6 +64,6 @@ public static class LexerExtensions
     public static ReadOnlySpan<char> GetIdentifier(this IExpressionLexer lexer)
     {
         lexer.ValidateToken(ExpressionKind.Identifier);
-        return lexer.CurrentToken.Text;
+        return lexer.CurrentToken.Span;
     }
 }

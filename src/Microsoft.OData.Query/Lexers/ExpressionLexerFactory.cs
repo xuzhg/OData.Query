@@ -22,4 +22,12 @@ public class ExpressionLexerFactory : ILexerFactory
     {
         return new ExpressionLexer(text, options);
     }
+
+    /// <summary>
+    /// Create the lexer.
+    /// </summary>
+    public IExpressionLexer CreateLexer(ReadOnlyMemory<char> text, LexerOptions options)
+    {
+        return new ExpressionLexer(text, options);
+    }
 }

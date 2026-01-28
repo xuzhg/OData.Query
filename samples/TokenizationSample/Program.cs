@@ -1,6 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using Microsoft.OData.Query.Lexers;
+using TokenizerSample;
+
+OtherTests.Test();
 
 LexerOptions options = new LexerOptions();
 

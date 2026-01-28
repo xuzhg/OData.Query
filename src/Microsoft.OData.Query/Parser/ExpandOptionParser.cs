@@ -4,16 +4,15 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.OData.Query.Clauses;
-using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
 /// A default parser to parse an $expand clause.
 /// </summary>
-public class ExpandOptionParser : QueryOptionParser, IExpandOptionParser
+public class ExpandOptionParser : QueryBinder, IExpandOptionParser
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ExpandOptionParser" /> class.

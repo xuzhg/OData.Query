@@ -6,14 +6,14 @@
 using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
 /// A default parser to parse a filter clause.
 /// </summary>
-public class SearchOptionParser : QueryOptionParser, ISearchOptionParser
+public class SearchOptionParser : QueryBinder, ISearchOptionParser
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SearchOptionParser" /> class.

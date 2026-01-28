@@ -19,7 +19,7 @@ namespace Microsoft.OData.Query.Commons {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class SRResources {
@@ -115,24 +115,6 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A string like &quot;&apos;{0}&apos; is not a valid $count option. Valid values are &apos;true&apos;/&apos;false&apos;..
-        /// </summary>
-        internal static string QueryOptionParser_InvalidDollarCount {
-            get {
-                return ResourceManager.GetString("QueryOptionParser_InvalidDollarCount", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for &apos;{1}&apos; query option found. The &apos;{1}&apos; query option requires a non-negative integer value...
-        /// </summary>
-        internal static string QueryOptionParser_InvalidIntegerOptionValue {
-            get {
-                return ResourceManager.GetString("QueryOptionParser_InvalidIntegerOptionValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;(&apos; expected at position {0} in &apos;{1}&apos;..
         /// </summary>
         internal static string QueryOptionParser_OpenParenExpected {
@@ -169,11 +151,47 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A string like &apos;{0}&apos; is not a valid &apos;$count&apos; option. Valid values are &apos;true&apos; or &apos;false&apos;..
+        /// </summary>
+        internal static string QueryParser_InvalidDollarCount {
+            get {
+                return ResourceManager.GetString("QueryParser_InvalidDollarCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for &apos;{1}&apos; query option found. The &apos;{1}&apos; query option requires an integer value..
         /// </summary>
         internal static string QueryParser_InvalidIntegerQueryOptionValue {
             get {
                 return ResourceManager.GetString("QueryParser_InvalidIntegerQueryOptionValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for &apos;{1}&apos; query option found. The &apos;{1}&apos; query option requires an integer value..
+        /// </summary>
+        internal static string QueryParser_InvalidIntegerValue {
+            get {
+                return ResourceManager.GetString("QueryParser_InvalidIntegerValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for &apos;{1}&apos; query option found. The &apos;{1}&apos; query option requires a non-negative integer value..
+        /// </summary>
+        internal static string QueryParser_InvalidNonNegativeIntegerValue {
+            get {
+                return ResourceManager.GetString("QueryParser_InvalidNonNegativeIntegerValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unsupported query token kind &apos;{0}&apos; was found..
+        /// </summary>
+        internal static string QueryParser_UnsupportedQueryTokenKind {
+            get {
+                return ResourceManager.GetString("QueryParser_UnsupportedQueryTokenKind", resourceCulture);
             }
         }
         

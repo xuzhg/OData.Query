@@ -6,14 +6,14 @@
 using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
-using Microsoft.OData.Query.Tokenization;
+using Microsoft.OData.Query.Tokenizations;
 
 namespace Microsoft.OData.Query.Parser;
 
 /// <summary>
 /// A default parser to parse a $select clause.
 /// </summary>
-public class SelectOptionParser : QueryOptionParser, ISelectOptionParser
+public class SelectOptionParser : QueryBinder, ISelectOptionParser
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SelectOptionParser" /> class.

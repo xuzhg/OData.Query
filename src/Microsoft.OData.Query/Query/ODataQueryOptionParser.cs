@@ -3,23 +3,15 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Binders;
+using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Commons;
+using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.Parser;
+using System;
 
 namespace Microsoft.OData.Query;
-
-
-
-
-
-public class QueryOptionParser
-{
-    public virtual ValueTask<ODataQueryOption> ParseAsync(string query, QueryParserContext context)
-    {
-        return ValueTask.FromResult<ODataQueryOption>(null);
-    }
-}
 
 public class ODataQueryOptionParser<T> : ODataQueryOptionParser
 {
@@ -51,9 +43,9 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
     /// <param name="query">The odata query string, it should be escaped query string.</param>
     /// <param name="context">The parser context.</param>
     /// <returns>The OData query option parsed.</returns>
-    public virtual async ValueTask<ODataQueryOption> ParseAsync(string query, QueryParserContext context)
+    public virtual async ValueTask<ODataQueryOption> ParseAsync(ReadOnlyMemory<char> query, QueryParserContext context)
     {
-        if (string.IsNullOrWhiteSpace(query))
+        if (query.IsEmpty)
         {
             throw new ArgumentNullException(nameof(query));
         }
@@ -157,8 +149,8 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Compute, context);
         }
 
-        IComputeOptionParser computeParser = _serviceProvider?.GetService<IComputeOptionParser>() ?? new ComputeOptionParser();
-        queryOption.Compute = await computeParser.ParseAsync(compute.Span.ToString(), context);
+        IComputeParser computeParser = _serviceProvider?.GetService<IComputeParser>() ?? new ComputeParser();
+        queryOption.Compute = await computeParser.ParseAsync(compute, context);
     }
 
     protected virtual async Task ParseFilter(ReadOnlyMemory<char> filter, ODataQueryOption queryOption, QueryParserContext context)
@@ -226,7 +218,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         }
         else
         {
-            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidDollarCount, count.Span.ToString()));
+            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidDollarCount, count.Span.ToString()));
         }
 
         await Task.CompletedTask;
@@ -242,7 +234,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         long topValue;
         if (!long.TryParse(top.Span, out topValue) || topValue < 0)
         {
-            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidIntegerOptionValue, top.Span.ToString(), "$top"));
+            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidNonNegativeIntegerValue, top.Span.ToString(), "$top"));
         }
 
         await Task.CompletedTask;
@@ -258,7 +250,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         long skipValue;
         if (!long.TryParse(skip.Span, out skipValue) || skipValue < 0)
         {
-            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidIntegerOptionValue, skip.Span.ToString(), "$skip"));
+            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidNonNegativeIntegerValue, skip.Span.ToString(), "$skip"));
         }
 
         await Task.CompletedTask;
@@ -274,7 +266,7 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
         long indexValue;
         if (!long.TryParse(index.Span, out indexValue) || indexValue < 0)
         {
-            throw new QueryParserException(Error.Format(SRResources.QueryOptionParser_InvalidIntegerOptionValue, index.Span.ToString(), "$index"));
+            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidIntegerValue, index.Span.ToString(), "$index"));
         }
 
         await Task.CompletedTask;

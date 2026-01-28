@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Microsoft.OData.Query.Commons;
 
 namespace Microsoft.OData.Query.Lexers;
@@ -15,16 +16,15 @@ namespace Microsoft.OData.Query.Lexers;
 [DebuggerDisplay("{DebuggerToString(),nq}")]
 public class ExpressionLexer : IExpressionLexer
 {
-    /// <summary>Token kind being processed.</summary>
-    private ExpressionKind _tokenKind;
-
-    /// <summary>Starting position of token being processed.</summary>
-    private int _tokenPosition;
+    /// <summary>
+    /// Token being processed, it should be updated every time after calling NextToken().
+    /// </summary>
+    private ExpressionToken _token;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExpressionLexer" /> class.
     /// </summary>
-    /// <param name="text">The text expression to lexer.</param>
+    /// <param name="text">The text expression to lexer. Throws exception if null.</param>
     public ExpressionLexer(string text)
         : this(text, LexerOptions.Default)
     {
@@ -33,32 +33,63 @@ public class ExpressionLexer : IExpressionLexer
     /// <summary>
     /// Initializes a new instance of the <see cref="ExpressionLexer" /> class.
     /// </summary>
-    /// <param name="text">The text expression to lexer.</param>
-    /// <param name="options">The lexer options.</param>
+    /// <param name="text">The text expression to lexer.Throws exception if null.</param>
+    /// <param name="options">The lexer options.Throws exception if null.</param>
     public ExpressionLexer(string text, LexerOptions options)
+        : this(text.AsMemory(), options)
     {
         if (string.IsNullOrEmpty(text))
         {
             throw new ArgumentNullException(nameof(text));
         }
+    }
 
-        Options = options ?? LexerOptions.Default;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExpressionLexer" /> class.
+    /// </summary>
+    /// <param name="text">The text expression to lexer.</param>
+    public ExpressionLexer(ReadOnlyMemory<char> text)
+        : this(text, LexerOptions.Default)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExpressionLexer" /> class.
+    /// </summary>
+    /// <param name="text">The text expression to lexer.</param>
+    /// <param name="options">The lexer options.Throws exception if null.</param>
+    public ExpressionLexer(ReadOnlyMemory<char> text, LexerOptions options)
+    {
+        if (options == null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
 
         ExpressionText = text;
-        _tokenKind = ExpressionKind.Unknown;
-        _tokenPosition = 0;
+        TextLen = text.Length;
+        Options = options;
+        _token = new ExpressionToken(ExpressionKind.None, 0);
         SetTextPos(0);
     }
 
     /// <summary>
-    /// Gets the whole expression text to lexer.
+    /// Gets the whole expression source (memory) text to lexer.
     /// </summary>
-    public string ExpressionText { get; }
+    public ReadOnlyMemory<char> ExpressionText { get; }
 
     /// <summary>
-    /// Gets the length of expression text.
+    /// Gets the whole expression source (read-only span) text to lexer.
     /// </summary>
-    public int Length => ExpressionText.Length;
+    public ReadOnlySpan<char> Source
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ExpressionText.Span;
+    }
+
+    /// <summary>
+    /// Gets the current token processed.
+    /// </summary>
+    public ExpressionToken CurrentToken => _token;
 
     /// <summary>
     /// Gets the lexer options.
@@ -66,38 +97,42 @@ public class ExpressionLexer : IExpressionLexer
     public LexerOptions Options { get; }
 
     /// <summary>
-    /// Gets the current token processed.
-    /// Since ExpressionToken is ref struct, it's stack-only instance and do the member copy if customer calls this property.
+    /// Gets the whole expression source text length.
     /// </summary>
-    public ExpressionToken CurrentToken
-        => new ExpressionToken(_tokenKind, ExpressionText.AsSpan()[_tokenPosition..CurrPos], _tokenPosition);
+    protected int TextLen { get; }
 
     /// <summary>
-    /// Position on text being processed.
+    /// Position on text being processed since last iteration.
+    /// Call SetTextPos to set this value.
     /// </summary>
     protected int CurrPos { get; private set; }
 
     /// <summary>
-    /// Character being processed.
+    /// Character being processed since last iteration.
+    /// Call SetTextPos to set this value.
     /// </summary>
-    protected char CurrChar { get; private set; }
+    protected char? CurrChar { get; private set; }
 
     /// <summary>
     /// Gets a boolean indicating whether current processing is valid or not.
     /// </summary>
-    protected bool IsCurrValid => CurrPos >= 0 && CurrPos < Length;
+    protected bool IsCurrValid => CurrPos >= 0 && CurrPos < TextLen;
+
+    /// <summary>
+    /// Gets a boolean indicating whether current char is a whitespace or not.
+    /// </summary>
+    protected bool IsCurrWhitespace => CurrChar.HasValue && char.IsWhiteSpace(CurrChar.Value);
 
     /// <summary>
     /// Try to peek next token.
     /// </summary>
     /// <param name="token">The output next token.</param>
     /// <returns>True if contains next token, false no next token.</returns>
-    public virtual bool TryPeekNextToken(out ExpressionToken token)
+    public virtual bool PeekNextToken(out ExpressionToken token)
     {
         int savedTextPos = CurrPos;
-        char savedChar = CurrChar;
-        ExpressionKind savedKind = _tokenKind;
-        int savedTokenPosition = _tokenPosition;
+        char? savedChar = CurrChar;
+        ExpressionToken savedToken = _token;
 
         bool hasNext = false;
         try
@@ -109,8 +144,7 @@ public class ExpressionLexer : IExpressionLexer
         {
             CurrPos = savedTextPos;
             CurrChar = savedChar;
-            _tokenKind = savedKind;
-            _tokenPosition = savedTokenPosition;
+            _token = savedToken;
         }
 
         return hasNext;
@@ -132,9 +166,9 @@ public class ExpressionLexer : IExpressionLexer
             return true;
         }
 
-        if (CurrPos == Length)
+        if (CurrPos >= TextLen)
         {
-            SetCurrentTokenState(ExpressionKind.EndOfInput, CurrPos);
+            SetCurrentTokenState(ExpressionKind.EndOfInput, CurrPos, false);
             return false;
         }
 
@@ -173,7 +207,7 @@ public class ExpressionLexer : IExpressionLexer
             return true;
         }
 
-        if (TryOtherToken())
+        if (TryOtherTokens())
         {
             return true;
         }
@@ -187,16 +221,16 @@ public class ExpressionLexer : IExpressionLexer
     /// <returns>true means tokenized and a new token found, false means doesn't.</returns>
     protected virtual bool TryWhiteSpaceToken()
     {
-        if (char.IsWhiteSpace(CurrChar))
+        if (IsCurrWhitespace)
         {
             int startPos = CurrPos;
             do
             {
                 NextChar();
             }
-            while (char.IsWhiteSpace(CurrChar));
+            while (IsCurrWhitespace);
 
-            SetCurrentTokenState(ExpressionKind.Whitespace, startPos);
+            SetCurrentTokenState(ExpressionKind.Whitespace, startPos, true);
             return true;
         }
 
@@ -224,6 +258,8 @@ public class ExpressionLexer : IExpressionLexer
         { '&', ExpressionKind.Ampersand },
         { ';', ExpressionKind.SemiColon },
         { '$', ExpressionKind.Dollar },
+        { '%', ExpressionKind.Percent },
+
     };
 
     /// <summary>
@@ -232,11 +268,11 @@ public class ExpressionLexer : IExpressionLexer
     /// <returns>true means parsed, false means doesn't parse.</returns>
     protected virtual bool TrySpecialCharToken()
     {
-        if (SpecialCharacters.TryGetValue(CurrChar, out ExpressionKind kind))
+        if (CurrChar.HasValue && SpecialCharacters.TryGetValue(CurrChar.Value, out ExpressionKind kind))
         {
             int startPos = CurrPos;
             NextChar();
-            SetCurrentTokenState(kind, startPos);
+            SetCurrentTokenState(kind, startPos, false);
             return true;
         }
 
@@ -249,28 +285,28 @@ public class ExpressionLexer : IExpressionLexer
     /// <returns>true means parsed, false means doesn't parse.</returns>
     protected virtual bool TryMinusToken()
     {
-        if (CurrChar == '-')
+        if (CurrChar.HasValue && CurrChar.Value == '-')
         {
             int tokenPos = CurrPos;
-            bool hasNext = CurrPos + 1 < Length;
-            if (hasNext && char.IsDigit(ExpressionText[CurrPos + 1]))
+            bool hasNext = CurrPos + 1 < TextLen;
+            if (hasNext && char.IsDigit(ExpressionText.Span[CurrPos + 1]))
             {
                 // don't separate '-' and its following digits : -2147483648 is valid int.MinValue, but 2147483648 is long.
                 ExpressionKind t = ParseFromDigit();
                 if (ExpressionLexerUtils.IsNumericTokenKind(t))
                 {
-                    SetCurrentTokenState(t, tokenPos);
+                    SetCurrentTokenState(t, tokenPos, true);
                     return true;
                 }
 
                 // If it looked like a numeric but wasn't, let's rewind and fall through to a simple '-' token.
                 SetTextPos(tokenPos);
             }
-            else if (hasNext && ExpressionText[CurrPos + 1] == 'I') // could be -INF
+            else if (hasNext && ExpressionText.Span[CurrPos + 1] == 'I') // could be -INF
             {
                 NextChar();
                 ParseIdentifier();
-                ReadOnlySpan<char> currentIdentifier = ExpressionText.AsSpan().Slice(tokenPos + 1, CurrPos - tokenPos - 1);
+                ReadOnlySpan<char> currentIdentifier = ExpressionText.Slice(tokenPos + 1, CurrPos - tokenPos - 1).Span;
 
                 if (ExpressionLexerUtils.IsInfinity(currentIdentifier))
                 {
@@ -283,12 +319,13 @@ public class ExpressionLexer : IExpressionLexer
                     return true;
                 }
 
+                // TODO: process the NaN ?
                 // If it looked like '-INF' but wasn't we'll rewind and fall through to a simple '-' token.
                 SetTextPos(tokenPos);
             }
 
             NextChar();
-            SetCurrentTokenState(ExpressionKind.Minus, tokenPos);
+            SetCurrentTokenState(ExpressionKind.Minus, tokenPos, true);
             return true;
         }
 
@@ -307,23 +344,23 @@ public class ExpressionLexer : IExpressionLexer
         if (CurrChar == '\'' || CurrChar == '"')
         {
             int tokenPos = CurrPos;
-            char quote = CurrChar;
-            char previous;
+            char? quote = CurrChar;
+            char? previous;
 
             do
             {
                 previous = CurrChar;
                 NextChar();
             }
-            while (CurrPos < Length && (CurrChar != quote || previous == '\\'));
+            while (CurrPos < TextLen && (CurrChar != quote || previous == '\\'));
 
-            if (CurrPos == Length)
+            if (CurrPos == TextLen)
             {
                 throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
             }
 
             NextChar(); // remember to read the ending quote
-            SetCurrentTokenState(ExpressionKind.StringLiteral, tokenPos);
+            SetCurrentTokenState(ExpressionKind.StringLiteral, tokenPos, true);
             return true;
         }
 
@@ -345,11 +382,11 @@ public class ExpressionLexer : IExpressionLexer
             // guidValue = 8HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 4HEXDIG "-" 12HEXDIG
             if (CurrChar == '-' && TryParseGuid(tokenPos))
             {
-                SetCurrentTokenState(ExpressionKind.GuidLiteral, tokenPos);
+                SetCurrentTokenState(ExpressionKind.GuidLiteral, tokenPos, true);
                 return true;
             }
 
-            SetCurrentTokenState(ExpressionKind.Identifier, tokenPos);
+            SetCurrentTokenState(ExpressionKind.Identifier, tokenPos, true);
             return true;
         }
 
@@ -362,7 +399,7 @@ public class ExpressionLexer : IExpressionLexer
     /// <returns>true means parsed, false means doesn't parse.</returns>
     protected virtual bool TryDigitToken()
     {
-        if (char.IsDigit(CurrChar))
+        if (CurrChar.HasValue && char.IsDigit(CurrChar.Value))
         {
             int tokenPos = CurrPos;
             ExpressionKind kind = ParseFromDigit();
@@ -379,14 +416,14 @@ public class ExpressionLexer : IExpressionLexer
     /// <returns>true means parsed, false means doesn't parse.</returns>
     protected virtual bool TryAnnotationToken()
     {
-        if (CurrChar == '@')
+        if (CurrChar.HasValue && CurrChar.Value == '@')
         {
             int tokenPos = CurrPos;
             NextChar();
 
-            if (CurrPos == Length)
+            if (CurrPos == TextLen)
             {
-                SetCurrentTokenState(ExpressionKind.At, tokenPos);
+                SetCurrentTokenState(ExpressionKind.At, tokenPos, false);
                 return true;
             }
 
@@ -398,7 +435,7 @@ public class ExpressionLexer : IExpressionLexer
             // Include dots for the case of annotation.
             ParseIdentifier(includingDots: true);
 
-            SetCurrentTokenState(ExpressionKind.AnnotationIdentifier, tokenPos);
+            SetCurrentTokenState(ExpressionKind.AnnotationIdentifier, tokenPos, true);
             return true;
         }
 
@@ -409,7 +446,7 @@ public class ExpressionLexer : IExpressionLexer
     /// Try to tokenize other token. It's for derived type to override
     /// </summary>
     /// <returns>true means parsed, false means doesn't parse.</returns>
-    protected virtual bool TryOtherToken()
+    protected virtual bool TryOtherTokens()
     {
         return false;
     }
@@ -419,10 +456,11 @@ public class ExpressionLexer : IExpressionLexer
     /// Valid starting chars for identifier include all that are supported by EDM ([\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}]) and '_'.
     /// </summary>
     private bool IsValidStartingCharForIdentifier =>
-        char.IsLetter(CurrChar) ||       // IsLetter covers: Ll, Lu, Lt, Lo, Lm
-        CurrChar == '_' ||
-        CurrChar == '$' ||
-        CharUnicodeInfo.GetUnicodeCategory(CurrChar) == UnicodeCategory.LetterNumber;
+        CurrChar.HasValue &&
+       (char.IsLetter(CurrChar.Value) ||       // IsLetter covers: Ll, Lu, Lt, Lo, Lm
+        CurrChar.Value == '_' ||
+        CurrChar.Value == '$' ||
+        CharUnicodeInfo.GetUnicodeCategory(CurrChar.Value) == UnicodeCategory.LetterNumber);
 
     /// <summary>
     /// Is the current char a valid non-starting char for an identifier.
@@ -432,8 +470,9 @@ public class ExpressionLexer : IExpressionLexer
     /// </summary>
     private bool IsValidNonStartingCharForIdentifier
         =>
-        char.IsLetterOrDigit(CurrChar) ||    // covers: Ll, Lu, Lt, Lo, Lm, Nd
-        AdditionalUnicodeCategoriesForIdentifier.Contains(CharUnicodeInfo.GetUnicodeCategory(CurrChar));  // covers the rest
+        CurrChar.HasValue &&
+        (char.IsLetterOrDigit(CurrChar.Value) ||    // covers: Ll, Lu, Lt, Lo, Lm, Nd
+        AdditionalUnicodeCategoriesForIdentifier.Contains(CharUnicodeInfo.GetUnicodeCategory(CurrChar.Value)));  // covers the rest
 
     /// <summary>
     /// For an identifier, EMD supports chars that match the regex  [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]
@@ -456,7 +495,7 @@ public class ExpressionLexer : IExpressionLexer
         }
 
         int end = CurrPos;
-        ReadOnlySpan<char> tokenText = ExpressionText.AsSpan()[start..end];
+        ReadOnlySpan<char> tokenText = ExpressionText[start..end].Span;
 
         // Get literal of quoted values
         if (CurrChar == '\'')
@@ -472,14 +511,14 @@ public class ExpressionLexer : IExpressionLexer
                 }
                 while (CurrChar != '\'');
 
-                if (CurrPos == Length)
+                if (CurrPos == TextLen)
                 {
                     throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
                 }
 
                 this.NextChar();
             }
-            while (CurrChar == '\'');
+            while (CurrChar.HasValue && CurrChar.Value == '\'');
             return;
         }
 
@@ -538,38 +577,40 @@ public class ExpressionLexer : IExpressionLexer
     }
 
     /// <summary>
-    /// Parses a token that starts with a digit.
+    /// Parses a token that starts with a digit or '-'.
     /// </summary>
     /// <returns>The kind of token recognized.</returns>
     private ExpressionKind ParseFromDigit()
     {
-        Debug.Assert(char.IsDigit(CurrChar) || (CurrChar == '-'), "IsValidDigit || (CurrChar == '-')");
+        Debug.Assert(CurrChar.HasValue && (char.IsDigit(CurrChar.Value) || (CurrChar == '-')), "IsValidDigit || (CurrChar == '-')");
         ExpressionKind result;
         int tokenPos = CurrPos;
-        char startChar = CurrChar;
-        NextChar();
+        char startChar = CurrChar.Value;
+
+        NextChar(); // move to next char
 
         // 0x....
-        if (startChar == '0' && (CurrPos == 'x' || CurrPos == 'X'))
+        if (startChar == '0' && (CurrChar.HasValue && (CurrChar.Value == 'x' || CurrChar.Value == 'X')))
         {
             result = ExpressionKind.BinaryLiteral;
             do
             {
                 NextChar();
             }
-            while (IsCurrValid && CharUtils.IsCharHexDigit(CurrChar));
+            while (IsCurrValid && CharUtils.IsCharHexDigit(CurrChar.Value));
         }
         else
         {
             result = ExpressionKind.IntegerLiteral;
-            while (IsCurrValid && char.IsDigit(CurrChar))
+            while (IsCurrValid && char.IsDigit(CurrChar.Value))
             {
                 NextChar();
             }
 
             // DateTimeOffset, DateOnly and Guids will have '-' in them
-            if (CurrChar == '-')
+            if (CurrChar.HasValue && CurrChar.Value == '-')
             {
+                // TODO: do a refactor later to improve the performance here. (at least not do ParseIdentifier again and again)
                 if (TryParseDate(tokenPos))
                 {
                     return ExpressionKind.DateOnlyLiteral;
@@ -584,15 +625,15 @@ public class ExpressionLexer : IExpressionLexer
                 }
             }
 
-            // TimeOfDay will have ":" in them
-            if (CurrChar == ':' && TryParseTimeOfDay(tokenPos))
+            // TimeOnly will have ":" in them
+            if (CurrChar.HasValue && CurrChar.Value == ':' && TryParseTimeOnly(tokenPos))
             {
                 return ExpressionKind.TimeOnlyLiteral;
             }
 
             // Guids will have alpha-numeric characters along with '-', so if a letter is encountered
             // try to see if this is Guid or not.
-            if (char.IsLetter(CurrChar))
+            if (CurrChar.HasValue && char.IsLetter(CurrChar.Value))
             {
                 if (TryParseGuid(tokenPos))
                 {
@@ -600,7 +641,7 @@ public class ExpressionLexer : IExpressionLexer
                 }
             }
 
-            if (CurrChar == '.')
+            if (CurrChar.HasValue && CurrChar.Value == '.')
             {
                 result = ExpressionKind.DoubleLiteral;
                 NextChar();
@@ -610,14 +651,14 @@ public class ExpressionLexer : IExpressionLexer
                 {
                     NextChar();
                 }
-                while (char.IsDigit(CurrChar));
+                while (CurrChar.HasValue && char.IsDigit(CurrChar.Value));
             }
 
-            if (CurrChar == 'E' || CurrChar == 'e')
+            if (CurrChar.HasValue && (CurrChar == 'E' || CurrChar == 'e'))
             {
                 result = ExpressionKind.DoubleLiteral;
                 this.NextChar();
-                if (CurrChar == '+' || CurrChar == '-')
+                if (CurrChar.HasValue && (CurrChar == '+' || CurrChar == '-'))
                 {
                     NextChar();
                 }
@@ -627,7 +668,7 @@ public class ExpressionLexer : IExpressionLexer
                 {
                     NextChar();
                 }
-                while (char.IsDigit(CurrChar));
+                while (CurrChar.HasValue && char.IsDigit(CurrChar.Value));
             }
 
             if (CurrChar == 'M' || CurrChar == 'm')
@@ -652,7 +693,7 @@ public class ExpressionLexer : IExpressionLexer
             }
             else
             {
-                ReadOnlySpan<char> valueStr = ExpressionText.AsSpan()[tokenPos..CurrPos];
+                ReadOnlySpan<char> valueStr = ExpressionText[tokenPos..CurrPos].Span;
                 result = MakeBestGuessOnNoSuffixStr(valueStr, result);
             }
         }
@@ -665,7 +706,7 @@ public class ExpressionLexer : IExpressionLexer
     /// </summary>
     protected virtual void SkipWhitespace()
     {
-        while (char.IsWhiteSpace(CurrChar))
+        while (CurrChar.HasValue && char.IsWhiteSpace(CurrChar.Value))
         {
             NextChar();
         }
@@ -676,17 +717,17 @@ public class ExpressionLexer : IExpressionLexer
     /// </summary>
     protected virtual void NextChar()
     {
-        if (CurrPos < Length)
+        if (CurrPos < TextLen)
         {
             ++CurrPos;
-            if (CurrPos >= 0 && CurrPos < Length)
+            if (CurrPos >= 0 && CurrPos < TextLen)
             {
-                CurrChar = ExpressionText[CurrPos];
+                CurrChar = ExpressionText.Span[CurrPos];
                 return;
             }
         }
 
-        CurrChar = '\0';
+        CurrChar = null;
     }
 
     /// <summary>
@@ -694,22 +735,32 @@ public class ExpressionLexer : IExpressionLexer
     /// </summary>
     /// <param name="kind">The current token kind.</param>
     /// <param name="start">The starting position of current token.</param>
-    protected virtual void SetCurrentTokenState(ExpressionKind kind, int start)
+    /// <param name="needText">Whether the text of the current token is needed.</param>
+    protected virtual void SetCurrentTokenState(ExpressionKind kind, int start, bool needText = true)
     {
         HandleTypePrefixedLiterals(ref kind, start);
 
-        _tokenKind = kind;
-        _tokenPosition = start;
+        _token.Kind = kind;
+        _token.Position = start;
+
+        if (needText)
+        {
+            _token.Text = ExpressionText.Slice(start, CurrPos - start);
+        }
+        else
+        {
+            _token.Text = default;
+        }
     }
 
     /// <summary>
     /// Sets the text position.
     /// </summary>
-    /// <param name="pos">New text position.</param>
+    /// <param name="pos">The new text position.</param>
     protected void SetTextPos(int pos)
     {
         CurrPos = pos < 0 ? 0 : pos;
-        CurrChar = CurrPos < Length ? ExpressionText[CurrPos] : '\0';
+        CurrChar = CurrPos < TextLen ? ExpressionText.Span[CurrPos] : null;
     }
 
     /// <summary>
@@ -730,7 +781,7 @@ public class ExpressionLexer : IExpressionLexer
         else
         {
             CurrPos = initialIndex;
-            CurrChar = ExpressionText[initialIndex];
+            CurrChar = ExpressionText.Span[initialIndex];
             return false;
         }
     }
@@ -752,31 +803,30 @@ public class ExpressionLexer : IExpressionLexer
         else
         {
             CurrPos = initialIndex;
-            CurrChar = ExpressionText[initialIndex];
+            CurrChar = ExpressionText.Span[initialIndex];
             return false;
         }
     }
 
     /// <summary>
-    /// Tries to parse TimeOfDay from current text
-    /// If it's not TimeOfDay, then this.textPos and this.ch are reset
+    /// Tries to parse TimeOnly from current text
+    /// If it's not TimeOnly, then this.textPos and this.ch are reset
     /// </summary>
     /// <param name="startPos">Start index</param>
-    /// <returns>True if the substring that starts from tokenPos is a TimeOfDay, false otherwise</returns>
-    private bool TryParseTimeOfDay(int startPos)
+    /// <returns>True if the substring that starts from tokenPos is a TimeOnly, false otherwise</returns>
+    private bool TryParseTimeOnly(int startPos)
     {
         int initialIndex = CurrPos;
 
-        ReadOnlySpan<char> timeOfDayStr = ParseLiteral(startPos);
-
-        if (TimeOnly.TryParse(timeOfDayStr, out _))
+        ReadOnlySpan<char> timeOnlyStr = ParseLiteral(startPos);
+        if (TimeOnly.TryParse(timeOnlyStr, out _))
         {
             return true;
         }
         else
         {
             CurrPos = initialIndex;
-            CurrChar = ExpressionText[initialIndex];
+            CurrChar = ExpressionText.Span[initialIndex];
             return false;
         }
     }
@@ -798,7 +848,7 @@ public class ExpressionLexer : IExpressionLexer
         else
         {
             CurrPos = initialIndex;
-            CurrChar = ExpressionText[initialIndex];
+            CurrChar = ExpressionText.Span[initialIndex];
             return false;
         }
     }
@@ -809,9 +859,9 @@ public class ExpressionLexer : IExpressionLexer
         {
             NextChar();
         }
-        while (CurrChar != '\0' && CurrChar != ',' && CurrChar != ')' && CurrChar != ' ');
+        while (CurrChar.HasValue && CurrChar.Value != ',' && CurrChar.Value != ')' && CurrChar.Value != ' ');
 
-        var numericStr = ExpressionText.AsSpan()[tokenPos..CurrPos];
+        var numericStr = ExpressionText[tokenPos..CurrPos].Span;
         return numericStr;
     }
 
@@ -902,7 +952,7 @@ public class ExpressionLexer : IExpressionLexer
     /// </summary>
     private void ValidateDigit()
     {
-        if (!char.IsDigit(CurrChar))
+        if (CurrChar == null || !char.IsDigit(CurrChar.Value))
         {
             throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_DigitExpected, CurrPos, ExpressionText));
         }
@@ -910,7 +960,6 @@ public class ExpressionLexer : IExpressionLexer
 
     private string DebuggerToString()
     {
-        string currentChar = CurrChar == '\0' ? "\\0" : CurrChar.ToString();
-        return $"Current: {CurrentToken.ToString()}, Next: {CurrPos}: \"{currentChar}\" at {ExpressionText}.";
+        return $"Current: {CurrentToken.ToString()}, Next: {CurrPos}: \"{CurrChar}\" at {ExpressionText}.";
     }
 }
