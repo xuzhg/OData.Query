@@ -138,8 +138,8 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Apply, context);
         }
 
-        IApplyOptionParser applyParser = _serviceProvider?.GetService<IApplyOptionParser>() ?? new ApplyOptionParser();
-        queryOption.Apply = await applyParser.ParseAsync(apply.Span.ToString(), context);
+        IApplyParser applyParser = _serviceProvider?.GetService<IApplyParser>() ?? new ApplyParser();
+        queryOption.Apply = await applyParser.ParseAsync(apply, context);
     }
 
     protected virtual async Task ParseCompute(ReadOnlyMemory<char> compute, ODataQueryOption queryOption, QueryParserContext context)
@@ -160,8 +160,8 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Filter, context);
         }
 
-        IFilterOptionParser filterParser = _serviceProvider?.GetService<IFilterOptionParser>() ?? new FilterOptionParser();
-        queryOption.Filter = await filterParser.ParseAsync(filter.Span.ToString(), context);
+        IFilterParser filterParser = _serviceProvider?.GetService<IFilterParser>() ?? new FilterParser();
+        queryOption.Filter = await filterParser.ParseAsync(filter, context);
     }
 
     protected virtual async Task ParseOrderBy(ReadOnlyMemory<char> orderBy, ODataQueryOption queryOption, QueryParserContext context)
@@ -171,8 +171,8 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.OrderBy, context);
         }
 
-        IOrderByOptionParser orderByParser = _serviceProvider?.GetService<IOrderByOptionParser>() ?? new OrderByOptionParser();
-        queryOption.OrderBy = await orderByParser.ParseAsync(orderBy.Span.ToString(), context);
+        IOrderByParser orderByParser = _serviceProvider?.GetService<IOrderByParser>() ?? new OrderByParser();
+        queryOption.OrderBy = await orderByParser.ParseAsync(orderBy, context);
     }
 
     protected virtual async Task ParseSelect(ReadOnlyMemory<char> select, ODataQueryOption queryOption, QueryParserContext context)
@@ -182,8 +182,8 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Select, context);
         }
 
-        ISelectOptionParser selectParser = _serviceProvider?.GetService<ISelectOptionParser>() ?? new SelectOptionParser();
-        queryOption.Select = await selectParser.ParseAsync(select.Span.ToString(), context);
+        ISelectParser selectParser = _serviceProvider?.GetService<ISelectParser>() ?? new SelectParser();
+        queryOption.Select = await selectParser.ParseAsync(select, context);
     }
 
     protected virtual async Task ParseExpand(ReadOnlyMemory<char> expand, ODataQueryOption queryOption, QueryParserContext context)
@@ -193,8 +193,8 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Expand, context);
         }
 
-        IExpandOptionParser expandParser = _serviceProvider?.GetService<IExpandOptionParser>() ?? new ExpandOptionParser();
-        queryOption.Expand = await expandParser.ParseAsync(expand.Span.ToString(), context);
+        IExpandParser expandParser = _serviceProvider?.GetService<IExpandParser>() ?? new ExpandParser();
+        queryOption.Expand = await expandParser.ParseAsync(expand, context);
     }
 
     protected virtual async Task ParseCount(ReadOnlyMemory<char> count, ODataQueryOption queryOption, QueryParserContext context)
@@ -279,8 +279,8 @@ public class ODataQueryOptionParser : IODataQueryOptionParser
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Search, context);
         }
 
-        ISearchOptionParser searchParser = _serviceProvider?.GetService<ISearchOptionParser>() ?? new SearchOptionParser();
-        queryOption.Search = await searchParser.ParseAsync(search.Span.ToString(), context);
+        ISearchParser searchParser = _serviceProvider?.GetService<ISearchParser>() ?? new SearchParser();
+        queryOption.Search = await searchParser.ParseAsync(search, context);
     }
 
     protected virtual async Task ParseSkipToken(ReadOnlyMemory<char> skipToken, ODataQueryOption queryOption, QueryParserContext context)

@@ -78,5 +78,5 @@ public enum QueryNodeKind
     /// <summary>
     /// Resource node referencing a range variable.
     /// </summary>
-    ResourceRangeVariableReference
+    RangeVariableReference
 }

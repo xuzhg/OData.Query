@@ -184,11 +184,15 @@ public abstract class QueryBinder
             throw new Exception("ODataErrorStrings.MetadataBinder_BinaryOperatorOperandNotSingleValue(operatorKind.ToString())");
         }
 
+
+        IUriResolver resolver = context.GetOrCreateUriResolver();
+        resolver.PromoteBinaryOperandTypes(binaryOperatorToken.OperatorKind, ref left, ref right, out Type typeReference);
+
         // Maybe need covert implicitly
         // left = MetadataBindingUtils.ConvertToTypeIfNeeded(left, leftType);
         // right = MetadataBindingUtils.ConvertToTypeIfNeeded(right, rightType);
 
-        return new BinaryOperatorNode(binaryOperatorToken.OperatorKind, left, right, left.NodeType);
+        return new BinaryOperatorNode(binaryOperatorToken.OperatorKind, left, right, typeReference);
     }
 
     /// <summary>

@@ -6,19 +6,25 @@
 using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Commons;
+using System.Diagnostics.Contracts;
 
 namespace Microsoft.OData.Query.Parser;
 
 public record QueryParsedResult
 {
+    public ApplyClause Apply = null;
+
     public ComputeClause Compute = null;
 
     public FilterClause Filter = null;
+
+    public OrderByClause OrderBy = null;
 
     public bool? Count = null;
 
     public long? Top = null;
     public long? Skip = null;
+
 
     /// <summary>
     /// The value of the $index system query option is the zero-based ordinal position where the item is to be inserted.
@@ -26,6 +32,12 @@ public record QueryParsedResult
     /// A negative ordinal number indexes from the end of the collection, with -1 representing an insert as the last item in the collection.
     /// </summary>
     public long? Index = null;
+
+    public SelectClause Select = null;
+
+    public ExpandClause Expand = null;
+
+    public SearchClause Search = null;
 }
 
 public class QueryParser : IQueryParser
@@ -137,13 +149,16 @@ public class QueryParser : IQueryParser
     /// <returns></returns>
     protected virtual async ValueTask ParseApplyAsync(ReadOnlyMemory<char> apply, QueryParserContext context, QueryParsedResult result)
     {
-        //if (queryOption.Apply != null)
-        //{
-        //    ThrowQueryParameterMoreThanOnce(QueryStringConstants.Apply, context);
-        //}
+        Contract.Assert(context != null);
 
-        //IApplyOptionParser applyParser = _serviceProvider?.GetService<IApplyOptionParser>() ?? new ApplyOptionParser();
-        //queryOption.Apply = await applyParser.ParseAsync(apply.Span.ToString(), context);
+        if (result.Apply != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Apply, context);
+        }
+
+        IApplyParser applyParser = context.GetOrCreateApplyParser();
+
+        result.Apply = await applyParser.ParseAsync(apply, context);
     }
 
     /// <summary>
@@ -154,14 +169,11 @@ public class QueryParser : IQueryParser
     /// <param name="result">The parsed result.</param>
     protected virtual async ValueTask ParseComputeAsync(ReadOnlyMemory<char> compute, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         if (result.Compute != null)
         {
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Compute, context);
-        }
-
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
         }
 
         IComputeParser computeParser = context.GetOrCreateComputeParser();
@@ -171,14 +183,11 @@ public class QueryParser : IQueryParser
 
     protected virtual async ValueTask ParseFilterAsync(ReadOnlyMemory<char> filter, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         if (result.Filter != null)
         {
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Filter, context);
-        }
-
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
         }
 
         // Get the filter parser service from parser context
@@ -189,13 +198,17 @@ public class QueryParser : IQueryParser
 
     protected virtual async ValueTask ParseOrderByAsync(ReadOnlyMemory<char> orderBy, QueryParserContext context, QueryParsedResult result)
     {
-        //if (queryOption.OrderBy != null)
-        //{
-        //    ThrowQueryParameterMoreThanOnce(QueryStringConstants.OrderBy, context);
-        //}
+        Contract.Assert(context != null);
 
-        //IOrderByOptionParser orderByParser = _serviceProvider?.GetService<IOrderByOptionParser>() ?? new OrderByOptionParser();
-        //queryOption.OrderBy = await orderByParser.ParseAsync(orderBy.Span.ToString(), context);
+        if (result.OrderBy != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.OrderBy, context);
+        }
+
+        // Get the oderby parser service from parser context
+        IOrderByParser orderByParser = context.GetorCreateOrderByParser();
+
+        result.OrderBy = await orderByParser.ParseAsync(orderBy, context);
     }
 
     protected virtual async ValueTask ParseSelectAsync(ReadOnlyMemory<char> select, QueryParserContext context, QueryParsedResult result)
@@ -229,27 +242,16 @@ public class QueryParser : IQueryParser
     /// <returns>The ValueTask.</returns>
     protected virtual async ValueTask ParseCountAsync(ReadOnlyMemory<char> count, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         if (result.Count != null)
         {
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Count, context);
         }
 
-        StringComparison comparison = context.EnableCaseInsensitive ?
-            StringComparison.OrdinalIgnoreCase :
-            StringComparison.Ordinal;
+        ICountParser countParser = context.GetOrCreateCountParser();
 
-        if (count.Span.Equals("true", comparison))
-        {
-            result.Count = true;
-        }
-        else if (count.Span.Equals("false", comparison))
-        {
-            result.Count = false;
-        }
-        else
-        {
-            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidDollarCount, count.Span.ToString()));
-        }
+        result.Count = await countParser.ParseAsync(count, context);
     }
 
     /// <summary>
@@ -261,18 +263,16 @@ public class QueryParser : IQueryParser
     /// <returns>The ValueTask.</returns>
     protected virtual async ValueTask ParseTopAsync(ReadOnlyMemory<char> top, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         if (result.Top != null)
         {
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Top, context);
         }
 
-        long topValue;
-        if (!long.TryParse(top.Span, out topValue) || topValue < 0)
-        {
-            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidNonNegativeIntegerValue, top.Span.ToString(), QueryStringConstants.Top));
-        }
+        ITopParser topParser = context.GetOrCreateTopParser();
 
-        result.Top = topValue;
+        result.Top = await topParser.ParseAsync(top, context);
     }
 
     /// <summary>
@@ -284,18 +284,16 @@ public class QueryParser : IQueryParser
     /// <returns>The ValueTask.</returns>
     protected virtual async ValueTask ParseSkipAsync(ReadOnlyMemory<char> skip, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         if (result.Skip != null)
         {
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Skip, context);
         }
 
-        long skipValue;
-        if (!long.TryParse(skip.Span, out skipValue) || skipValue < 0)
-        {
-            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidNonNegativeIntegerValue, skip.Span.ToString(), QueryStringConstants.Skip));
-        }
+        ISkipParser skipParser = context.GetOrCreateSkipParser();
 
-        result.Skip = skipValue;
+        result.Skip = await skipParser.ParseAsync(skip, context);
     }
 
     /// <summary>
@@ -307,33 +305,36 @@ public class QueryParser : IQueryParser
     /// <returns>The ValueTask.</returns>
     protected virtual async ValueTask ParseIndexAsync(ReadOnlyMemory<char> index, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         if (result.Index != null)
         {
             ThrowQueryParameterMoreThanOnce(QueryStringConstants.Index, context);
         }
 
-        long indexValue;
-        if (!long.TryParse(index.Span, out indexValue))
-        {
-            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidIntegerValue, index.Span.ToString(), QueryStringConstants.Index));
-        }
+        IIndexParser indexParser = context.GetOrCreateIndexParser();
 
-        result.Index = indexValue;
+        result.Index = await indexParser.ParseAsync(index, context);
     }
 
     protected virtual async ValueTask ParseSearchAsync(ReadOnlyMemory<char> search, QueryParserContext context, QueryParsedResult result)
     {
-        //if (queryOption.Search != null)
-        //{
-        //    ThrowQueryParameterMoreThanOnce(QueryStringConstants.Search, context);
-        //}
+        Contract.Assert(context != null);
 
-        //ISearchOptionParser searchParser = _serviceProvider?.GetService<ISearchOptionParser>() ?? new SearchOptionParser();
-        //queryOption.Search = await searchParser.ParseAsync(search.Span.ToString(), context);
+        if (result.Search != null)
+        {
+            ThrowQueryParameterMoreThanOnce(QueryStringConstants.Search, context);
+        }
+
+        ISearchParser searchParser = context.GetOrCreateSearchParser();
+
+        result.Search = await searchParser.ParseAsync(search, context);
     }
 
     protected virtual async ValueTask ParseSkipTokenAsync(ReadOnlyMemory<char> skipToken, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         //if (queryOption.SkipToken != null)
         //{
         //    ThrowQueryParameterMoreThanOnce(QueryStringConstants.SkipToken, context);
@@ -345,6 +346,8 @@ public class QueryParser : IQueryParser
 
     protected virtual async ValueTask ParseDeltaTokenAsync(ReadOnlyMemory<char> deltaToken, QueryParserContext context, QueryParsedResult result)
     {
+        Contract.Assert(context != null);
+
         //if (queryOption.DeltaToken != null)
         //{
         //    ThrowQueryParameterMoreThanOnce(QueryStringConstants.DeltaToken, context);

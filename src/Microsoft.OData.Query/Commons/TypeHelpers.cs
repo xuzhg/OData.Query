@@ -10,6 +10,58 @@ namespace Microsoft.OData.Query.Commons;
 /// </summary>
 internal static class TypeHelpers
 {
+    public static bool IsStructured(this Type type)
+    {
+        if (type == null)
+        {
+            return false;
+        }
+
+        return !type.IsPrimitive
+            && !type.IsEnum
+            && type != typeof(string)
+            && !type.IsValueType
+            && Nullable.GetUnderlyingType(type) == null;
+    }
+
+    public static bool IsStructuredCollection(this Type type)
+    {
+        if (type == null)
+        {
+            return false;
+        }
+
+        bool collection = type.IsCollection(out Type elementType);
+        if (collection)
+        {
+            return elementType.IsStructured();
+        }
+
+        return false;
+    }
+
+    public static bool IsIntegral(this Type type)
+    {
+        if (type == null)
+        {
+            return false;
+        }
+
+        if (type == typeof(sbyte) ||
+            type == typeof(short) ||
+            type == typeof(int) ||
+            type == typeof(long) ||
+            type == typeof(byte) ||
+            type == typeof(ushort) ||
+            type == typeof(uint) ||
+            type == typeof(ulong))
+        { 
+                return true;
+        }
+
+        return false;
+    }
+
     public static Type GetElementTypeOrSelf(this Type type)
     {
         if (type == null ||

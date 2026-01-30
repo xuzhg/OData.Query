@@ -25,7 +25,7 @@ namespace QueryParserSample
             {
                 case QueryNodeKind.Constant:
                     var constantNode = (ConstantNode)node;
-                    Console.WriteLine($"{new string(' ', indent)}ConstantNode: {constantNode.Value}");
+                    Console.WriteLine($"{new string(' ', indent + 2)}|-ConstantNode: {constantNode.Value}");
                     break;
                 case QueryNodeKind.SingleValuePropertyAccess:
                     var propertyAccessNode = (SingleValuePropertyAccessNode)node;
@@ -36,8 +36,12 @@ namespace QueryParserSample
                     Visit((BinaryOperatorNode)node, indent + 2);
                     break;
 
+                case QueryNodeKind.RangeVariableReference:
+                    var rangeVariableNode = (RangeVariableReferenceNode)node;
+                    Console.WriteLine($"{new string(' ', indent + 2)}|-RangeVariableNode: {rangeVariableNode.Variable.Name}");
+                    break;
                 default:
-                    Console.WriteLine($"{new string(' ', indent)}Unhandled SingleValueNode kind: {node.Kind}");
+                    Console.WriteLine($"{new string(' ', indent + 2)}|-Unhandled SingleValueNode kind: {node.Kind}");
                     break;
             }
         }
@@ -56,7 +60,7 @@ namespace QueryParserSample
         {
             Visit(node.Source, indent);
 
-            Console.WriteLine($"{new string(' ', indent)}PropertyAccessNode: {node.Property.Name}");
+            Console.WriteLine($"{new string(' ', indent)}|-PropertyAccessNode: {node.Property.Name}");
         }
     }
 }

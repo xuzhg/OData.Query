@@ -3,7 +3,9 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Nodes;
 using System.Data;
+using System.Dynamic;
 using System.Reflection;
 
 namespace Microsoft.OData.Query.Parser;
@@ -60,4 +62,58 @@ public class MetadataResolver : IMetadataResolver
 
         return propertyInfo;
     }
+}
+
+public interface IUriResolver
+{
+    void PromoteBinaryOperandTypes(
+             BinaryOperatorKind binaryOperatorKind,
+             ref SingleValueNode leftNode,
+             ref SingleValueNode rightNode,
+             out Type typeReference);
+
+}
+
+public class  DefaultUriResolver : IUriResolver
+{
+    public virtual void PromoteBinaryOperandTypes(
+              BinaryOperatorKind binaryOperatorKind,
+              ref SingleValueNode leftNode,
+              ref SingleValueNode rightNode,
+              out Type typeReference)
+    {
+        typeReference = null;
+        PromoteOperandTypes(binaryOperatorKind, ref leftNode, ref rightNode/*, typeFacetsPromotionRules*/);
+    }
+
+    /// <summary>
+    /// Promote the left and right operand types
+    /// </summary>
+    /// <param name="binaryOperatorKind">the operator kind</param>
+    /// <param name="left">the left operand</param>
+    /// <param name="right">the right operand</param>
+    /// <param name="facetsPromotionRules">Promotion rules for type facets.</param>
+    internal static void PromoteOperandTypes(BinaryOperatorKind binaryOperatorKind, ref SingleValueNode left, ref SingleValueNode right/*, TypeFacetsPromotionRules facetsPromotionRules*/)
+    {
+        Type leftType;
+        Type rightType;
+        if (!TypePromotionUtils.PromoteOperandTypes(binaryOperatorKind, left, right, out leftType, out rightType/*, facetsPromotionRules*/))
+        {
+            string leftTypeName = left.NodeType == null ? "<null>" : left.NodeType.FullName;
+            string rightTypeName = right.NodeType == null ? "<null>" : right.NodeType.FullName;
+            throw new QueryParserException("Error.Format(SRResources.MetadataBinder_IncompatibleOperandsError, leftTypeName, rightTypeName, binaryOperatorKind)");
+        }
+
+        left = MetadataBindingUtils.ConvertToTypeIfNeeded(left, leftType);
+        right = MetadataBindingUtils.ConvertToTypeIfNeeded(right, rightType);
+    }
+}
+
+public abstract class AssemblyResolver : IAssemblyResolver
+{
+    /// <summary>
+    /// Gets a list of assemblies available for the application.
+    /// </summary>
+    /// <returns>A list of assemblies available for the application. </returns>
+    public abstract IEnumerable<Assembly> Assemblies { get; }
 }

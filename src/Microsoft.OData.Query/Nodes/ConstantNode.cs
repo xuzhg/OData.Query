@@ -10,6 +10,7 @@ public class ConstantNode : SingleValueNode
     public ConstantNode(object constantValue)
     {
         Value = constantValue;
+        NodeType = constantValue?.GetType();
     }
 
     /// <summary>
@@ -21,13 +22,14 @@ public class ConstantNode : SingleValueNode
     {
         Value = constantValue;
         LiteralText = literalText;
+        NodeType = constantValue?.GetType();
     }
 
     public ConstantNode(object constantValue, string literalText, Type type)
     {
         Value = constantValue;
         LiteralText = literalText;
-        NodeType = type;
+        NodeType = type == null ? constantValue?.GetType() : type;
     }
 
     /// <summary>

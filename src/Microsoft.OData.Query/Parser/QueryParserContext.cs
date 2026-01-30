@@ -79,29 +79,6 @@ public class QueryParserContext
     /// </summary>
     public IServiceProvider ServiceProvider { get; }
 
-    public IFilterOptionParser FilterParser
-    {
-        get
-        {
-            if (ServiceProvider != null)
-            {
-                return ServiceProvider.GetService<IFilterOptionParser>();
-            }
-
-            return FilterOptionParser.Default;
-        }
-    }
-
-    internal IFilterParser GetOrCreateFilterParser()
-    {
-        if (ServiceProvider != null)
-        {
-            return ServiceProvider.GetService<IFilterParser>();
-        }
-
-
-        return new FilterParser();
-    }
 
     public bool IgnoreUnknownQuery { get; set; }
 

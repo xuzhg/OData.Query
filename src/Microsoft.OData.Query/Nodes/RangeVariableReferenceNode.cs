@@ -16,7 +16,7 @@ public class RangeVariableReferenceNode : SingleValueNode
 
     public string Name => Variable.Name;
 
-    public override QueryNodeKind Kind => QueryNodeKind.ResourceRangeVariableReference;
+    public override QueryNodeKind Kind => QueryNodeKind.RangeVariableReference;
 
     public override Type NodeType => Variable.Type;
 }

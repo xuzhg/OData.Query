@@ -2,6 +2,7 @@
 
 
 using Microsoft.OData.Query;
+using Microsoft.OData.Query.Ast;
 using Microsoft.OData.Query.Clauses;
 using Microsoft.OData.Query.Parser;
 using QueryParserSample;
@@ -32,7 +33,7 @@ while (true)
 
     if (string.IsNullOrEmpty(line))
     {
-        line = "$compute=Weight mul 8 as Ratio,Price div 2.0 as HalfPrice";
+        line = "$compute=Weight mul 8 as Ratio,Price div 2.0 as HalfPrice&$filter=Name eq 'Sam'&$index=-98";
     }
 
     ConsoleColor color = Console.ForegroundColor;
@@ -56,7 +57,8 @@ while (true)
 
 void ShowResult(QueryParsedResult result)
 {
-     ShowCompute(result.Compute);
+    ShowFilter(result.Filter);
+    ShowCompute(result.Compute);
 
     if (result.Count.HasValue)
     {
@@ -79,6 +81,18 @@ void ShowResult(QueryParsedResult result)
     }
 }
 
+void ShowFilter(FilterClause filter)
+{
+    if (filter == null)
+    {
+        return;
+    }
+
+    Console.WriteLine($"  |- $filter: ");
+
+    new QueryNodeVisitor().Visit(filter.Expression, 4);
+}
+
 void ShowCompute(ComputeClause compute)
 {
     if (compute == null || compute.Count == 0)
@@ -86,13 +100,13 @@ void ShowCompute(ComputeClause compute)
         return;
     }
 
-    Console.WriteLine($"  |- ComputeClause: '{compute.Count}'");
+    Console.WriteLine($"  |- $compute: '{compute.Count}'");
 
     foreach (var item in compute)
     {
         new QueryNodeVisitor().Visit(item.Expression, 4);
 
-        Console.WriteLine($"    |- Alias = {item.Alias}\n");
+        Console.WriteLine($"        |- Alias = {item.Alias}\n");
     }
 }
 
