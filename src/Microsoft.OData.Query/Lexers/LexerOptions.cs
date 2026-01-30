@@ -32,8 +32,6 @@ public class LexerOptions
     public bool UseSemicolonDelimiter { get; set; } = false;
 }
 
-
-
 /// <summary>
 /// Represents a lexical expression lexer options.
 /// </summary>

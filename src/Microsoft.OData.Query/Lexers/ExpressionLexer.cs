@@ -272,7 +272,7 @@ public class ExpressionLexer : IExpressionLexer
         {
             int startPos = CurrPos;
             NextChar();
-            SetCurrentTokenState(kind, startPos, false);
+            SetCurrentTokenState(kind, startPos, true);
             return true;
         }
 
@@ -423,7 +423,7 @@ public class ExpressionLexer : IExpressionLexer
 
             if (CurrPos == TextLen)
             {
-                SetCurrentTokenState(ExpressionKind.At, tokenPos, false);
+                SetCurrentTokenState(ExpressionKind.At, tokenPos, true);
                 return true;
             }
 
