@@ -21,7 +21,7 @@ public abstract class QueryNode
     /// <summary>
     /// Gets the type of this node represents.
     /// </summary>
-    public abstract Type NodeType { get; }
+    //public abstract Type NodeType { get; }
 }
 
 public interface IQueryNode
@@ -45,7 +45,7 @@ public class KeyValueNode : QueryNode
 
     public override QueryNodeKind Kind => throw new NotImplementedException();
 
-    public override Type NodeType => throw new NotImplementedException();
+ //   public override Type NodeType => throw new NotImplementedException();
 }
 
 public class QueryOptionNode : QueryNode, IList<KeyValueNode>
@@ -54,7 +54,7 @@ public class QueryOptionNode : QueryNode, IList<KeyValueNode>
 
     public override QueryNodeKind Kind => throw new NotImplementedException();
 
-    public override Type NodeType => throw new NotImplementedException();
+  //  public override Type NodeType => throw new NotImplementedException();
 
     public int Count => throw new NotImplementedException();
 

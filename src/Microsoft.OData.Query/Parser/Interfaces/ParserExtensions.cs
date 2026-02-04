@@ -3,10 +3,47 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Clauses;
+
 namespace Microsoft.OData.Query.Parser;
 
 public static class ParserExtensions
 {
+    /// <summary>
+    /// Parses the $filter expression to an <see cref="FilterClause" /> value.
+    /// </summary>
+    /// <param name="filterParser">The filter parser.</param>
+    /// <param name="filter">The $filter expression string to parse.</param>
+    /// <param name="context">The query parser context.</param>
+    /// <returns>A value representing that $filter option.</returns>
+    public static async ValueTask<FilterClause> ParseAsync(this IFilterParser filterParser, string filter, QueryParserContext context)
+    {
+        if (filterParser == null)
+        {
+            throw new ArgumentNullException(nameof(filterParser));
+        }
+
+        return await filterParser.ParseAsync(filter.AsMemory(), context);
+    }
+
+    /// <summary>
+    /// Parses the $orderby expression to an <see cref="FilterClause"/> value.
+    /// </summary>
+    /// <param name="orderByParser">The orderby parser.</param>
+    /// <param name="orderBy">The $orderby expression string to parse.</param>
+    /// <param name="context">The query parser context.</param>
+    /// <returns>A value representing that $orderby option.</returns>
+    public static async ValueTask<OrderByClause> ParseAsync(this IOrderByParser orderByParser, string orderBy, QueryParserContext context)
+    {
+        if (orderByParser == null)
+        {
+            throw new ArgumentNullException(nameof(orderByParser));
+        }
+
+        return await orderByParser.ParseAsync(orderBy.AsMemory(), context);
+    }
+
     /// <summary>
     /// Parses the $count expression to a boolean value.
     /// </summary>

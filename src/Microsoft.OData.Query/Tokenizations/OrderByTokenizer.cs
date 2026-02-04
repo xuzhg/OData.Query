@@ -22,7 +22,17 @@ public class OrderByTokenizer : QueryTokenizer, IOrderByTokenizer
     /// <returns>The order by token tokenized.</returns>
     public virtual async ValueTask<OrderByToken> TokenizeAsync(ReadOnlyMemory<char> orderBy, QueryTokenizerContext context)
     {
-        IExpressionLexer lexer = context.CreateLexer(orderBy, LexerOptions.Default);
+        if (orderBy.IsEmpty)
+        {
+            throw new ArgumentNullException(nameof(orderBy));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        IExpressionLexer lexer = context.CreateLexer(orderBy);
         lexer.NextToken(); // move to first token
 
         OrderByToken headToken = null;
@@ -63,6 +73,6 @@ public class OrderByTokenizer : QueryTokenizer, IOrderByTokenizer
 
         lexer.ValidateToken(ExpressionKind.EndOfInput);
 
-        return await ValueTask.FromResult(headToken);
+        return headToken;
     }
 }

@@ -21,7 +21,17 @@ public class ExpandTokenizer : SelectExpandTokenizer, IExpandTokenizer
     /// <returns>The expand token tokenized.</returns>
     public virtual async ValueTask<ExpandToken> TokenizeAsync(ReadOnlyMemory<char> expand, QueryTokenizerContext context)
     {
-        IExpressionLexer lexer = context.CreateLexer(expand, LexerOptions.Default);
+        if (expand.IsEmpty)
+        {
+            throw new ArgumentNullException(nameof(expand));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        IExpressionLexer lexer = context.CreateLexer(expand);
         lexer.NextToken(); // move to first token
 
         ExpandToken expandToken = new ExpandToken();

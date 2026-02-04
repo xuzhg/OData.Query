@@ -3,7 +3,9 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
@@ -176,10 +178,14 @@ public class SearchTokenizerTests
     //    action.Throws<ODataException>(Strings.UriQueryExpressionParser_ExpressionExpected(6, "(A AND)"));
     //}
 
-    //[Fact]
-    //public void SearchEmptyPhrase()
-    //{
-    //    Action action = () => searchParser.ParseSearch("A \"\"");
-    //    action.Throws<ODataException>(Strings.ExpressionToken_IdentifierExpected(2));
-    //}
+    [Fact]
+    public async ValueTask SearchEmptyPhrase()
+    {
+        Func<Task> action = async () => await _searchTokenizer.TokenizeAsync("A \"\"", QueryTokenizerContext.Default);
+
+        QueryTokenizerException exception = await Assert.ThrowsAsync<QueryTokenizerException>(action);
+
+        Assert.Equal("SRResources.SearchTokenizer_EmptyPhraseNotAllowed", exception.Message);
+        // await action.Should().ThrowAsync<ODataException>().WithMessage(Strings.ExpressionToken_IdentifierExpected(2));
+    }
 }

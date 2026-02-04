@@ -24,7 +24,7 @@ internal static class MetadataUtils
         PrimitiveTypeReferenceMap[typeof(sbyte)] = PrimitiveTypeKind.SByte;
         PrimitiveTypeReferenceMap[typeof(string)] = PrimitiveTypeKind.String;
         PrimitiveTypeReferenceMap[typeof(float)] = PrimitiveTypeKind.Single;
-        PrimitiveTypeReferenceMap[typeof(DateTime)] = PrimitiveTypeKind.Date;
+        PrimitiveTypeReferenceMap[typeof(DateTime)] = PrimitiveTypeKind.DateTime;
         PrimitiveTypeReferenceMap[typeof(DateTimeOffset)] = PrimitiveTypeKind.DateTimeOffset;
         PrimitiveTypeReferenceMap[typeof(Guid)] = PrimitiveTypeKind.Guid;
         PrimitiveTypeReferenceMap[typeof(TimeSpan)] = PrimitiveTypeKind.Duration;
@@ -55,5 +55,11 @@ internal static class MetadataUtils
         }
 
         return PrimitiveTypeKind.None;
+    }
+
+    public static bool IsEnumTypeKind(this Type type)
+    {
+        Type underlyingType = type.GetUnderlyingTypeOrSelf();
+        return underlyingType.IsEnum;
     }
 }

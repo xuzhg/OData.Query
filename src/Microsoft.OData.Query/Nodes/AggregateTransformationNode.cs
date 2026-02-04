@@ -69,5 +69,5 @@ public sealed class AggregateTransformationNode : TransformationNode
 
     public override QueryNodeKind Kind => throw new NotImplementedException();
 
-    public override Type NodeType => throw new NotImplementedException();
+   // public override Type NodeType => throw new NotImplementedException();
 }

@@ -3,6 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
 
@@ -21,17 +22,26 @@ public class FilterTokenizer : QueryTokenizer, IFilterTokenizer
     /// <returns>The filter token tokenized.</returns>
     public virtual async ValueTask<IQueryToken> TokenizeAsync(ReadOnlyMemory<char> filter, QueryTokenizerContext context)
     {
+        if (filter.IsEmpty)
+        {
+            throw new ArgumentNullException(nameof(filter));
+        }
+
         if (context == null)
         {
             throw new ArgumentNullException(nameof(context));
         }
 
         IExpressionLexer lexer = context.CreateLexer(filter);
+        if (lexer == null)
+        {
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_FailToCreateLexer, "$filter"));
+        }
 
         lexer.NextToken(); // move to first token
 
         IQueryToken result = TokenizeExpression(lexer, context);
 
-        return await ValueTask.FromResult(result);
+        return result;
     }
 }

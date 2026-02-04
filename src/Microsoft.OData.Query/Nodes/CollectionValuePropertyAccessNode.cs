@@ -50,7 +50,7 @@ public class CollectionValuePropertyAccessNode : CollectionValueNode
     /// <summary>
     /// Gets the type of this node represents.
     /// </summary>
-    public override Type NodeType => Property.PropertyType;
+    public override Type CollectionType => Property.PropertyType;
 
     public override Type ElementType { get; }
 }

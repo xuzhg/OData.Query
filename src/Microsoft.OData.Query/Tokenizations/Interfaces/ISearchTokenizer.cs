@@ -8,7 +8,7 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Tokenizations;
 
 /// <summary>
-/// Tokenize the $search query expression and produces the lexical object model.
+/// Tokenizes the $search query expression and produces the lexical object model.
 /// </summary>
 public interface ISearchTokenizer
 {
@@ -19,10 +19,4 @@ public interface ISearchTokenizer
     /// <param name="context">The query tokenizer context.</param>
     /// <returns>The search token tokenized.</returns>
     ValueTask<IQueryToken> TokenizeAsync(ReadOnlyMemory<char> search, QueryTokenizerContext context);
-}
-
-public static class ISearchTokenizerExtensions
-{
-    public static async ValueTask<IQueryToken> TokenizeAsync(this ISearchTokenizer tokenizer, string search, QueryTokenizerContext context)
-        => await tokenizer.TokenizeAsync(search.AsMemory(), context);
 }

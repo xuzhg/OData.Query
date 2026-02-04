@@ -25,7 +25,7 @@ public class ComputeTokenizer : QueryTokenizer, IComputeTokenizer
     {
         if (compute.IsEmpty)
         {
-            return ValueTask.FromResult<ComputeToken>(null);
+            throw new ArgumentNullException(nameof(compute));
         }
 
         if (context == null)
@@ -33,7 +33,7 @@ public class ComputeTokenizer : QueryTokenizer, IComputeTokenizer
             throw new ArgumentNullException(nameof(context));
         }
 
-        IExpressionLexer lexer = context.CreateLexer(compute, LexerOptions.Default);
+        IExpressionLexer lexer = context.CreateLexer(compute);
         lexer.NextToken(); // move to first token
 
         context.EnterRecurse();

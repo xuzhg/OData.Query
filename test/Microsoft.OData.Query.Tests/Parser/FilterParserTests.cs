@@ -3,9 +3,13 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Parser;
-using System.Threading.Tasks;
 using System;
+using System.Threading.Tasks;
+using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Clauses;
+using Microsoft.OData.Query.Nodes;
+using Microsoft.OData.Query.Parser;
+using Microsoft.OData.Query.Tests.Nodes;
 using Xunit;
 
 namespace Microsoft.OData.Query.Tests.Parser;
@@ -16,29 +20,27 @@ public class FilterParserTests
     private IFilterParser _parser = new FilterParser();
 
     [Fact]
-    public async Task ParseFilterOption_ThrowsArgumentNull_Filter()
+    public async Task ParseFilter_ThrowsArgumentNull_Filter()
     {
         // Arrange & Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>("filter", async () => await _parser.ParseAsync(null, null));
-        await Assert.ThrowsAsync<ArgumentNullException>("filter", async () => await _parser.ParseAsync("".AsMemory(), null));
+        await Assert.ThrowsAsync<ArgumentNullException>("filter", async () => await _parser.ParseAsync("", null));
     }
 
     [Fact]
-    public async Task ParseFilterOption_ThrowsArgumentNull_Context()
+    public async Task ParseFilter_ThrowsArgumentNull_Context()
     {
         // Arrange & Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>("context", async () => await _parser.ParseAsync("any".AsMemory(), null));
+        await Assert.ThrowsAsync<ArgumentNullException>("context", async () => await _parser.ParseAsync("any", null));
     }
 
     [Fact]
-    public void ParseFilter_WorksForBasicFilterExpression()
+    public async Task ParseFilter_WorksForBasicFilterExpression()
     {
-        //FilterOptionParser parser = new FilterOptionParser(new OTokenizerFactory());
+        FilterClause clause = await _parser.ParseAsync("Name eq 'Sam'", new QueryParserContext(typeof(Customer)));
 
-        //QueryToken token = parser.ParseFilter("2 eq Id", new OrderByOptionParserContext());
-
-        //Assert.NotNull(token);
-        //BinaryOperatorToken binaryOperatorToken = Assert.IsType<BinaryOperatorToken>(token);
-        //Assert.Equal(BinaryOperatorKind.Equal, binaryOperatorToken.OperatorKind);
+        BinaryOperatorNode binaryOperatorNode = clause.Expression.ShouldBeBinaryOperatorNode(BinaryOperatorKind.Equal);
+        binaryOperatorNode.Left.ShouldBeSingleValuePropertyAccessQueryNode(typeof(Customer).GetProperty("Name"));
+        binaryOperatorNode.Right.ShouldBeConstantQueryNode("'Sam'");
     }
 }

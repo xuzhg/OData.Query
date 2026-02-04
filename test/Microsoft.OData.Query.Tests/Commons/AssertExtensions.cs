@@ -44,7 +44,12 @@ internal static class AssertExtensions
     /// <param name="errorMessage">The expected error message.</param>
     public static async ValueTask ThrowsAsync<T>(this Func<Task> testCode, string errorMessage) where T : Exception
     {
-        T exception = await Assert.ThrowsAsync<T>(testCode);
-        Assert.Equal(errorMessage, exception.Message);
+        Exception exception = await Record.ExceptionAsync(testCode);
+
+        Assert.NotNull(exception);
+        T typedException = Assert.IsType<T>(exception);
+
+       // T exception = await Assert.ThrowsAsync<T>(testCode);
+        Assert.Equal(errorMessage, typedException.Message);
     }
 }

@@ -3,11 +3,11 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using System;
+using System.Threading.Tasks;
 using Microsoft.OData.Query.Parser;
 using Microsoft.OData.Query.Tests.Commons;
 using Moq;
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.OData.Query.Tests.Parser;
@@ -35,9 +35,8 @@ public class TopParserTests
     [Theory]
     [InlineData("0", 0)]
     [InlineData("1 ", 1)]
-    [InlineData("-1", -1)]
+    [InlineData("999 ", 999)]
     [InlineData("9223372036854775807", long.MaxValue)] // long.MaxValue
-    [InlineData("-9223372036854775808", long.MinValue)] // long.MinValue
     public async Task ParseTopOption_Works_ForValidTop(string top, long expected)
     {
         // Arrange & Act
@@ -51,12 +50,14 @@ public class TopParserTests
     [InlineData("      ")]
     [InlineData("Any")]
     [InlineData("9223372036854775808")] // long.MaxValue + 1
+    [InlineData("-1")]
+    [InlineData("-9223372036854775808")] // -long.MinValue
     public async Task ParseTopOption_Throws_ForInvalidTop(string top)
     {
         // Arrange & Act
         Func<Task> test = async () => await _parser.ParseAsync(top, _context);
 
         // Assert
-        await test.ThrowsAsync<QueryParserException>($"Invalid value '{top}' for '$top' query option found. The '$top' query option requires an integer value.");
+        await test.ThrowsAsync<QueryParserException>($"Invalid value '{top}' for '$top' query option found. The '$top' query option requires a non-negative integer value.");
     }
 }

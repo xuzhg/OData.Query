@@ -17,10 +17,21 @@ public class SelectTokenizer : SelectExpandTokenizer, ISelectTokenizer
     /// Tokenizes the $select expression.
     /// </summary>
     /// <param name="select">The $select expression string to tokenize.</param>
+    /// <param name="context">The tokenizer context.</param>
     /// <returns>The select token tokenized.</returns>
     public virtual async ValueTask<SelectToken> TokenizeAsync(ReadOnlyMemory<char> select, QueryTokenizerContext context)
     {
-        IExpressionLexer lexer = context.CreateLexer(select, LexerOptions.Default);
+        if (select.IsEmpty)
+        {
+            throw new ArgumentNullException(nameof(select));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        IExpressionLexer lexer = context.CreateLexer(select);
         lexer.NextToken(); // move to first token
 
         SelectToken selectToken = new SelectToken();

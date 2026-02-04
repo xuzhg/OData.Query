@@ -120,6 +120,9 @@
   <data name="QueryOptionParser_QueryParameterMustBeSpecifiedOnce" xml:space="preserve">
     <value>Query option '{0}' was specified more than once, but it must be specified at most once when case-insensitive '{1}' and No-dollar sign prefix '{2}'.</value>
   </data>
+  <data name="QueryParser_FailedToTokenizeExpression" xml:space="preserve">
+    <value>Failed to tokenize the expression '{0}' in '{1}' parser.</value>
+  </data>
   <data name="QueryParser_UnsupportedQueryTokenKind" xml:space="preserve">
     <value>An unsupported query token kind '{0}' was found.</value>
   </data>
@@ -129,8 +132,11 @@
   <data name="QueryParser_InvalidNonNegativeIntegerValue" xml:space="preserve">
     <value>Invalid value '{0}' for '{1}' query option found. The '{1}' query option requires a non-negative integer value.</value>
   </data>
-	<data name="QueryParser_InvalidIntegerValue" xml:space="preserve">
+  <data name="QueryParser_InvalidIntegerValue" xml:space="preserve">
     <value>Invalid value '{0}' for '{1}' query option found. The '{1}' query option requires an integer value.</value>
+  </data>
+  <data name="QueryParser_OrderByExpressionNotSingleValue" xml:space="preserve">
+    <value>The '$orderby' expression '{0}' must evaluate to a single value of primitive type.</value>
   </data>
   <data name="QueryOptionParser_CloseParenOrCommaExpected" xml:space="preserve">
     <value>')' or ',' expected at position {0} in '{1}'.</value>
@@ -152,6 +158,9 @@
   </data>
   <data name="QueryOptionParser_TokenKindExpected" xml:space="preserve">
     <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
+  </data>
+	<data name="QueryTokenizer_FailToCreateLexer" xml:space="preserve">
+    <value>Failed to create lexer for the'{0}' expression.</value>
   </data>
   <data name="QueryTokenizer_TokenKindExpected" xml:space="preserve">
     <value>Token kind '{0}' expected, but kind '{1}' presented.</value>

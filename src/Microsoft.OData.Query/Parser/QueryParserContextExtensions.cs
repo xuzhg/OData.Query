@@ -24,7 +24,6 @@ internal static class QueryParserContextExtensions
     public static IComputeTokenizer GetOrCreateComputeTokenizer(this QueryParserContext context)
         => context?.ServiceProvider?.GetService<IComputeTokenizer>() ?? new ComputeTokenizer();
 
-
     public static IFilterParser GetOrCreateFilterParser(this QueryParserContext context)
         => context?.ServiceProvider?.GetService<IFilterParser>() ?? new FilterParser();
 
@@ -44,7 +43,7 @@ internal static class QueryParserContextExtensions
         => context?.ServiceProvider?.GetService<ISkipParser>() ?? new SkipParser();
 
     public static IIndexParser GetOrCreateIndexParser(this QueryParserContext context)
-    => context?.ServiceProvider?.GetService<IIndexParser>() ?? new IndexParser();
+        => context?.ServiceProvider?.GetService<IIndexParser>() ?? new IndexParser();
 
     public static IOrderByTokenizer GetOrCreateOrderByTokenizer(this QueryParserContext context)
         => context?.ServiceProvider?.GetService<IOrderByTokenizer>() ?? new OrderByTokenizer();

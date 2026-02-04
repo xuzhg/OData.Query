@@ -11,18 +11,29 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Tokenizations;
 
 /// <summary>
-/// Tokenize the $apply query expression and produces the lexical object model.
+/// Tokenizes the $apply query expression and produces the lexical object model.
 /// </summary>
 public class ApplyTokenizer : QueryTokenizer, IApplyTokenizer
 {
     /// <summary>
-    /// Tokenize the $apply expression.
+    /// Tokenizes the $apply expression.
     /// </summary>
     /// <param name="apply">The $apply expression string to Tokenize.</param>
+    /// <param name="context">The tokenizer context.</param>
     /// <returns>The order by token tokenized.</returns>
     public virtual async ValueTask<ApplyToken> TokenizeAsync(ReadOnlyMemory<char> apply, QueryTokenizerContext context)
     {
-        IExpressionLexer lexer = context.CreateLexer(apply, LexerOptions.Default);
+        if (apply.IsEmpty)
+        {
+            throw new ArgumentNullException(nameof(apply));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        IExpressionLexer lexer = context.CreateLexer(apply);
         lexer.NextToken(); // move to first token
 
         IList<IQueryToken> transformationTokens = new List<IQueryToken>();

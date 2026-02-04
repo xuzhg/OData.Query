@@ -3,14 +3,15 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using Microsoft.OData.Query.Nodes;
+namespace Microsoft.OData.Query.Tests.Models;
 
-namespace Microsoft.OData.Query.Ast;
-
-public class ApplyNode : QueryNode
+public class Customer
 {
-    public override QueryNodeKind Kind => throw new NotImplementedException();
+    public int Id { get; set; }
 
-   // public override Type NodeType => throw new NotImplementedException();
+    public string Name { get; set; }
+
+    public double Salary { get; set; }
+
+    public Address Address { get; set; }
 }
-

@@ -142,6 +142,15 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to tokenize the expression &apos;{0}&apos; in &apos;{1}&apos; parser..
+        /// </summary>
+        internal static string QueryParser_FailedToTokenizeExpression {
+            get {
+                return ResourceManager.GetString("QueryParser_FailedToTokenizeExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for $count query option found. The $count query option requires &apos;true&apos;/&apos;false&apos;..
         /// </summary>
         internal static string QueryParser_InvalidBooleanQueryOptionValue {
@@ -187,11 +196,29 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;$orderby&apos; expression &apos;{0}&apos; must evaluate to a single value of primitive type..
+        /// </summary>
+        internal static string QueryParser_OrderByExpressionNotSingleValue {
+            get {
+                return ResourceManager.GetString("QueryParser_OrderByExpressionNotSingleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unsupported query token kind &apos;{0}&apos; was found..
         /// </summary>
         internal static string QueryParser_UnsupportedQueryTokenKind {
             get {
                 return ResourceManager.GetString("QueryParser_UnsupportedQueryTokenKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create lexer for the&apos;{0}&apos; expression..
+        /// </summary>
+        internal static string QueryTokenizer_FailToCreateLexer {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_FailToCreateLexer", resourceCulture);
             }
         }
         

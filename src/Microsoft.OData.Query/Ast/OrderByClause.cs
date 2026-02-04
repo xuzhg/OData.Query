@@ -31,5 +31,5 @@ public class OrderByNode : QueryNode
 
     public override QueryNodeKind Kind => throw new NotImplementedException();
 
-    public override Type NodeType => throw new NotImplementedException();
+    //public override Type NodeType => throw new NotImplementedException();
 }

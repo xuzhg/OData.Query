@@ -15,6 +15,8 @@ public class QueryTokenizerContext
 {
     internal static QueryTokenizerContext Default = new QueryTokenizerContext();
 
+    public LexerOptions LexerOptions { get; set; } = LexerOptions.Default;
+
     public IServiceProvider ServiceProvider { get; set; }
 
     public bool EnableCaseInsensitive { get; set; } = true;

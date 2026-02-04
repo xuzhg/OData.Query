@@ -30,11 +30,11 @@ public class TopParser : ITopParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        if (!long.TryParse(top.Span, out long indexValue))
+        if (!long.TryParse(top.Span, out long topValue) || topValue < 0)
         {
-            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidIntegerQueryOptionValue, top.Span.ToString(), "$top"));
+            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidNonNegativeIntegerValue, top.Span.ToString(), "$top"));
         }
 
-        return indexValue;
+        return topValue;
     }
 }

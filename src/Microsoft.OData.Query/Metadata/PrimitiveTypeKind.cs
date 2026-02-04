@@ -176,16 +176,6 @@ public enum PrimitiveTypeKind
     DateTime,
 
     /// <summary>
-    /// Represents a Date type
-    /// </summary>
-    Date,
-
-    /// <summary>
-    /// Represents a TimeOfDay type
-    /// </summary>
-    TimeOfDay,
-
-    /// <summary>
     /// Represents a DateOnly type
     /// </summary>
     DateOnly,

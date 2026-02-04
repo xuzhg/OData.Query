@@ -72,7 +72,7 @@ public sealed class GroupByTransformationNode : TransformationNode
     /// </summary>
     public override TransformationNodeKind TransformKind => TransformationNodeKind.GroupBy;
 
-    public override Type NodeType => throw new NotImplementedException();
+  //  public override Type NodeType => throw new NotImplementedException();
 
     public override QueryNodeKind Kind => throw new NotImplementedException();
 }

@@ -29,7 +29,7 @@ public class OrderByTokenizerTests
         string orderby = "Prop1,Prop2 asc,Prop3 desc";
 
         // Act
-        OrderByToken token = await _orderByTokenizer.TokenizeAsync(orderby.AsMemory(), QueryTokenizerContext.Default);
+        OrderByToken token = await _orderByTokenizer.TokenizeAsync(orderby, QueryTokenizerContext.Default);
 
         // Assert
         Assert.Equal(QueryTokenKind.OrderBy, token.Kind);

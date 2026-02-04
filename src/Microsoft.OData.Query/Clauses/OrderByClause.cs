@@ -16,6 +16,7 @@ public class OrderByClause
         Direction = direction;
         RangeVariable = rangeVariable;
     }
+
     /// <summary>
     /// Gets the next orderby to perform after performing this orderby, can be null in the case of only a single orderby expression.
     /// </summary>

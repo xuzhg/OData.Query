@@ -39,7 +39,7 @@ public sealed class ComputeTransformationNode : TransformationNode
     /// </summary>
     public override TransformationNodeKind TransformKind => TransformationNodeKind.Compute;
 
-    public override Type NodeType => throw new NotImplementedException();
+  //  public override Type NodeType => throw new NotImplementedException();
 
     public override QueryNodeKind Kind => throw new NotImplementedException();
 }

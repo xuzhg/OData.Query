@@ -4,6 +4,8 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.OData.Query.Ast;
+using Microsoft.OData.Query.Builders;
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Metadata;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
@@ -35,11 +37,12 @@ public class FilterParser : QueryBinder, IFilterParser
         }
 
         IFilterTokenizer filterTokenizer = context.GetOrCreateFilterTokenizer();
-
         IQueryToken token = await filterTokenizer.TokenizeAsync(filter, context.TokenizerContext);
         if (token == null)
         {
-            throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
+            throw new QueryParserException(Error.Format(SRResources.QueryParser_FailedToTokenizeExpression,
+                filter.Length > 16 ? filter.Slice(0, 16).ToString() : filter.Span.ToString(), // 16 is an arbitrary length to avoid overly long strings in the error message
+                "$filter"));
         }
 
         QueryNode expressionNode = Bind(token, context);

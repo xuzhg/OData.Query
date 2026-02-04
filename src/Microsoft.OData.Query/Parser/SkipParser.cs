@@ -30,11 +30,11 @@ public class SkipParser : ISkipParser
             throw new ArgumentNullException(nameof(context));
         }
 
-        if (!long.TryParse(skip.Span, out long indexValue))
+        if (!long.TryParse(skip.Span, out long skipValue) || skipValue < 0)
         {
-            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidIntegerQueryOptionValue, skip.Span.ToString(), "$skip"));
+            throw new QueryParserException(Error.Format(SRResources.QueryParser_InvalidNonNegativeIntegerValue, skip.Span.ToString(), "$skip"));
         }
 
-        return indexValue;
+        return skipValue;
     }
 }

@@ -3,6 +3,7 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.Nodes;
 using Microsoft.OData.Query.SyntacticAst;
@@ -10,7 +11,7 @@ using Microsoft.OData.Query.SyntacticAst;
 namespace Microsoft.OData.Query.Tokenizations;
 
 /// <summary>
-/// Tokenize the $search query expression and produces the lexical object model.
+/// Tokenizes the $search query expression and produces the lexical object model.
 /// </summary>
 public class SearchTokenizer : QueryTokenizer, ISearchTokenizer
 {
@@ -18,17 +19,33 @@ public class SearchTokenizer : QueryTokenizer, ISearchTokenizer
     /// Tokenizes the $search expression.
     /// </summary>
     /// <param name="search">The $search expression string to tokenize.</param>
+    /// <param name="context">The tokenizer context.</param>
     /// <returns>The search token tokenized.</returns>
     public virtual async ValueTask<IQueryToken> TokenizeAsync(ReadOnlyMemory<char> search, QueryTokenizerContext context)
     {
-        IExpressionLexer lexer = context.CreateLexer(search, LexerOptions.Default);
+        if (search.IsEmpty)
+        {
+            throw new ArgumentNullException(nameof(search));
+        }
+
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        IExpressionLexer lexer = context.CreateLexer(search);
+        if (lexer == null)
+        {
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_FailToCreateLexer, "$search"));
+        }
+
         lexer.NextToken(); // move to first token
 
         IQueryToken result = TokenizeExpression(lexer, context);
 
         lexer.ValidateToken(ExpressionKind.EndOfInput);
 
-        return await ValueTask.FromResult(result);
+        return result;
     }
 
     /// <summary>
