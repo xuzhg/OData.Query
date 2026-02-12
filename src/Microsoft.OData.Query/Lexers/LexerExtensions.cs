@@ -58,6 +58,68 @@ public static class LexerExtensions
     }
 
     /// <summary>
+    /// Starting from an identifier, reads a sequence of dots and
+    /// identifiers, and returns the text for it, with whitespace
+    /// stripped.
+    /// </summary>
+    /// <param name="acceptStar">do we allow a star in this identifier</param>
+    /// <returns>The dotted identifier starting at the current identifier.</returns>
+    public static ReadOnlyMemory<char> ReadDottedIdentifier(this IExpressionLexer lexer, bool acceptStar)
+    {
+        if (lexer == null)
+        {
+            throw new ArgumentNullException(nameof(lexer));
+        }
+
+        int position = lexer.CurrentToken.Position;
+
+        if (lexer.CurrentToken.Kind != ExpressionKind.Identifier)
+        {
+            throw new ExpressionLexerException(Error.Format(SRResources.ExpressionLexer_ExpressionKindExpected, "Identifier", position, lexer.CurrentToken.Kind));
+        }
+
+        int length = lexer.CurrentToken.Text.Length;
+        int oldLength = length;
+
+        ReadOnlyMemory<char> identifier = lexer.CurrentToken.Text;
+
+        lexer.NextToken(); // move over the identifier
+        while (lexer.CurrentToken.Kind == ExpressionKind.Dot)
+        {
+            lexer.NextToken(); // consume the dot
+
+            if (lexer.CurrentToken.Kind != ExpressionKind.Identifier &&
+                lexer.CurrentToken.Kind != ExpressionKind.QuotedLiteral)
+            {
+                if (lexer.CurrentToken.Kind == ExpressionKind.Star)
+                {
+                    bool hasNextToken = lexer.PeekNextToken(out ExpressionToken peekedToken);
+
+                    // if we accept a star and this is the last token in the identifier, then we're ok... otherwise we throw.
+                    if (!acceptStar || (hasNextToken && peekedToken.Kind != ExpressionKind.EndOfInput && peekedToken.Kind != ExpressionKind.Comma))
+                    {
+                        throw new ExpressionLexerException(Error.Format(SRResources.ExpressionLexer_ExpressionKindExpected, "EndOfInput|Comma", peekedToken.Position, peekedToken.Kind));
+                    }
+                }
+                else
+                {
+                    throw new ExpressionLexerException(Error.Format(SRResources.ExpressionLexer_ExpressionKindExpected, "Identifier|QuotedLiteral", lexer.CurrentToken.Position, lexer.CurrentToken.Kind));
+                }
+            }
+
+            length += 1 + lexer.CurrentToken.Text.Length; // one '.' and next current token length
+            lexer.NextToken();
+        }
+
+        if (oldLength != length)
+        {
+            return lexer.ExpressionText.Slice(position, length);
+        }
+
+        return identifier;
+    }
+
+    /// <summary>
     /// Gets the current identifier text.
     /// </summary>
     /// <returns>The current identifier text.</returns>

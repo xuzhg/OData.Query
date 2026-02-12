@@ -3,19 +3,22 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Tokenizations;
 
 /// <summary>
-/// The common methods to tokenize the $select and $expand query expression and produces the lexical object model.
+/// The common methods to tokenize the $select and $expand query expression and produces the query token object model.
 /// </summary>
 public abstract class SelectExpandTokenizer : QueryTokenizer
 {
     /// <summary>
-    /// Tokenize the filter option in the select/expand option text.
+    /// Tokenizes the filter option in the select/expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The filter option for select/expand</returns>
     protected virtual IQueryToken TokenizeInnerFilter(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -30,8 +33,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the orderby option in the select/expand option text.
+    /// Tokenizes the orderby option in the select/expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The orderby option for select/expand</returns>
     protected virtual IEnumerable<OrderByToken> TokenizeInnerOrderBy(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -46,8 +51,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Parse the top option in the select/expand option text.
+    /// Tokenizes the top option in the select/expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The top option for select/expand</returns>
     protected virtual long? TokenizeInnerTop(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -74,8 +81,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the skip option in the select/expand option text.
+    /// Tokenizes the skip option in the select/expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The skip option for select/expand</returns>
     protected virtual long? TokenizeInnerSkip(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -102,8 +111,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the count option in the select/expand option text.
+    /// Tokenizes the count option in the select/expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The count option for select/expand</returns>
     protected virtual bool? TokenizeInnerCount(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -128,8 +139,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the search option in the select/expand option text.
+    /// Tokenizes the search option in the select/expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The search option for select/expand</returns>
     protected virtual IQueryToken TokenizeInnerSearch(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -150,9 +163,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the select option in the select/expand option text.
+    /// Tokenizes the select option in the select/expand option text.
     /// </summary>
-    /// <param name="pathToken">The path segment token</param>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The select option for select/expand</returns>
     protected virtual SelectToken TokenizeInnerSelect(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -160,9 +174,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the expand option in the select/expand option text.
+    /// Tokenizes the expand option in the select/expand option text.
     /// </summary>
-    /// <param name="pathToken">The path segment token</param>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The expand option for select/expand</returns>
     protected virtual ExpandToken TokenizeInnerExpand(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -170,8 +185,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the compute option in the expand option text.
+    /// Tokenizes the compute option in the expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The compute option for expand</returns>
     protected virtual ComputeToken TokenizeInnerCompute(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -185,8 +202,10 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Tokenize the apply option in the expand option text.
+    /// Tokenizes the apply option in the expand option text.
     /// </summary>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
     /// <returns>The apply option for expand</returns>
     protected virtual ApplyToken TokenizeInnerApply(IExpressionLexer lexer, QueryTokenizerContext context)
     {
@@ -200,16 +219,18 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     }
 
     /// <summary>
-    /// Parses a select or expand term into a PathSegmentToken.
+    /// Tokenizes a select or expand term into a <see cref="SegmentToken">.
     /// Assumes the lexer is positioned at the beginning of the term to parse.
     /// When done, the lexer will be positioned at whatever is after the identifier.
     /// </summary>
-    /// <param name="allowRef">Whether the $ref operation is valid in this token.</param>
+    /// <param name="lexer">The lexer for the query tokenizer.</param>
+    /// <param name="context">The context for the query tokenizer.</param>
+    /// <param name="isSelect">Whether this is a $select operation.</param>
     /// <returns>parsed query token</returns>
-    protected virtual SegmentToken TokenizePathSegment(IExpressionLexer lexer, QueryTokenizerContext context, bool allowRef = false)
+    protected virtual SegmentToken TokenizePathSegment(IExpressionLexer lexer, QueryTokenizerContext context, bool isSelect)
     {
         int pathLength;
-        SegmentToken token = TokenizeSegment(lexer, context, null, allowRef, true);
+        SegmentToken token = TokenizeSegment(lexer, context, null, isSelect);
         if (token != null)
         {
             pathLength = 1;
@@ -234,7 +255,7 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
                 break;
             }
 
-            token = TokenizeSegment(lexer, context, token, allowRef, true);
+            token = TokenizeSegment(lexer, context, token, isSelect);
             if (token != null)
             {
                 CheckPathLength(++pathLength);
@@ -263,50 +284,44 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
     /// <param name="previousSegment">Previously parsed PathSegmentToken, or null if this is the first token.</param>
     /// <param name="allowRef">Whether the $ref operation is valid in this token.</param>
     /// <returns>A parsed PathSegmentToken representing the next segment in this path.</returns>
-    private SegmentToken TokenizeSegment(IExpressionLexer lexer, QueryTokenizerContext context, SegmentToken previousSegment, bool allowRef, bool isSelect)
+    private SegmentToken TokenizeSegment(IExpressionLexer lexer, QueryTokenizerContext context, SegmentToken previousSegment, bool isSelect)
     {
         ReadOnlySpan<char> span = lexer.CurrentToken.Span;
 
         if (span.StartsWith("$", StringComparison.Ordinal)
-            && (!allowRef || span != "$ref")
-            && span != "$count")
+            && (!isSelect || !span.Equals("$ref", context.GetStringComparison()))
+            && !span.Equals("$count", context.GetStringComparison()))
         {
-            throw new QueryTokenizerException("ODataErrorStrings.UriSelectParser_SystemTokenInSelectExpand(lexer.CurrentToken.Text, lexer.ExpressionText)");
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_InvalidSegmentTokenInSelectExpand, lexer.CurrentToken.Text, isSelect ? "$select" : "$expand"));
         }
 
         // Some check here to throw exception, prop1/*/prop2 and */$ref/prop and prop1/$count/prop2 will throw exception, all are $expand cases.
         if (!isSelect)
         {
-            if (previousSegment != null && previousSegment.Identifier == "*" && lexer.GetIdentifier() != "$ref")
+            if (previousSegment != null && previousSegment.Identifier == "*" && !span.Equals("$ref", context.GetStringComparison()))
             {
                 // Star can only be followed with $ref. $count is not supported with star as expand option
-                throw new QueryTokenizerException("ODataErrorStrings.ExpressionToken_OnlyRefAllowWithStarInExpand");
+                throw new QueryTokenizerException(SRResources.QueryTokenizer_OnlyDollarRefAllowedWithStarInExpand);
             }
-            else if (previousSegment != null && previousSegment.Identifier == "$ref")
+            else if (previousSegment != null && previousSegment.Identifier.Equals("$ref", context.GetStringComparison()))
             {
                 // $ref should not have more property followed.
-                throw new QueryTokenizerException("ODataErrorStrings.ExpressionToken_NoPropAllowedAfterRef");
+                throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_NoSegmentAllowedAfterSegment, lexer.CurrentToken.Text, "$ref"));
             }
             else if (previousSegment != null && previousSegment.Identifier == "$count")
             {
                 // $count should not have more property followed. e.g $expand=NavProperty/$count/MyProperty
-                throw new QueryTokenizerException("ODataErrorStrings.ExpressionToken_NoPropAllowedAfterDollarCount");
+                throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_NoSegmentAllowedAfterSegment, lexer.CurrentToken.Text, "$count"));
             }
         }
 
-        if (span == "$count" && isSelect)
-        {
-            // $count is not allowed in $select e.g $select=NavProperty/$count
-            throw new QueryTokenizerException("ODataErrorStrings.ExpressionToken_DollarCountNotAllowedInSelect");
-        }
-
-        ReadOnlySpan<char> propertyName = default;
+        ReadOnlyMemory<char> propertyName = default;
 
         lexer.PeekNextToken(out ExpressionToken nextToken);
 
         if (nextToken.Kind == ExpressionKind.Dot)
         {
-            // propertyName = lexer.ReadDottedIdentifier(isSelect);
+            propertyName = lexer.ReadDottedIdentifier(isSelect);
         }
         else if (lexer.CurrentToken.Kind == ExpressionKind.Star)
         {
@@ -321,12 +336,12 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
                 throw new QueryTokenizerException("ODataErrorStrings.ExpressionToken_NoSegmentAllowedBeforeStarInExpand");
             }
 
-            propertyName = lexer.GetIdentifier();
+            propertyName = lexer.CurrentToken.Text;
             lexer.NextToken();
         }
         else
         {
-            propertyName = lexer.GetIdentifier();
+            propertyName = lexer.CurrentToken.Text;
             lexer.NextToken();
         }
 

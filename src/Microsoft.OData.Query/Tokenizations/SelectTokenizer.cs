@@ -71,7 +71,7 @@ public class SelectTokenizer : SelectExpandTokenizer, ISelectTokenizer
     }
 
     /// <summary>
-    /// Parses a single term in a comma separated list of things to select.
+    /// Tokenizes a single term in a comma separated list of things to select.
     /// </summary>
     /// <returns>A token representing thing to select.</returns>
     protected virtual SelectItemToken TokenizeSelectItem(IExpressionLexer lexer, QueryTokenizerContext context)
@@ -86,7 +86,7 @@ selectItem     = STAR
                  )
          * */
         //var termParser = new SelectExpandTermParser(this.lexer, this.MaxPathDepth, this.isSelect);
-        SegmentToken pathToken = TokenizePathSegment(lexer, context);
+        SegmentToken pathToken = TokenizePathSegment(lexer, context, isSelect: true);
 
         // QueryToken selectItem = TokenizePrimary(lexer, context);
 

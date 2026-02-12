@@ -88,11 +88,29 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression kind &apos;{0}&apos; expected at position &apos;{1}&apos;, but expression kind &apos;{2}&apos; presented..
+        /// </summary>
+        internal static string ExpressionLexer_ExpressionKindExpected {
+            get {
+                return ResourceManager.GetString("ExpressionLexer_ExpressionKindExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Syntax error: character &apos;{0}&apos; is not valid at position {1} in &apos;{2}&apos;..
         /// </summary>
         internal static string ExpressionLexer_InvalidCharacter {
             get {
                 return ResourceManager.GetString("ExpressionLexer_InvalidCharacter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax error at position &apos;{0}&apos; in &apos;{1}&apos;..
+        /// </summary>
+        internal static string ExpressionLexer_SyntaxError {
+            get {
+                return ResourceManager.GetString("ExpressionLexer_SyntaxError", resourceCulture);
             }
         }
         
@@ -223,6 +241,15 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Segment token &apos;{0}&apos; in &apos;{1}&apos; is invalid..
+        /// </summary>
+        internal static string QueryTokenizer_InvalidSegmentTokenInSelectExpand {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_InvalidSegmentTokenInSelectExpand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key word &apos;{0}&apos; expected at position &apos;{1}&apos; in &apos;{2}&apos;..
         /// </summary>
         internal static string QueryTokenizer_KeyWordExpected {
@@ -237,6 +264,24 @@ namespace Microsoft.OData.Query.Commons {
         internal static string QueryTokenizer_NegativeMaxDepth {
             get {
                 return ResourceManager.GetString("QueryTokenizer_NegativeMaxDepth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Segment token &apos;{0}&apos; is not allowed after &apos;{1}&apos; segment. &apos;{1}&apos; segment should be the last segment..
+        /// </summary>
+        internal static string QueryTokenizer_NoSegmentAllowedAfterSegment {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_NoSegmentAllowedAfterSegment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only &apos;$ref&apos; is allowed after star (*) in &apos;$expand&apos; option..
+        /// </summary>
+        internal static string QueryTokenizer_OnlyDollarRefAllowedWithStarInExpand {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_OnlyDollarRefAllowedWithStarInExpand", resourceCulture);
             }
         }
         

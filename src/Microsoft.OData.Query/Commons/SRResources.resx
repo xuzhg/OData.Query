@@ -165,8 +165,17 @@
   <data name="QueryTokenizer_TokenKindExpected" xml:space="preserve">
     <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
   </data>
-  <data name="QueryTokenizer_KeyWordExpected" xml:space="preserve">
+	<data name="QueryTokenizer_KeyWordExpected" xml:space="preserve">
     <value>Key word '{0}' expected at position '{1}' in '{2}'.</value>
+  </data>
+  <data name="QueryTokenizer_InvalidSegmentTokenInSelectExpand" xml:space="preserve">
+    <value>Segment token '{0}' in '{1}' is invalid.</value>
+  </data>
+  <data name="QueryTokenizer_OnlyDollarRefAllowedWithStarInExpand" xml:space="preserve">
+    <value>Only '$ref' is allowed after star (*) in '$expand' option.</value>
+  </data>
+  <data name="QueryTokenizer_NoSegmentAllowedAfterSegment" xml:space="preserve">
+    <value>Segment token '{0}' is not allowed after '{1}' segment. '{1}' segment should be the last segment.</value>
   </data>
   <data name="Tokenization_DigitExpected" xml:space="preserve">
     <value>A digit was expected at position {0} in '{1}'.</value>
@@ -185,6 +194,12 @@
   </data>
   <data name="ExpressionLexer_InvalidCharacter" xml:space="preserve">
     <value>Syntax error: character '{0}' is not valid at position {1} in '{2}'.</value>
+  </data>
+  <data name="ExpressionLexer_ExpressionKindExpected" xml:space="preserve">
+    <value>Expression kind '{0}' expected at position '{1}', but expression kind '{2}' presented.</value>
+  </data>
+  <data name="ExpressionLexer_SyntaxError" xml:space="preserve">
+    <value>Syntax error at position '{0}' in '{1}'.</value>
   </data>
   <data name="QueryParser_InvalidIntegerQueryOptionValue" xml:space="preserve">
     <value>Invalid value '{0}' for '{1}' query option found. The '{1}' query option requires an integer value.</value>

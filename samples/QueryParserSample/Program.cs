@@ -8,6 +8,22 @@ using Microsoft.OData.Query.Parser;
 using QueryParserSample;
 using System.Runtime.CompilerServices;
 
+//DateOnly date = new DateOnly(2025, 10, 27);
+//TimeSpan duration = new TimeSpan(3, 0, 0, 0); // 3 days
+////DateOnly newDate = date + duration;
+
+//DateOnly ndate = date;
+
+TimeSpan t1 = new TimeSpan(1, 0, 0); // 1 hour
+TimeSpan t2 = new TimeSpan(0, 30, 0); // 30 minutes
+TimeSpan sum = t1 + t2; // sum is 1 hour and 30 minutes
+
+DateTimeOffset date1 = new DateTimeOffset(2025, 2, 5, 10, 0, 0, new TimeSpan(-5, 0, 0)); // 10:00 AM UTC-5
+TimeSpan duration = new TimeSpan(2, 30, 0); // 2 hours, 30 minutes
+
+// Addition (using the + operator)
+DateTimeOffset date2 = date1 + duration;
+
 QueryParser parser = new QueryParser();
 
 QueryParserContext context = new QueryParserContext(typeof(Customer));

@@ -130,6 +130,11 @@ public class QueryTokenizerContext
         return new ExpressionLexer(text, lexerOptions);
     }
 
+    internal StringComparison GetStringComparison()
+    {
+        return EnableCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+    }
+
     internal LexerOptions CreateLexerOption()
     {
         return new LexerOptions

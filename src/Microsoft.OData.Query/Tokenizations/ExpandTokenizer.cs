@@ -98,7 +98,7 @@ public class ExpandTokenizer : SelectExpandTokenizer, IExpandTokenizer
     /// <returns>A token representing thing to expand.</returns>
     protected virtual ExpandItemToken TokenizeExpandItem(IExpressionLexer lexer, QueryTokenizerContext context)
     {
-        SegmentToken pathToken = TokenizePathSegment(lexer, context);
+        SegmentToken pathToken = TokenizePathSegment(lexer, context, isSelect: false);
 
         IQueryToken filterOption = null;
         IEnumerable<OrderByToken> orderByOptions = null;
