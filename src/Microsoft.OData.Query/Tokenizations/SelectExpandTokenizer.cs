@@ -325,15 +325,15 @@ public abstract class SelectExpandTokenizer : QueryTokenizer
         }
         else if (lexer.CurrentToken.Kind == ExpressionKind.Star)
         {
-            // "*/$ref" is supported in expand
+            // "*/$ref" is supported in expand, but not in select. "*/$count" is not supported in either expand or select.
             if (nextToken.Kind == ExpressionKind.Slash && isSelect)
             {
-                throw new QueryTokenizerException("ODataErrorStrings.ExpressionToken_IdentifierExpected(lexer.Position)");
+                throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_NoSegmentAllowedAfterStartInSelect, "$ref or $count"));
             }
             else if (previousSegment != null && !isSelect)
             {
                 // expand option like "customer?$expand=VIPCustomer/*" is not allowed as specification does not allowed any property before *.
-                throw new QueryTokenizerException("ODataErrorStrings.ExpressionToken_NoSegmentAllowedBeforeStarInExpand");
+                throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_NoSegmentAllowedBeforeStartInExpand, previousSegment.Identifier));
             }
 
             propertyName = lexer.CurrentToken.Text;

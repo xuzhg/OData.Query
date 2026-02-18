@@ -232,7 +232,7 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create lexer for the&apos;{0}&apos; expression..
+        ///   Looks up a localized string similar to Failed to create lexer for the &apos;{0}&apos; expression..
         /// </summary>
         internal static string QueryTokenizer_FailToCreateLexer {
             get {
@@ -277,6 +277,24 @@ namespace Microsoft.OData.Query.Commons {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Segment token &apos;{0}&apos; is not allowed after &apos;*&apos; segment in &apos;$select&apos;..
+        /// </summary>
+        internal static string QueryTokenizer_NoSegmentAllowedAfterStartInSelect {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_NoSegmentAllowedAfterStartInSelect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Segment token &apos;{0}&apos; is not allowed before &apos;*&apos; segment in &apos;$expand&apos;..
+        /// </summary>
+        internal static string QueryTokenizer_NoSegmentAllowedBeforeStartInExpand {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_NoSegmentAllowedBeforeStartInExpand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only &apos;$ref&apos; is allowed after star (*) in &apos;$expand&apos; option..
         /// </summary>
         internal static string QueryTokenizer_OnlyDollarRefAllowedWithStarInExpand {
@@ -309,6 +327,15 @@ namespace Microsoft.OData.Query.Commons {
         internal static string QueryTokenizer_RecurseTooDeep {
             get {
                 return ResourceManager.GetString("QueryTokenizer_RecurseTooDeep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token &apos;{0}&apos; at position &apos;{1}&apos; is not valid in the &apos;{2}&apos; query..
+        /// </summary>
+        internal static string QueryTokenizer_SyntaxErrorForQuery {
+            get {
+                return ResourceManager.GetString("QueryTokenizer_SyntaxErrorForQuery", resourceCulture);
             }
         }
         

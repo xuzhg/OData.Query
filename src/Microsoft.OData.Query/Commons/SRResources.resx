@@ -144,6 +144,12 @@
   <data name="QueryOptionParser_OpenParenExpected" xml:space="preserve">
     <value>'(' expected at position {0} in '{1}'.</value>
   </data>
+  <data name="QueryOptionParser_TokenKindExpected" xml:space="preserve">
+    <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
+  </data>
+  <data name="QueryTokenizer_SyntaxErrorForQuery" xml:space="preserve">
+    <value>The token '{0}' at position '{1}' is not valid in the '{2}' query.</value>
+  </data>
   <data name="QueryTokenizer_RangeVariableAlreadyDeclared" xml:space="preserve">
     <value>The range variable '{0}' has already been declared.</value>
   </data>
@@ -156,11 +162,8 @@
   <data name="QueryTokenizer_RecurseMismatch" xml:space="preserve">
     <value>Recursion depth doesn't match.</value>
   </data>
-  <data name="QueryOptionParser_TokenKindExpected" xml:space="preserve">
-    <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
-  </data>
-	<data name="QueryTokenizer_FailToCreateLexer" xml:space="preserve">
-    <value>Failed to create lexer for the'{0}' expression.</value>
+  <data name="QueryTokenizer_FailToCreateLexer" xml:space="preserve">
+    <value>Failed to create lexer for the '{0}' expression.</value>
   </data>
   <data name="QueryTokenizer_TokenKindExpected" xml:space="preserve">
     <value>Token kind '{0}' expected, but kind '{1}' presented.</value>
@@ -176,6 +179,12 @@
   </data>
   <data name="QueryTokenizer_NoSegmentAllowedAfterSegment" xml:space="preserve">
     <value>Segment token '{0}' is not allowed after '{1}' segment. '{1}' segment should be the last segment.</value>
+  </data>
+  <data name="QueryTokenizer_NoSegmentAllowedAfterStartInSelect" xml:space="preserve">
+    <value>Segment token '{0}' is not allowed after '*' segment in '$select'.</value>
+  </data>
+  <data name="QueryTokenizer_NoSegmentAllowedBeforeStartInExpand" xml:space="preserve">
+    <value>Segment token '{0}' is not allowed before '*' segment in '$expand'.</value>
   </data>
   <data name="Tokenization_DigitExpected" xml:space="preserve">
     <value>A digit was expected at position {0} in '{1}'.</value>

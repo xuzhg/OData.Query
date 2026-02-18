@@ -3,13 +3,14 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Tokenizations;
 
 /// <summary>
-/// Tokenizes the $select query expression and produces the lexical object model.
+/// Tokenizes the $select query expression and produces the query token object model.
 /// </summary>
 public class SelectTokenizer : SelectExpandTokenizer, ISelectTokenizer
 {
@@ -32,6 +33,11 @@ public class SelectTokenizer : SelectExpandTokenizer, ISelectTokenizer
         }
 
         IExpressionLexer lexer = context.CreateLexer(select);
+        if (lexer == null)
+        {
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_FailToCreateLexer, "$select"));
+        }
+
         lexer.NextToken(); // move to first token
 
         SelectToken selectToken = new SelectToken();
@@ -64,19 +70,21 @@ public class SelectTokenizer : SelectExpandTokenizer, ISelectTokenizer
         // If there isn't a comma, then we must be done. Otherwise there is a syntax error
         if (lexer.CurrentToken.Kind != ExpressionKind.EndOfInput)
         {
-            throw new QueryTokenizerException("ODataErrorStrings.UriSelectParser_TermIsNotValid(lexer.ExpressionText)");
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_SyntaxErrorForQuery, lexer.CurrentToken.Text.ToString(), lexer.CurrentToken.Position, "$select"));
         }
 
-        return await ValueTask.FromResult(selectToken);
+        return selectToken;
     }
 
     /// <summary>
     /// Tokenizes a single term in a comma separated list of things to select.
     /// </summary>
+    /// <param name="lexer">The lexer to use to tokenize the term.</param>
+    /// <param name="context">The tokenizer context.</param>
     /// <returns>A token representing thing to select.</returns>
     protected virtual SelectItemToken TokenizeSelectItem(IExpressionLexer lexer, QueryTokenizerContext context)
     {
-        /*
+        /* From ABNF about the selectItem:
 selectItem     = STAR
                / allOperationsInSchema 
                / [ ( qualifiedEntityTypeName / qualifiedComplexTypeName ) "/" ] 
@@ -85,7 +93,7 @@ selectItem     = STAR
                  / qualifiedFunctionName  
                  )
          * */
-        //var termParser = new SelectExpandTermParser(this.lexer, this.MaxPathDepth, this.isSelect);
+
         SegmentToken pathToken = TokenizePathSegment(lexer, context, isSelect: true);
 
         // QueryToken selectItem = TokenizePrimary(lexer, context);

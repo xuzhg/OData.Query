@@ -3,10 +3,11 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
-using System.Diagnostics;
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.Parser;
 using Microsoft.OData.Query.SyntacticAst;
+using System.Diagnostics;
 
 namespace Microsoft.OData.Query.Tokenizations;
 
@@ -34,6 +35,11 @@ public class ApplyTokenizer : QueryTokenizer, IApplyTokenizer
         }
 
         IExpressionLexer lexer = context.CreateLexer(apply);
+        if (lexer == null)
+        {
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_FailToCreateLexer, "$apply"));
+        }
+
         lexer.NextToken(); // move to first token
 
         IList<IQueryToken> transformationTokens = new List<IQueryToken>();

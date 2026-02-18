@@ -3,13 +3,14 @@
 // See License.txt in the project root for license information.
 //-----------------------------------------------------------------------
 
+using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Tokenizations;
 
 /// <summary>
-/// Tokenizes the $expand query expression and produces the lexical object model.
+/// Tokenizes the $expand query expression and produces the query token object model.
 /// </summary>
 public class ExpandTokenizer : SelectExpandTokenizer, IExpandTokenizer
 {
@@ -32,6 +33,11 @@ public class ExpandTokenizer : SelectExpandTokenizer, IExpandTokenizer
         }
 
         IExpressionLexer lexer = context.CreateLexer(expand);
+        if (lexer == null)
+        {
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_FailToCreateLexer, "$expand"));
+        }
+
         lexer.NextToken(); // move to first token
 
         ExpandToken expandToken = new ExpandToken();
@@ -86,15 +92,17 @@ public class ExpandTokenizer : SelectExpandTokenizer, IExpandTokenizer
         // If there isn't a comma, then we must be done. Otherwise there is a syntax error
         if (lexer.CurrentToken.Kind != ExpressionKind.EndOfInput)
         {
-            throw new QueryTokenizerException("ODataErrorStrings.UriSelectParser_TermIsNotValid(this.lexer.ExpressionText)");
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_SyntaxErrorForQuery, lexer.CurrentToken.Text.ToString(), lexer.CurrentToken.Position, "$expand"));
         }
 
-        return await ValueTask.FromResult(expandToken);
+        return expandToken;
     }
 
     /// <summary>
-    /// Parses a single term in a comma separated list of things to expand.
+    /// Tokenizes a single term in a comma separated list of things to expand.
     /// </summary>
+    /// <param name="lexer">The lexer to use to tokenize the term.</param>
+    /// <param name="context">The tokenizer context.</param>
     /// <returns>A token representing thing to expand.</returns>
     protected virtual ExpandItemToken TokenizeExpandItem(IExpressionLexer lexer, QueryTokenizerContext context)
     {

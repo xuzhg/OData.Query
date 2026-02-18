@@ -33,9 +33,7 @@ public abstract class SelectExpandItemToken : IQueryToken
         SelectToken selectOption,
         ComputeToken computeOption)
     {
-       // ExceptionUtils.CheckArgumentNotNull(pathToProperty, "property");
-
-        PathToProperty = pathToProperty;
+        PathToProperty = pathToProperty ?? throw new ArgumentNullException(nameof(pathToProperty));
         Filter = filterOption;
         OrderBy = orderByOptions;
         Top = topOption;

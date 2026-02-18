@@ -9,7 +9,7 @@ using Microsoft.OData.Query.Lexers;
 namespace Microsoft.OData.Query.Tokenizations;
 
 /// <summary>
-/// The tokenizer context
+/// The context for tokenizing a query option. It provides the necessary information and services for tokenization.
 /// </summary>
 public class QueryTokenizerContext
 {

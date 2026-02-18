@@ -136,6 +136,8 @@ public enum ExpressionKind
     /// <summary>End of input</summary>
     EndOfInput,
 
-
+    /// <summary>
+    /// Parameter alias, which starts with '@' and could contain '.' but not followed by '('.
+    /// </summary>
     ParameterAlias,
 }

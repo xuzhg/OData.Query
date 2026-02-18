@@ -34,6 +34,11 @@ public class ComputeTokenizer : QueryTokenizer, IComputeTokenizer
         }
 
         IExpressionLexer lexer = context.CreateLexer(compute);
+        if (lexer == null)
+        {
+            throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_FailToCreateLexer, "$compute"));
+        }
+
         lexer.NextToken(); // move to first token
 
         context.EnterRecurse();
@@ -42,6 +47,7 @@ public class ComputeTokenizer : QueryTokenizer, IComputeTokenizer
         while (true)
         {
             ComputeItemToken computed = TokenizeComputeItem(lexer, context);
+
             transformationTokens.Add(computed);
 
             if (lexer.CurrentToken.Kind != ExpressionKind.Comma)
@@ -70,7 +76,7 @@ public class ComputeTokenizer : QueryTokenizer, IComputeTokenizer
         // compute expression
         IQueryToken expression = TokenizeExpression(lexer, context);
 
-        if (!lexer.IsCurrentTokenIdentifier("as", true))
+        if (!lexer.IsCurrentTokenIdentifier("as", context.EnableCaseInsensitive))
         {
             throw new QueryTokenizerException(Error.Format(SRResources.QueryTokenizer_KeyWordExpected, "as", lexer.CurrentToken.Position, lexer.ExpressionText));
         }
