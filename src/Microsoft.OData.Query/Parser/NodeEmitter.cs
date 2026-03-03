@@ -11,21 +11,21 @@ using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Parser;
 
-public abstract class QueryBinder
+public abstract class NodeEmitter
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="QueryBinder" /> class.
+    /// Initializes a new instance of the <see cref="NodeEmitter" /> class.
     /// </summary>
-    protected QueryBinder()
+    protected NodeEmitter()
     {
     }
 
     /// <summary>
-    /// Visits a <see cref="IQueryToken"/> in the lexical tree and binds it to metadata producing a semantic <see cref="QueryNode"/>.
+    /// Emits a semantic <see cref="QueryNode"/> from a syntactic <see cref="IQueryToken"/>.
     /// </summary>
     /// <param name="token">The query token on the input.</param>
     /// <returns>The bound query node output.</returns>
-    protected virtual QueryNode Bind(IQueryToken token, QueryParserContext context)
+    protected virtual QueryNode Emit(IQueryToken token, QueryParserContext context)
     {
         //ExceptionUtils.CheckArgumentNotNull(token, "token");
         context.EnterRecurse();
@@ -33,28 +33,28 @@ public abstract class QueryBinder
         switch (token.Kind)
         {
             case QueryTokenKind.Any:
-                result = BindAnyAll((AnyToken)token, context);
+                result = EmitAnyAll((AnyToken)token, context);
                 break;
             case QueryTokenKind.All:
-                result = BindAnyAll((AllToken)token, context);
+                result = EmitAnyAll((AllToken)token, context);
                 break;
             //case QueryTokenKind.InnerPath:
             //    result = this.BindInnerPathSegment((InnerPathToken)token, context);
             //    break;
             case QueryTokenKind.Literal:
-                result = BindLiteral((LiteralToken)token, context);
+                result = EmitLiteral((LiteralToken)token, context);
                 break;
             //case QueryTokenKind.StringLiteral:
             //    result = this.BindStringLiteral((StringLiteralToken)token, context);
             //    break;
             case QueryTokenKind.BinaryOperator:
-                result = BindBinaryOperator((BinaryOperatorToken)token, context);
+                result = EmitBinaryOperator((BinaryOperatorToken)token, context);
                 break;
             case QueryTokenKind.UnaryOperator:
-                result = BindUnaryOperator((UnaryOperatorToken)token, context);
+                result = EmitUnaryOperator((UnaryOperatorToken)token, context);
                 break;
             case QueryTokenKind.EndPath:
-                result = BindEndPath((EndPathToken)token, context);
+                result = EmitEndPath((EndPathToken)token, context);
                 break;
             //case QueryTokenKind.FunctionCall:
             //    result = this.BindFunctionCall((FunctionCallToken)token, context);
@@ -63,7 +63,7 @@ public abstract class QueryBinder
             //    result = this.BindCast((DottedIdentifierToken)token, context);
             //    break;
             case QueryTokenKind.RangeVariable:
-                result = BindRangeVariable((RangeVariableToken)token, context);
+                result = EmitRangeVariable((RangeVariableToken)token, context);
                 break;
             //case QueryTokenKind.FunctionParameterAlias:
             //    result = this.BindParameterAlias((FunctionParameterAliasToken)token, context);
@@ -95,7 +95,7 @@ public abstract class QueryBinder
     ///// </summary>
     ///// <param name="functionParameterAliasToken">The alias syntactics token.</param>
     ///// <returns>The semantics node for parameter alias.</returns>
-    //protected virtual SingleValueNode BindParameterAlias(FunctionParameterAliasToken functionParameterAliasToken)
+    //protected virtual SingleValueNode EmitParameterAlias(FunctionParameterAliasToken functionParameterAliasToken)
     //{
     //    ParameterAliasBinder binder = new ParameterAliasBinder(this.Bind);
     //    return binder.BindParameterAlias(this.BindingState, functionParameterAliasToken);
@@ -106,7 +106,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="token">The token to bind.</param>
     /// <returns>A semantically bound FunctionCallNode</returns>
-    //protected virtual QueryNode BindFunctionParameter(FunctionParameterToken token)
+    //protected virtual QueryNode EmitFunctionParameter(FunctionParameterToken token)
     //{
     //    // TODO: extract this into its own binder class.
     //    if (token.ParameterName != null)
@@ -123,7 +123,7 @@ public abstract class QueryBinder
     /// <param name="token">Token to bind.</param>
     /// <returns>Either a SingleNavigationNode, CollectionNavigationNode, SinglePropertyAccessNode (complex),
     /// or CollectionPropertyAccessNode (primitive or complex) that is the metadata-bound version of the given token.</returns>
-    //protected virtual QueryNode BindInnerPathSegment(InnerPathToken token)
+    //protected virtual QueryNode EmitInnerPathSegment(InnerPathToken token)
     //{
     //    InnerPathTokenBinder innerPathTokenBinder = new InnerPathTokenBinder(this.Bind, this.BindingState);
     //    return innerPathTokenBinder.BindInnerPathSegment(token);
@@ -134,7 +134,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="rangeVariableToken">The parameter token to bind.</param>
     /// <returns>The bound query node.</returns>
-    protected virtual SingleValueNode BindRangeVariable(RangeVariableToken rangeVariableToken, QueryParserContext context)
+    protected virtual SingleValueNode EmitRangeVariable(RangeVariableToken rangeVariableToken, QueryParserContext context)
     {
         RangeVariable variable = context.GetRangeVariable(rangeVariableToken.Name);
         if (variable == null)
@@ -150,7 +150,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="literalToken">The literal token to bind.</param>
     /// <returns>The bound literal token.</returns>
-    protected virtual QueryNode BindLiteral(LiteralToken literalToken, QueryParserContext context)
+    protected virtual QueryNode EmitLiteral(LiteralToken literalToken, QueryParserContext context)
     {
         if (!string.IsNullOrEmpty(literalToken.OriginalText))
         {
@@ -170,15 +170,15 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="binaryOperatorToken">The binary operator token to bind.</param>
     /// <returns>The bound binary operator token.</returns>
-    protected virtual QueryNode BindBinaryOperator(BinaryOperatorToken binaryOperatorToken, QueryParserContext context)
+    protected virtual QueryNode EmitBinaryOperator(BinaryOperatorToken binaryOperatorToken, QueryParserContext context)
     {
-        SingleValueNode left = Bind(binaryOperatorToken.Left, context) as SingleValueNode;
+        SingleValueNode left = Emit(binaryOperatorToken.Left, context) as SingleValueNode;
         if (left == null)
         {
             throw new Exception("ODataErrorStrings.MetadataBinder_BinaryOperatorOperandNotSingleValue(operatorKind.ToString())");
         }
 
-        SingleValueNode right = Bind(binaryOperatorToken.Right, context) as SingleValueNode;
+        SingleValueNode right = Emit(binaryOperatorToken.Right, context) as SingleValueNode;
         if (left == null)
         {
             throw new Exception("ODataErrorStrings.MetadataBinder_BinaryOperatorOperandNotSingleValue(operatorKind.ToString())");
@@ -200,9 +200,9 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="unaryOperatorToken">The unary operator token to bind.</param>
     /// <returns>The bound unary operator token.</returns>
-    protected virtual QueryNode BindUnaryOperator(UnaryOperatorToken unaryOperatorToken, QueryParserContext context)
+    protected virtual QueryNode EmitUnaryOperator(UnaryOperatorToken unaryOperatorToken, QueryParserContext context)
     {
-        SingleValueNode operand = Bind(unaryOperatorToken.Operand, context) as SingleValueNode;
+        SingleValueNode operand = Emit(unaryOperatorToken.Operand, context) as SingleValueNode;
         if (operand == null)
         {
             throw new Exception("ODataErrorStrings.MetadataBinder_UnaryOperatorOperandNotSingleValue(unaryOperatorToken.OperatorKind.ToString())");
@@ -220,7 +220,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="dottedIdentifierToken">The type startPath token to bind.</param>
     /// <returns>The bound type startPath token.</returns>
-    //protected virtual QueryNode BindCast(DottedIdentifierToken dottedIdentifierToken)
+    //protected virtual QueryNode EmitCast(DottedIdentifierToken dottedIdentifierToken)
     //{
     //    DottedIdentifierBinder dottedIdentifierBinder = new DottedIdentifierBinder(this.Bind, this.BindingState);
     //    return dottedIdentifierBinder.BindDottedIdentifier(dottedIdentifierToken);
@@ -231,12 +231,12 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="lambdaToken">The LambdaToken to bind.</param>
     /// <returns>A bound Any or All node.</returns>
-    protected virtual QueryNode BindAnyAll(LambdaToken lambdaToken, QueryParserContext context)
+    protected virtual QueryNode EmitAnyAll(LambdaToken lambdaToken, QueryParserContext context)
     {
         //ExceptionUtils.CheckArgumentNotNull(lambdaToken, "LambdaToken");
 
         // Start by binding the parent token
-        CollectionValueNode parent = Bind(lambdaToken.Parent, context) as CollectionValueNode;
+        CollectionValueNode parent = Emit(lambdaToken.Parent, context) as CollectionValueNode;
         if (parent == null)
         {
             throw new Exception("ODataErrorStrings.MetadataBinder_LambdaParentMustBeCollection");
@@ -251,7 +251,7 @@ public abstract class QueryBinder
         }
 
         // Bind the expression
-        SingleValueNode expression = Bind(lambdaToken.Expression, context) as SingleValueNode;
+        SingleValueNode expression = Emit(lambdaToken.Expression, context) as SingleValueNode;
         if (expression == null)
         {
             throw new Exception("MetadataBinder_AnyAllExpressionNotSingleValue");
@@ -288,7 +288,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="endPathToken">The property access token to bind.</param>
     /// <returns>The bound property access token.</returns>
-    protected virtual QueryNode BindEndPath(EndPathToken endPathToken, QueryParserContext context)
+    protected virtual QueryNode EmitEndPath(EndPathToken endPathToken, QueryParserContext context)
     {
         QueryNode parent = DetermineParentNode(endPathToken, context);
 
@@ -345,7 +345,7 @@ public abstract class QueryBinder
 
         if (segmentToken.NextToken != null)
         {
-            return Bind(segmentToken.NextToken, context);
+            return Emit(segmentToken.NextToken, context);
         }
         else
         {
@@ -359,7 +359,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="functionCallToken">The function call token to bind.</param>
     /// <returns>The bound function call token.</returns>
-    //protected virtual QueryNode BindFunctionCall(FunctionCallToken functionCallToken, QueryOptionParserContext context)
+    //protected virtual QueryNode EmitFunctionCall(FunctionCallToken functionCallToken, QueryOptionParserContext context)
     //{
     //    FunctionCallBinder functionCallBinder = new FunctionCallBinder(this.Bind, this.BindingState);
     //    return functionCallBinder.BindFunctionCall(functionCallToken);
@@ -370,7 +370,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="stringLiteralToken">The StringLiteral token to bind.</param>
     /// <returns>The bound StringLiteral token.</returns>
-    //protected virtual QueryNode BindStringLiteral(StringLiteralToken stringLiteralToken)
+    //protected virtual QueryNode EmitStringLiteral(StringLiteralToken stringLiteralToken)
     //{
     //    return new SearchTermNode(stringLiteralToken.Text);
     //}
@@ -380,7 +380,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="inToken">The In token to bind.</param>
     /// <returns>The bound In token.</returns>
-    //protected virtual QueryNode BindIn(InToken inToken)
+    //protected virtual QueryNode EmitIn(InToken inToken)
     //{
     //    Func<QueryToken, QueryNode> InBinderMethod = (queryToken) =>
     //    {
@@ -403,7 +403,7 @@ public abstract class QueryBinder
     /// </summary>
     /// <param name="countSegmentToken">The CountSegment token to bind.</param>
     /// <returns>The bound CountSegment token.</returns>
-    //protected virtual QueryNode BindCountSegment(CountSegmentToken countSegmentToken)
+    //protected virtual QueryNode EmitCountSegment(CountSegmentToken countSegmentToken)
     //{
     //    CountSegmentBinder countSegmentBinder = new CountSegmentBinder(this.Bind, this.BindingState);
     //    return countSegmentBinder.BindCountSegment(countSegmentToken);

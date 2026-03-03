@@ -16,7 +16,7 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// Parser which consumes the query $orderby expression and produces the lexical object model.
 /// </summary>
-public class OrderByParser : QueryBinder, IOrderByParser
+public class OrderByParser : NodeEmitter, IOrderByParser
 {
     /// <summary>
     /// Parses the $orderby expression.
@@ -70,7 +70,7 @@ public class OrderByParser : QueryBinder, IOrderByParser
         Contract.Assert(orderByToken != null);
         Contract.Assert(context != null);
 
-        QueryNode expressionNode = Bind(orderByToken.Expression, context);
+        QueryNode expressionNode = Emit(orderByToken.Expression, context);
 
         SingleValueNode expressionResultNode = expressionNode as SingleValueNode;
         if (expressionResultNode == null ||

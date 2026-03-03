@@ -13,7 +13,7 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// A default parser to parse a filter clause.
 /// </summary>
-public class SearchParser : QueryBinder, ISearchParser
+public class SearchParser : NodeEmitter, ISearchParser
 {
     /// <summary>
     /// Parses the $search expression to a search tree.
@@ -41,7 +41,7 @@ public class SearchParser : QueryBinder, ISearchParser
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
         }
 
-        QueryNode expressionNode = Bind(token, context);
+        QueryNode expressionNode = Emit(token, context);
 
         SearchClause searchClause = new SearchClause((SingleValueNode)expressionNode/*, context.ImplicitRangeVariable*/);
 

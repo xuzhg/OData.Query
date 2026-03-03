@@ -13,7 +13,7 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// A default parser to parse a $select clause.
 /// </summary>
-public class SelectParser : QueryBinder, ISelectParser
+public class SelectParser : NodeEmitter, ISelectParser
 {
     /// <summary>
     /// Parses the $select expression to a search tree.
@@ -35,13 +35,13 @@ public class SelectParser : QueryBinder, ISelectParser
 
         ISelectTokenizer tokenizer = context.GetOrCreateSelectTokenizer();
 
-        IQueryToken token = await tokenizer.TokenizeAsync(select, context.TokenizerContext);
+        SelectToken token = await tokenizer.TokenizeAsync(select, context.TokenizerContext);
         if (token == null)
         {
             throw new QueryParserException("ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue");
         }
 
-        QueryNode expressionNode = Bind(token, context);
+        QueryNode expressionNode = Emit(token, context);
 
         SelectClause selectClause = new SelectClause(/*expressionResultNode, context.ImplicitRangeVariable*/);
 

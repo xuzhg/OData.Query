@@ -23,5 +23,13 @@
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="NewFolder\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Binders\QueryCompositer.cs" />
+  </ItemGroup>
   
 </Project>

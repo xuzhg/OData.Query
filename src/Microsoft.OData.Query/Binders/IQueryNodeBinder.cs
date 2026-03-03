@@ -10,12 +10,12 @@ namespace Microsoft.OData.Query.Binders;
 
 public interface IQueryNodeBinder
 {
-    Expression Bind(QueryNode node, BinderContext context);
+    Expression Bind(QueryNode node, QueryBinderContext context);
 }
 
 public interface IOQueryOptionBinder
 {
-    IQueryable ApplyTo(IQueryable query, OQueryBinderContext context);
+    IQueryable ApplyTo(IQueryable query, QueryBinderContext context);
 
-    object ApplyTo(object entity, OQueryBinderContext context);
+    object ApplyTo(object entity, QueryBinderContext context);
 }

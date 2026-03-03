@@ -12,7 +12,7 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// A default parser to parse an $expand clause.
 /// </summary>
-public class ExpandParser : QueryBinder, IExpandParser
+public class ExpandParser : NodeEmitter, IExpandParser
 {
     /// <summary>
     /// Parses the $expand expression to a search tree.
@@ -46,13 +46,13 @@ public class ExpandParser : QueryBinder, IExpandParser
         ExpandClause expandClause = new ExpandClause();
         foreach (ExpandItemToken item in token)
         {
-            expandClause.Add(BindExpandItem(item, context));
+            expandClause.Add(EmitExpandItem(item, context));
         }
 
         return expandClause;
     }
 
-    protected virtual ExpandedItem BindExpandItem(ExpandItemToken expandItem, QueryParserContext context)
+    protected virtual ExpandedItem EmitExpandItem(ExpandItemToken expandItem, QueryParserContext context)
     {
         return null;
     }

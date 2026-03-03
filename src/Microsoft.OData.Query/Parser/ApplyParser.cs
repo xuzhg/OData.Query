@@ -13,7 +13,7 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// The default parser to parse $apply clause.
 /// </summary>
-public class ApplyParser : QueryBinder, IApplyParser
+public class ApplyParser : NodeEmitter, IApplyParser
 {
     /// <summary>
     /// Parses the $apply expression.
@@ -51,19 +51,19 @@ public class ApplyParser : QueryBinder, IApplyParser
             switch (token.Kind)
             {
                 case QueryTokenKind.Aggregate:
-                    AggregateTransformationNode aggregate = BindAggregate((AggregateToken)(token), context);
+                    AggregateTransformationNode aggregate = EmitAggregate((AggregateToken)(token), context);
                     transformations.Add(aggregate);
                     //aggregateExpressionsCache = aggregate.AggregateExpressions;
                     //state.AggregatedPropertyNames = new HashSet<EndPathToken>(aggregate.AggregateExpressions.Select(statement => new EndPathToken(statement.Alias, null)));
                     //state.IsCollapsed = true;
                     break;
                 case QueryTokenKind.AggregateGroupBy:
-                    GroupByTransformationNode groupBy = BindGroupByToken((GroupByToken)(token), context);
+                    GroupByTransformationNode groupBy = EmitGroupByToken((GroupByToken)(token), context);
                     transformations.Add(groupBy);
                   //  state.IsCollapsed = true;
                     break;
                 case QueryTokenKind.Compute:
-                    var compute = BindComputeToken((ComputeToken)token, context);
+                    var compute = EmitComputeToken((ComputeToken)token, context);
                     transformations.Add(compute);
                   //  state.AggregatedPropertyNames = new HashSet<EndPathToken>(compute.Expressions.Select(statement => new EndPathToken(statement.Alias, null)));
                     break;
@@ -83,14 +83,14 @@ public class ApplyParser : QueryBinder, IApplyParser
         return new ApplyClause(transformations);
     }
 
-    protected virtual AggregateTransformationNode BindAggregate(AggregateToken token, QueryParserContext context)
+    protected virtual AggregateTransformationNode EmitAggregate(AggregateToken token, QueryParserContext context)
     {
         IEnumerable<AggregateTokenBase> aggregateTokens = MergeEntitySetAggregates(token.AggregateExpressions, context);
         List<AggregateExpressionBase> statements = new List<AggregateExpressionBase>();
 
         foreach (AggregateTokenBase statementToken in aggregateTokens)
         {
-            statements.Add(BindAggregateExpressionToken(statementToken, context));
+            statements.Add(EmitAggregateExpressionToken(statementToken, context));
         }
 
         return new AggregateTransformationNode(statements);
@@ -131,14 +131,14 @@ public class ApplyParser : QueryBinder, IApplyParser
         return mergedTokens.Concat(entitySetTokens.Values).ToList();
     }
 
-    protected virtual AggregateExpressionBase BindAggregateExpressionToken(AggregateTokenBase aggregateToken, QueryParserContext context)
+    protected virtual AggregateExpressionBase EmitAggregateExpressionToken(AggregateTokenBase aggregateToken, QueryParserContext context)
     {
         switch (aggregateToken.Kind)
         {
             case QueryTokenKind.AggregateExpression:
                 {
                     AggregateExpressionToken token = aggregateToken as AggregateExpressionToken;
-                    SingleValueNode expression = Bind(token.Expression, context) as SingleValueNode;
+                    SingleValueNode expression = Emit(token.Expression, context) as SingleValueNode;
                     //IEdmTypeReference typeReference = CreateAggregateExpressionTypeReference(expression, token.MethodDefinition);
 
                     //// TODO: Determine source
@@ -164,13 +164,13 @@ public class ApplyParser : QueryBinder, IApplyParser
         return null;
     }
 
-    protected virtual GroupByTransformationNode BindGroupByToken(GroupByToken token, QueryParserContext context)
+    protected virtual GroupByTransformationNode EmitGroupByToken(GroupByToken token, QueryParserContext context)
     {
         List<GroupByPropertyNode> properties = new List<GroupByPropertyNode>();
 
         foreach (EndPathToken propertyToken in token.Properties)
         {
-            QueryNode bindResult = Bind(propertyToken, context);
+            QueryNode bindResult = Emit(propertyToken, context);
             SingleValuePropertyAccessNode property = bindResult as SingleValuePropertyAccessNode;
             //SingleComplexNode complexProperty = bindResult as SingleComplexNode;
 
@@ -205,7 +205,7 @@ public class ApplyParser : QueryBinder, IApplyParser
         {
             if (token.Child.Kind == QueryTokenKind.Aggregate)
             {
-                aggregate = BindAggregate((AggregateToken)token.Child, context);
+                aggregate = EmitAggregate((AggregateToken)token.Child, context);
                 //aggregateExpressionsCache = ((AggregateTransformationNode)aggregate).AggregateExpressions;
                 //newProperties.UnionWith(aggregateExpressionsCache.Select(statement => new EndPathToken(statement.Alias, null)));
             }
@@ -221,12 +221,12 @@ public class ApplyParser : QueryBinder, IApplyParser
         return new GroupByTransformationNode(properties, aggregate, null);
     }
 
-    protected virtual ComputeTransformationNode BindComputeToken(ComputeToken token, QueryParserContext context)
+    protected virtual ComputeTransformationNode EmitComputeToken(ComputeToken token, QueryParserContext context)
     {
         var statements = new List<ComputeExpression>();
         foreach (ComputeItemToken statementToken in token.Items)
         {
-            var singleValueNode = (SingleValueNode)Bind(statementToken.Expression, context);
+            var singleValueNode = (SingleValueNode)Emit(statementToken.Expression, context);
             statements.Add(new ComputeExpression(singleValueNode, statementToken.Alias, singleValueNode.NodeType));
         }
 

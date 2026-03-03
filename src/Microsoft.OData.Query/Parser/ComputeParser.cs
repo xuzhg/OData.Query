@@ -13,7 +13,7 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// A default parser to parse a $compute clause.
 /// </summary>
-public class ComputeParser : QueryBinder, IComputeParser
+public class ComputeParser : NodeEmitter, IComputeParser
 {
     /// <summary>
     /// Parses the $compute expression to a search tree.
@@ -53,7 +53,7 @@ public class ComputeParser : QueryBinder, IComputeParser
 
     protected virtual ComputedItem BindComputeItem(ComputeItemToken item, QueryParserContext context)
     {
-        SingleValueNode node = Bind(item.Expression, context) as SingleValueNode;
+        SingleValueNode node = Emit(item.Expression, context) as SingleValueNode;
         return new ComputedItem(node, item.Alias, node.NodeType);
     }
 }

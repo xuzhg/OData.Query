@@ -20,6 +20,8 @@ public record QueryParsedResult
 
     public OrderByClause OrderBy = null;
 
+    public string SkipToken = null;
+
     public bool? Count = null;
 
     public long? Top = null;

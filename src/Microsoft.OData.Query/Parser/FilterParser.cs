@@ -4,7 +4,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.OData.Query.Ast;
-using Microsoft.OData.Query.Builders;
 using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Metadata;
 using Microsoft.OData.Query.Nodes;
@@ -16,10 +15,10 @@ namespace Microsoft.OData.Query.Parser;
 /// <summary>
 /// A default parser to parse a filter clause.
 /// </summary>
-public class FilterParser : QueryBinder, IFilterParser
+public class FilterParser : NodeEmitter, IFilterParser
 {
     /// <summary>
-    /// Parses the $filter expression like "Name eq 'Sam'" to a search tree.
+    /// Parses the $filter expression like "Name eq 'Sam'" to an abstract syntax tree.
     /// </summary>
     /// <param name="filter">The $filter expression string to parse.</param>
     /// <param name="context">The query parser context.</param>
@@ -45,7 +44,7 @@ public class FilterParser : QueryBinder, IFilterParser
                 "$filter"));
         }
 
-        QueryNode expressionNode = Bind(token, context);
+        QueryNode expressionNode = Emit(token, context);
 
         SingleValueNode expressionResultNode = expressionNode as SingleValueNode;
         if (expressionResultNode == null ||
