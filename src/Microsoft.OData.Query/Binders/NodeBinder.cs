@@ -5,6 +5,7 @@
 
 using System.Linq.Expressions;
 using Microsoft.OData.Query.Nodes;
+using Microsoft.OData.Query.SyntacticAst;
 
 namespace Microsoft.OData.Query.Binders;
 
@@ -68,6 +69,12 @@ public abstract class NodeBinder : IQueryNodeBinder
             case RangeVariableReferenceNode rangeValue:
                 return BindRangeVariable(rangeValue, context);
 
+            case UnaryOperatorNode unaryOperatorNode:
+                return BindUnaryOperatorNode(unaryOperatorNode, context);
+
+            case ConvertNode convertNode:
+                return BindConvertNode(convertNode, context);
+
             default:
                 throw new NotSupportedException();
         }
@@ -97,8 +104,42 @@ public abstract class NodeBinder : IQueryNodeBinder
 
         Expression right = Bind(binaryOperatorNode.Right, context);
 
-        // just for sample;
-        return Expression.MakeBinary(ExpressionType.Equal, left, right);
+        ExpressionType expressionType = binaryOperatorNode.OperatorKind switch
+        {
+            BinaryOperatorKind.Or => ExpressionType.OrElse,
+            BinaryOperatorKind.And => ExpressionType.AndAlso,
+            BinaryOperatorKind.Equal => ExpressionType.Equal,
+            BinaryOperatorKind.NotEqual => ExpressionType.NotEqual,
+            BinaryOperatorKind.GreaterThan => ExpressionType.GreaterThan,
+            BinaryOperatorKind.GreaterThanOrEqual => ExpressionType.GreaterThanOrEqual,
+            BinaryOperatorKind.LessThan => ExpressionType.LessThan,
+            BinaryOperatorKind.LessThanOrEqual => ExpressionType.LessThanOrEqual,
+            BinaryOperatorKind.Add => ExpressionType.Add,
+            BinaryOperatorKind.Subtract => ExpressionType.Subtract,
+            BinaryOperatorKind.Multiply => ExpressionType.Multiply,
+            BinaryOperatorKind.Divide => ExpressionType.Divide,
+            BinaryOperatorKind.Modulo => ExpressionType.Modulo,
+            _ => throw new NotSupportedException($"Binary operator '{binaryOperatorNode.OperatorKind}' is not supported.")
+        };
+
+        return Expression.MakeBinary(expressionType, left, right);
+    }
+
+    public virtual Expression BindUnaryOperatorNode(UnaryOperatorNode unaryOperatorNode, QueryBinderContext context)
+    {
+        Expression operand = Bind(unaryOperatorNode.Operand, context);
+
+        return unaryOperatorNode.OperatorKind switch
+        {
+            UnaryOperatorKind.Negate => Expression.Negate(operand),
+            UnaryOperatorKind.Not => Expression.Not(operand),
+            _ => throw new NotSupportedException($"Unary operator '{unaryOperatorNode.OperatorKind}' is not supported.")
+        };
+    }
+
+    public virtual Expression BindConvertNode(ConvertNode convertNode, QueryBinderContext context)
+    {
+        return Expression.Convert(Bind(convertNode.Source, context), convertNode.NodeType);
     }
 
     public virtual Expression BindPropertyAccessQueryNode(SingleValuePropertyAccessNode propertyAccessNode, QueryBinderContext context)
@@ -110,6 +151,6 @@ public abstract class NodeBinder : IQueryNodeBinder
 
     public virtual Expression BindConstantNode(ConstantNode constantNode, QueryBinderContext context)
     {
-        return Expression.Constant(constantNode.Value);
+        return Expression.Constant(constantNode.Value, constantNode.NodeType ?? typeof(object));
     }
 }

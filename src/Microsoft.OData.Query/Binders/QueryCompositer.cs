@@ -47,6 +47,9 @@ public class QueryCompositer : IQueryCompositer
 
     public virtual async ValueTask<IQueryable> CompositeAsync(IQueryable source, QueryCompositerSettings settings)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(settings);
+
         if (_parsedResult == null)
         {
             _parsedResult = await Context.GetParser().ParseAsync(Query, new QueryParserContext(source.ElementType));
@@ -62,7 +65,10 @@ public class QueryCompositer : IQueryCompositer
         source = await CompositeApplyAsync(_parsedResult.Apply, source);
 
         // $filter
-        source = await CompositeFilterAsync(_parsedResult.Filter, source);
+        if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Filter))
+        {
+            source = await CompositeFilterAsync(_parsedResult.Filter, source);
+        }
 
         // If both $search and $filter are specified in the same request, only those items satisfying both criteria are returned
         // apply $search
@@ -72,7 +78,10 @@ public class QueryCompositer : IQueryCompositer
         // ...
 
         // $orderby?
-        source = await CompositeOrderByAsync(_parsedResult.OrderBy, source);
+        if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.OrderBy))
+        {
+            source = await CompositeOrderByAsync(_parsedResult.OrderBy, source);
+        }
 
         // $skiptoken?
         source = await CompositeSkipTokenAsync(_parsedResult.SkipToken, source);
@@ -81,13 +90,19 @@ public class QueryCompositer : IQueryCompositer
         source = await CompositeSelectAndExpandAsync(_parsedResult.Select, _parsedResult.Expand, source);
 
         // $skip
-        source = await CompositeSkipAsync(_parsedResult.Skip, source);
+        if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Skip))
+        {
+            source = await CompositeSkipAsync(_parsedResult.Skip, source);
+        }
 
         // $top
-        source = await CompositeTopAsync(_parsedResult.Top, source);
+        if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Top))
+        {
+            source = await CompositeTopAsync(_parsedResult.Top, source);
+        }
 
         // paging
-        source = await CompositePagingAsync(source);
+        source = await CompositePagingAsync(source, settings);
 
         return source;
     }
@@ -104,11 +119,14 @@ public class QueryCompositer : IQueryCompositer
 
     protected virtual async ValueTask<IQueryable> CompositeFilterAsync(FilterClause filter, IQueryable query)
     {
-        // bind filter to expression
-        // var filterBinder = new FilterBinder(new FilterTokenizer(), new QueryNodeBinder());
-        // Expression filterExpression = await filterBinder.BindAsync(filter, context);
-        // return query.Where((Expression<Func<T, bool>>)filterExpression);
-        return query;
+        if (filter == null)
+        {
+            return query;
+        }
+
+        var filterBinder = new FilterBinder();
+        Expression filterExpression = await filterBinder.BindAsync(filter, new QueryBinderContext(query.ElementType));
+        return ExpressionUtils.Where(query, filterExpression, query.ElementType);
     }
 
     protected virtual async ValueTask<IQueryable> CompositeSearchAsync(SearchClause search, IQueryable query)
@@ -122,10 +140,29 @@ public class QueryCompositer : IQueryCompositer
 
     protected virtual async ValueTask<IQueryable> CompositeOrderByAsync(OrderByClause orderBy, IQueryable query)
     {
-        // bind order by to expression
-        // var orderByBinder = new OrderByBinder(new OrderByTokenizer(), new QueryNodeBinder());
-        // Expression orderByExpression = await orderByBinder.BindAsync(orderBy, context);
-        // return query.OrderBy((Expression<Func<T, TResult>>)orderByExpression);
+        if (orderBy == null)
+        {
+            return query;
+        }
+
+        var binder = new FilterBinder();
+        var binderContext = new QueryBinderContext(query.ElementType);
+        bool thenBy = false;
+
+        while (orderBy != null)
+        {
+            Expression body = binder.Bind(orderBy.Expression, binderContext);
+            LambdaExpression expression = Expression.Lambda(body, binderContext.CurrentParameter);
+            query = ExpressionUtils.OrderBy(
+                query,
+                expression,
+                orderBy.Direction == OrderByDirection.Descending,
+                thenBy);
+
+            thenBy = true;
+            orderBy = orderBy.ThenBy;
+        }
+
         return query;
     }
 
@@ -147,31 +184,33 @@ public class QueryCompositer : IQueryCompositer
         return query;
     }
 
-    protected virtual async ValueTask<IQueryable> CompositeSkipAsync(long? skip,IQueryable query)
+    protected virtual ValueTask<IQueryable> CompositeSkipAsync(long? skip, IQueryable query)
     {
-        // bind select and expand to expression
-        // var selectAndExpandBinder = new SelectAndExpandBinder(new SelectAndExpandTokenizer(), new QueryNodeBinder());
-        // Expression selectAndExpandExpression = await selectAndExpandBinder.BindAsync(select, expand, context);
-        // return query.SelectAndExpand((Expression<Func<T, TResult>>)selectAndExpandExpression);
-        return query;
+        return ValueTask.FromResult(skip.HasValue
+            ? ExpressionUtils.Skip(query, skip.Value, query.ElementType)
+            : query);
     }
 
-    protected virtual async ValueTask<IQueryable> CompositeTopAsync(long? top, IQueryable query)
+    protected virtual ValueTask<IQueryable> CompositeTopAsync(long? top, IQueryable query)
     {
-        // bind select and expand to expression
-        // var selectAndExpandBinder = new SelectAndExpandBinder(new SelectAndExpandTokenizer(), new QueryNodeBinder());
-        // Expression selectAndExpandExpression = await selectAndExpandBinder.BindAsync(select, expand, context);
-        // return query.SelectAndExpand((Expression<Func<T, TResult>>)selectAndExpandExpression);
-        return query;
+        return ValueTask.FromResult(top.HasValue
+            ? ExpressionUtils.Take(query, top.Value, query.ElementType)
+            : query);
     }
 
-    protected virtual async ValueTask<IQueryable> CompositePagingAsync(IQueryable query)
+    protected virtual ValueTask<IQueryable> CompositePagingAsync(IQueryable query, QueryCompositerSettings settings)
     {
-        // bind select and expand to expression
-        // var selectAndExpandBinder = new SelectAndExpandBinder(new SelectAndExpandTokenizer(), new QueryNodeBinder());
-        // Expression selectAndExpandExpression = await selectAndExpandBinder.BindAsync(select, expand, context);
-        // return query.SelectAndExpand((Expression<Func<T, TResult>>)selectAndExpandExpression);
-        return query;
+        int? pageSize = settings.PageSize;
+        if (settings.ModelBoundPageSize.HasValue)
+        {
+            pageSize = pageSize.HasValue
+                ? Math.Min(pageSize.Value, settings.ModelBoundPageSize.Value)
+                : settings.ModelBoundPageSize;
+        }
+
+        return ValueTask.FromResult(pageSize.HasValue
+            ? ExpressionUtils.Take(query, pageSize.Value, query.ElementType)
+            : query);
     }
 
     public virtual async ValueTask ApplyToAsync(QueryParsedResult query, QueryApplierContext context)

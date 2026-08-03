@@ -35,6 +35,18 @@ public class FilterTokenizerTests
         Assert.Equal(QueryTokenKind.BinaryOperator, token.Kind);
         BinaryOperatorToken binaryToken = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.Equal);
         binaryToken.Left.ShouldBeEndPathToken("Name");
-        binaryToken.Right.ShouldBeLiteralToken("'Sam'");
+        binaryToken.Right.ShouldBeLiteralToken("Sam");
+    }
+
+    [Fact]
+    public async Task FilterTokenizer_RespectsLogicalOperatorPrecedence()
+    {
+        IQueryToken token = await _filterTokenizer.TokenizeAsync(
+            "Name eq 'Sam' and Id gt 1".AsMemory(),
+            QueryTokenizerContext.Default);
+
+        BinaryOperatorToken and = token.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.And);
+        and.Left.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.Equal);
+        and.Right.ShouldBeBinaryOperatorQueryToken(BinaryOperatorKind.GreaterThan);
     }
 }

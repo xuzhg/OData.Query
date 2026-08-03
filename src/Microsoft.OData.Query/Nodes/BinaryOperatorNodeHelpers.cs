@@ -84,7 +84,7 @@ internal static class BinaryOperatorNodeHelpers
             case BinaryOperatorKind.LessThan:           // fall through
             case BinaryOperatorKind.LessThanOrEqual:
             case BinaryOperatorKind.Has:
-                return isNullable ? typeof(bool?) : typeof(bool);
+                return typeof(bool);
 
             case BinaryOperatorKind.Add:        // fall through
             case BinaryOperatorKind.Subtract:   // fall through

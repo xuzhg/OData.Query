@@ -376,9 +376,11 @@ public abstract class QueryTokenizer
                 return new LiteralToken(decimalValue, null, typeof(decimal));
 
             case ExpressionKind.StringLiteral:
-                string stringValue = lexer.CurrentToken.Text.ToString();
+                string literalText = lexer.CurrentToken.Text.ToString();
+                char quote = literalText[0];
+                string stringValue = literalText[1..^1].Replace($"\\{quote}", quote.ToString(), StringComparison.Ordinal);
                 lexer.NextToken();
-                return new LiteralToken(stringValue, null, typeof(string));
+                return new LiteralToken(stringValue, literalText, typeof(string));
 
             case ExpressionKind.Int64Literal:
                 long longValue = long.Parse(lexer.CurrentToken.Span);

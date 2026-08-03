@@ -41,6 +41,6 @@ public class FilterParserTests
 
         BinaryOperatorNode binaryOperatorNode = clause.Expression.ShouldBeBinaryOperatorNode(BinaryOperatorKind.Equal);
         binaryOperatorNode.Left.ShouldBeSingleValuePropertyAccessQueryNode(typeof(Customer).GetProperty("Name"));
-        binaryOperatorNode.Right.ShouldBeConstantQueryNode("'Sam'");
+        binaryOperatorNode.Right.ShouldBeConstantQueryNode("Sam");
     }
 }
