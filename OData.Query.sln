@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryParserSample", "sample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DISample", "DISample\DISample.csproj", "{3A9A2059-1510-4F34-AE7F-00A91A98374D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryComposerSample", "Samples\QueryComposerSample\QueryComposerSample.csproj", "{E533B2E8-7245-4346-94F3-0D6F0CAC1364}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryComposerSample", "samples\QueryComposerSample\QueryComposerSample.csproj", "{E533B2E8-7245-4346-94F3-0D6F0CAC1364}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
