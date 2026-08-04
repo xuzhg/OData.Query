@@ -16,6 +16,20 @@ namespace Microsoft.OData.Query.Lexers;
 [DebuggerDisplay("{DebuggerToString(),nq}")]
 public class ExpressionLexer : IExpressionLexer
 {
+    private static readonly string[] DateTimeOffsetFormats =
+    {
+        "yyyy-MM-dd'T'HH:mmK",
+        "yyyy-MM-dd'T'HH:mm:ssK",
+        "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK"
+    };
+
+    private static readonly string[] TimeOnlyFormats =
+    {
+        "HH:mm",
+        "HH:mm:ss",
+        "HH:mm:ss.FFFFFFF"
+    };
+
     /// <summary>
     /// Token being processed, it should be updated every time after calling NextToken().
     /// </summary>
@@ -60,14 +74,14 @@ public class ExpressionLexer : IExpressionLexer
     /// <param name="options">The lexer options.Throws exception if null.</param>
     public ExpressionLexer(ReadOnlyMemory<char> text, LexerOptions options)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         ExpressionText = text;
         TextLen = text.Length;
-        Options = options;
+        Options = new LexerOptions
+        {
+            IgnoreWhitespace = options.IgnoreWhitespace
+        };
         _token = new ExpressionToken(ExpressionKind.None, 0);
         SetTextPos(0);
     }
@@ -240,35 +254,35 @@ public class ExpressionLexer : IExpressionLexer
     /// <summary>
     /// Special characters;
     /// </summary>
-    private static readonly IDictionary<char, ExpressionKind> SpecialCharacters = new Dictionary<char, ExpressionKind>
-    {
-        { '(', ExpressionKind.OpenParen },
-        { ')', ExpressionKind.CloseParen },
-        { '[', ExpressionKind.OpenBracket },
-        { ']', ExpressionKind.CloseBracket },
-        { '{', ExpressionKind.OpenCurly },
-        { '}', ExpressionKind.CloseCurly },
-        { ',', ExpressionKind.Comma },
-        { '=', ExpressionKind.Equal },
-        { '/', ExpressionKind.Slash },
-        { '?', ExpressionKind.Question },
-        { '.', ExpressionKind.Dot },
-        { '*', ExpressionKind.Star },
-        { ':', ExpressionKind.Colon },
-        { '&', ExpressionKind.Ampersand },
-        { ';', ExpressionKind.SemiColon },
-        { '$', ExpressionKind.Dollar },
-        { '%', ExpressionKind.Percent },
-
-    };
-
     /// <summary>
     /// Try to tokenize the special characters, for example, '(', ')', ',', '*', etc.
     /// </summary>
     /// <returns>true means parsed, false means doesn't parse.</returns>
     protected virtual bool TrySpecialCharToken()
     {
-        if (CurrChar.HasValue && SpecialCharacters.TryGetValue(CurrChar.Value, out ExpressionKind kind))
+        ExpressionKind kind = CurrChar switch
+        {
+            '(' => ExpressionKind.OpenParen,
+            ')' => ExpressionKind.CloseParen,
+            '[' => ExpressionKind.OpenBracket,
+            ']' => ExpressionKind.CloseBracket,
+            '{' => ExpressionKind.OpenCurly,
+            '}' => ExpressionKind.CloseCurly,
+            ',' => ExpressionKind.Comma,
+            '=' => ExpressionKind.Equal,
+            '/' => ExpressionKind.Slash,
+            '?' => ExpressionKind.Question,
+            '.' => ExpressionKind.Dot,
+            '*' => ExpressionKind.Star,
+            ':' => ExpressionKind.Colon,
+            '&' => ExpressionKind.Ampersand,
+            ';' => ExpressionKind.SemiColon,
+            '$' => ExpressionKind.Dollar,
+            '%' => ExpressionKind.Percent,
+            _ => ExpressionKind.None
+        };
+
+        if (kind != ExpressionKind.None)
         {
             int startPos = CurrPos;
             NextChar();
@@ -344,22 +358,7 @@ public class ExpressionLexer : IExpressionLexer
         if (CurrChar == '\'' || CurrChar == '"')
         {
             int tokenPos = CurrPos;
-            char? quote = CurrChar;
-            char? previous;
-
-            do
-            {
-                previous = CurrChar;
-                NextChar();
-            }
-            while (CurrPos < TextLen && (CurrChar != quote || previous == '\\'));
-
-            if (CurrPos == TextLen)
-            {
-                throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
-            }
-
-            NextChar(); // remember to read the ending quote
+            ScanQuotedLiteral(CurrChar.Value, tokenPos, allowBackslashEscapes: true);
             SetCurrentTokenState(ExpressionKind.StringLiteral, tokenPos, true);
             return true;
         }
@@ -435,7 +434,11 @@ public class ExpressionLexer : IExpressionLexer
             // Include dots for the case of annotation.
             ParseIdentifier(includingDots: true);
 
-            SetCurrentTokenState(ExpressionKind.AnnotationIdentifier, tokenPos, true);
+            ReadOnlySpan<char> identifier = ExpressionText.Span[(tokenPos + 1)..CurrPos];
+            ExpressionKind kind = identifier.Contains('.')
+                ? ExpressionKind.AnnotationIdentifier
+                : ExpressionKind.ParameterAlias;
+            SetCurrentTokenState(kind, tokenPos, true);
             return true;
         }
 
@@ -501,24 +504,7 @@ public class ExpressionLexer : IExpressionLexer
         if (CurrChar == '\'')
         {
             kind = GetBuiltInTokenKind(tokenText);
-
-            int tokenPos = CurrPos;
-            do
-            {
-                do
-                {
-                    this.NextChar();
-                }
-                while (CurrChar != '\'');
-
-                if (CurrPos == TextLen)
-                {
-                    throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
-                }
-
-                this.NextChar();
-            }
-            while (CurrChar.HasValue && CurrChar.Value == '\'');
+            ScanQuotedLiteral('\'', start, allowBackslashEscapes: false);
             return;
         }
 
@@ -548,23 +534,23 @@ public class ExpressionLexer : IExpressionLexer
     /// <example>geometry'POINT (79 84)'. 'geometry' is the tokenText </example>
     private ExpressionKind GetBuiltInTokenKind(ReadOnlySpan<char> tokenText)
     {
-        if (tokenText.Equals("duration", StringComparison.Ordinal))
+        if (tokenText.Equals("duration", StringComparison.OrdinalIgnoreCase))
         {
             return ExpressionKind.DurationLiteral;
         }
-        else if (tokenText.Equals("binary", StringComparison.Ordinal))
+        else if (tokenText.Equals("binary", StringComparison.OrdinalIgnoreCase))
         {
             return ExpressionKind.BinaryLiteral;
         }
-        else if (tokenText.Equals("geography", StringComparison.Ordinal))
+        else if (tokenText.Equals("geography", StringComparison.OrdinalIgnoreCase))
         {
             return ExpressionKind.GeographyLiteral;
         }
-        else if (tokenText.Equals("geometry", StringComparison.Ordinal))
+        else if (tokenText.Equals("geometry", StringComparison.OrdinalIgnoreCase))
         {
             return ExpressionKind.GeometryLiteral;
         }
-        else if (tokenText.Equals("null", StringComparison.Ordinal))
+        else if (tokenText.Equals("null", StringComparison.OrdinalIgnoreCase))
         {
             // typed null literals are not supported.
             throw new ExpressionLexerException(Error.Format(SRResources.Tokenization_SyntaxError, CurrPos, ExpressionText));
@@ -592,12 +578,25 @@ public class ExpressionLexer : IExpressionLexer
         // 0x....
         if (startChar == '0' && (CurrChar.HasValue && (CurrChar.Value == 'x' || CurrChar.Value == 'X')))
         {
-            result = ExpressionKind.BinaryLiteral;
+            result = ExpressionKind.HexBinaryLiteral;
+            int prefixPosition = tokenPos;
+            int hexStart;
             do
             {
                 NextChar();
             }
             while (IsCurrValid && CharUtils.IsCharHexDigit(CurrChar.Value));
+
+            hexStart = prefixPosition + 2;
+            int hexLength = CurrPos - hexStart;
+            if (hexLength == 0 ||
+                (hexLength & 1) != 0 ||
+                (CurrChar.HasValue && !IsLiteralDelimiter(CurrChar.Value)))
+            {
+                ReadOnlySpan<char> value = ExpressionText[prefixPosition..CurrPos].Span;
+                throw new ExpressionLexerException(
+                    Error.Format(SRResources.Tokenization_InvalidNumericString, value.ToString()));
+            }
         }
         else
         {
@@ -610,18 +609,9 @@ public class ExpressionLexer : IExpressionLexer
             // DateTimeOffset, DateOnly and Guids will have '-' in them
             if (CurrChar.HasValue && CurrChar.Value == '-')
             {
-                // TODO: do a refactor later to improve the performance here. (at least not do ParseIdentifier again and again)
-                if (TryParseDate(tokenPos))
+                if (TryParseDateTimeOrGuid(tokenPos, out ExpressionKind literalKind))
                 {
-                    return ExpressionKind.DateOnlyLiteral;
-                }
-                else if (TryParseDateTimeOffset(tokenPos))
-                {
-                    return ExpressionKind.DateTimeOffsetLiteral;
-                }
-                else if (TryParseGuid(tokenPos))
-                {
-                    return ExpressionKind.GuidLiteral;
+                    return literalKind;
                 }
             }
 
@@ -696,6 +686,13 @@ public class ExpressionLexer : IExpressionLexer
                 ReadOnlySpan<char> valueStr = ExpressionText[tokenPos..CurrPos].Span;
                 result = MakeBestGuessOnNoSuffixStr(valueStr, result);
             }
+
+            if (CurrChar.HasValue && !IsLiteralDelimiter(CurrChar.Value))
+            {
+                ReadOnlySpan<char> value = ExpressionText[tokenPos..CurrPos].Span;
+                throw new ExpressionLexerException(
+                    Error.Format(SRResources.Tokenization_InvalidNumericString, value.ToString()));
+            }
         }
 
         return result;
@@ -740,17 +737,10 @@ public class ExpressionLexer : IExpressionLexer
     {
         HandleTypePrefixedLiterals(ref kind, start);
 
-        _token.Kind = kind;
-        _token.Position = start;
-
-        if (needText)
-        {
-            _token.Text = ExpressionText.Slice(start, CurrPos - start);
-        }
-        else
-        {
-            _token.Text = default;
-        }
+        ReadOnlyMemory<char> text = needText
+            ? ExpressionText.Slice(start, CurrPos - start)
+            : default;
+        _token = new ExpressionToken(kind, text, start);
     }
 
     /// <summary>
@@ -764,48 +754,43 @@ public class ExpressionLexer : IExpressionLexer
     }
 
     /// <summary>
-    /// Tries to parse DateTimeOffset from current text. If it's not DateTimeOffset, then reset
+    /// Tries to parse a date, date-time offset, or GUID candidate with one bounded scan.
     /// </summary>
     /// <param name="startPos">Start index</param>
-    /// <returns>True if the substring that starts from tokenPos is a Guid, false otherwise</returns>
-    private bool TryParseDateTimeOffset(int startPos)
+    /// <param name="kind">The recognized literal kind.</param>
+    /// <returns>True if the candidate is recognized; otherwise false.</returns>
+    private bool TryParseDateTimeOrGuid(int startPos, out ExpressionKind kind)
     {
         int initialIndex = CurrPos;
+        ReadOnlySpan<char> candidate = ParseLiteral(startPos);
 
-        ReadOnlySpan<char> datetimeOffsetStr = ParseLiteral(startPos);
-
-        if (DateTimeOffset.TryParse(datetimeOffsetStr, out _))
+        if (DateOnly.TryParseExact(candidate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
         {
+            kind = ExpressionKind.DateOnlyLiteral;
             return true;
         }
-        else
-        {
-            CurrPos = initialIndex;
-            CurrChar = ExpressionText.Span[initialIndex];
-            return false;
-        }
-    }
 
-    /// <summary>
-    /// Tries to parse DateOnly from current text, If it's not Guid, then reset
-    /// </summary>
-    /// <param name="startPos">Start index</param>
-    /// <returns>True if the substring that starts from startPos is a Guid, false otherwise</returns>
-    private bool TryParseDate(int startPos)
-    {
-        int initialIndex = CurrPos;
-
-        ReadOnlySpan<char> dateStr = ParseLiteral(startPos);
-        if (DateOnly.TryParse(dateStr, out _))
+        if (ExpressionLexerUtils.TryNormalizeTemporalFraction(candidate, out string normalized) &&
+            DateTimeOffset.TryParseExact(
+            normalized,
+            DateTimeOffsetFormats,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out _))
         {
+            kind = ExpressionKind.DateTimeOffsetLiteral;
             return true;
         }
-        else
+
+        if (Guid.TryParseExact(candidate, "D", out _))
         {
-            CurrPos = initialIndex;
-            CurrChar = ExpressionText.Span[initialIndex];
-            return false;
+            kind = ExpressionKind.GuidLiteral;
+            return true;
         }
+
+        SetTextPos(initialIndex);
+        kind = ExpressionKind.None;
+        return false;
     }
 
     /// <summary>
@@ -819,14 +804,19 @@ public class ExpressionLexer : IExpressionLexer
         int initialIndex = CurrPos;
 
         ReadOnlySpan<char> timeOnlyStr = ParseLiteral(startPos);
-        if (TimeOnly.TryParse(timeOnlyStr, out _))
+        if (ExpressionLexerUtils.TryNormalizeTemporalFraction(timeOnlyStr, out string normalized) &&
+            TimeOnly.TryParseExact(
+            normalized,
+            TimeOnlyFormats,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out _))
         {
             return true;
         }
         else
         {
-            CurrPos = initialIndex;
-            CurrChar = ExpressionText.Span[initialIndex];
+            SetTextPos(initialIndex);
             return false;
         }
     }
@@ -841,14 +831,13 @@ public class ExpressionLexer : IExpressionLexer
         int initialIndex = CurrPos;
 
         ReadOnlySpan<char> guidStr = ParseLiteral(startPos);
-        if (Guid.TryParse(guidStr, out _))
+        if (Guid.TryParseExact(guidStr, "D", out _))
         {
             return true;
         }
         else
         {
-            CurrPos = initialIndex;
-            CurrChar = ExpressionText.Span[initialIndex];
+            SetTextPos(initialIndex);
             return false;
         }
     }
@@ -859,10 +848,56 @@ public class ExpressionLexer : IExpressionLexer
         {
             NextChar();
         }
-        while (CurrChar.HasValue && CurrChar.Value != ',' && CurrChar.Value != ')' && CurrChar.Value != ' ');
+        while (CurrChar.HasValue && !IsLiteralDelimiter(CurrChar.Value));
 
-        var numericStr = ExpressionText[tokenPos..CurrPos].Span;
-        return numericStr;
+        return ExpressionText[tokenPos..CurrPos].Span;
+    }
+
+    private static bool IsLiteralDelimiter(char value)
+        => char.IsWhiteSpace(value) || value is ',' or ')' or ']' or '}' or ';' or '&' or '/';
+
+    private void ScanQuotedLiteral(char quote, int tokenPos, bool allowBackslashEscapes)
+    {
+        Debug.Assert(CurrChar == quote, "The current character must be the opening quote.");
+        NextChar();
+
+        while (CurrChar.HasValue)
+        {
+            if (CurrChar == quote)
+            {
+                if (CurrPos + 1 < TextLen && ExpressionText.Span[CurrPos + 1] == quote)
+                {
+                    NextChar();
+                    NextChar();
+                    continue;
+                }
+
+                NextChar();
+                return;
+            }
+
+            if (allowBackslashEscapes && CurrChar == '\\')
+            {
+                int slashCount = 0;
+                while (CurrChar == '\\')
+                {
+                    slashCount++;
+                    NextChar();
+                }
+
+                if ((slashCount & 1) == 1 && CurrChar == quote)
+                {
+                    NextChar();
+                }
+
+                continue;
+            }
+
+            NextChar();
+        }
+
+        throw new ExpressionLexerException(
+            Error.Format(SRResources.Tokenization_UnterminatedStringLiteral, tokenPos, ExpressionText));
     }
 
     /// <summary>

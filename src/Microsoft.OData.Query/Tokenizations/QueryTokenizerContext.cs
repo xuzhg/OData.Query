@@ -13,9 +13,9 @@ namespace Microsoft.OData.Query.Tokenizations;
 /// </summary>
 public class QueryTokenizerContext
 {
-    internal static QueryTokenizerContext Default = new QueryTokenizerContext();
+    internal static QueryTokenizerContext Default => new();
 
-    public LexerOptions LexerOptions { get; set; } = LexerOptions.Default;
+    public LexerOptions LexerOptions { get; set; } = new();
 
     public IServiceProvider ServiceProvider { get; set; }
 
@@ -117,17 +117,16 @@ public class QueryTokenizerContext
 
     public IExpressionLexer CreateLexer(ReadOnlyMemory<char> text)
     {
-        var lexerOptions = CreateLexerOption();
-        if (ServiceProvider != null)
-        {
-            ILexerFactory lexerFactory = ServiceProvider.GetService<ILexerFactory>();
-            if (lexerFactory != null)
+        ILexerFactory lexerFactory = ServiceProvider?.GetService<ILexerFactory>()
+            ?? ExpressionLexerFactory.Default;
+        _ = LexerOptions ?? throw new InvalidOperationException("LexerOptions cannot be null.");
+        return lexerFactory.CreateLexer(
+            text,
+            new LexerOptions
             {
-                return lexerFactory.CreateLexer(text, lexerOptions);
-            }
-        }
-
-        return new ExpressionLexer(text, lexerOptions);
+                // Query tokenizers do not consume whitespace tokens.
+                IgnoreWhitespace = true
+            });
     }
 
     internal StringComparison GetStringComparison()
@@ -135,12 +134,4 @@ public class QueryTokenizerContext
         return EnableCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     }
 
-    internal LexerOptions CreateLexerOption()
-    {
-        return new LexerOptions
-        {
-            IgnoreWhitespace = true,
-            UseSemicolonDelimiter = false,
-        };
-    }
 }

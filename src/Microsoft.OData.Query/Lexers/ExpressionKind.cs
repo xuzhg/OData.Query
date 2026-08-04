@@ -137,7 +137,10 @@ public enum ExpressionKind
     EndOfInput,
 
     /// <summary>
-    /// Parameter alias, which starts with '@' and could contain '.' but not followed by '('.
+    /// Parameter alias, which starts with '@' and does not contain '.'.
     /// </summary>
     ParameterAlias,
+
+    /// <summary>Hexadecimal binary literal.</summary>
+    HexBinaryLiteral,
 }

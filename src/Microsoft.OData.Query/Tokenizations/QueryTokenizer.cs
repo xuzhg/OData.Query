@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.OData.Query.Commons;
 using Microsoft.OData.Query.Lexers;
 using Microsoft.OData.Query.Nodes;
@@ -366,39 +367,44 @@ public abstract class QueryTokenizer
                 return new LiteralToken(boolValue, null, typeof(bool));
 
             case ExpressionKind.DateOnlyLiteral:
-                DateOnly dateOnlyValue = DateOnly.Parse(lexer.CurrentToken.Span);
+                DateOnly dateOnlyValue = DateOnly.ParseExact(
+                    lexer.CurrentToken.Span,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture);
                 lexer.NextToken();
                 return new LiteralToken(dateOnlyValue, null, typeof(DateOnly));
 
             case ExpressionKind.DecimalLiteral:
-                decimal decimalValue = decimal.Parse(lexer.CurrentToken.Span);
+                decimal decimalValue = ParseDecimal(lexer.CurrentToken.Span);
                 lexer.NextToken();
                 return new LiteralToken(decimalValue, null, typeof(decimal));
 
             case ExpressionKind.StringLiteral:
                 string literalText = lexer.CurrentToken.Text.ToString();
                 char quote = literalText[0];
-                string stringValue = literalText[1..^1].Replace($"\\{quote}", quote.ToString(), StringComparison.Ordinal);
+                string stringValue = literalText[1..^1]
+                    .Replace(new string(quote, 2), quote.ToString(), StringComparison.Ordinal)
+                    .Replace($"\\{quote}", quote.ToString(), StringComparison.Ordinal);
                 lexer.NextToken();
                 return new LiteralToken(stringValue, literalText, typeof(string));
 
             case ExpressionKind.Int64Literal:
-                long longValue = long.Parse(lexer.CurrentToken.Span);
+                long longValue = ParseInt64(lexer.CurrentToken.Span);
                 lexer.NextToken();
                 return new LiteralToken(longValue, null, typeof(long));
 
             case ExpressionKind.IntegerLiteral:
-                int intValue = int.Parse(lexer.CurrentToken.Span);
+                int intValue = int.Parse(lexer.CurrentToken.Span, CultureInfo.InvariantCulture);
                 lexer.NextToken();
                 return new LiteralToken(intValue, null, typeof(int));
 
             case ExpressionKind.DoubleLiteral:
-                double doubleValue = double.Parse(lexer.CurrentToken.Span);
+                double doubleValue = ParseDouble(lexer.CurrentToken.Span);
                 lexer.NextToken();
                 return new LiteralToken(doubleValue, null, typeof(double));
 
             case ExpressionKind.SingleLiteral:
-                float floatValue = float.Parse(lexer.CurrentToken.Span);
+                float floatValue = ParseSingle(lexer.CurrentToken.Span);
                 lexer.NextToken();
                 return new LiteralToken(floatValue, null, typeof(float));
 
@@ -408,28 +414,41 @@ public abstract class QueryTokenizer
                 return new LiteralToken(guidValue, null, typeof(Guid));
 
             case ExpressionKind.BinaryLiteral:
-                // Binary is a binary prefix base64 string.
                 ReadOnlySpan<char> tokenText = lexer.CurrentToken.Span;
                 tokenText = tokenText.Slice(7, tokenText.Length - 8);// binary + two single quotes
                 byte[] byteArrayValue = Convert.FromBase64String(tokenText.ToString());
                 lexer.NextToken();
                 return new LiteralToken(byteArrayValue, null, typeof(byte[]));
 
+            case ExpressionKind.HexBinaryLiteral:
+                ReadOnlySpan<char> hexText = lexer.CurrentToken.Span[2..];
+                byte[] hexValue = Convert.FromHexString(hexText);
+                lexer.NextToken();
+                return new LiteralToken(hexValue, null, typeof(byte[]));
+
             //case ExpressionKind.GeographyLiteral:
             //case ExpressionKind.GeometryLiteral:
             //case ExpressionKind.QuotedLiteral:
             case ExpressionKind.DurationLiteral:
-                TimeSpan timeSpanValue = TimeSpan.Parse(lexer.CurrentToken.Span);
+                TimeSpan timeSpanValue = ParseDuration(lexer.CurrentToken.Span);
                 lexer.NextToken();
                 return new LiteralToken(timeSpanValue, null, typeof(TimeSpan));
 
             case ExpressionKind.TimeOnlyLiteral:
-                TimeOnly timeOnlyValue = TimeOnly.Parse(lexer.CurrentToken.Span);
+                ExpressionLexerUtils.TryNormalizeTemporalFraction(
+                    lexer.CurrentToken.Span,
+                    out string normalizedTime);
+                TimeOnly timeOnlyValue = TimeOnly.Parse(normalizedTime, CultureInfo.InvariantCulture);
                 lexer.NextToken();
                 return new LiteralToken(timeOnlyValue, null, typeof(TimeOnly));
 
             case ExpressionKind.DateTimeOffsetLiteral:
-                DateTimeOffset dtoValue = DateTimeOffset.Parse(lexer.CurrentToken.Span);
+                ExpressionLexerUtils.TryNormalizeTemporalFraction(
+                    lexer.CurrentToken.Span,
+                    out string normalizedDateTimeOffset);
+                DateTimeOffset dtoValue = DateTimeOffset.Parse(
+                    normalizedDateTimeOffset,
+                    CultureInfo.InvariantCulture);
                 lexer.NextToken();
                 return new LiteralToken(dtoValue, null, typeof(DateTimeOffset));
 
@@ -455,6 +474,95 @@ public abstract class QueryTokenizer
             default:
                 return null;
         }
+    }
+
+    private static double ParseDouble(ReadOnlySpan<char> text)
+    {
+        ReadOnlySpan<char> value = text;
+        if (!value.IsEmpty && (value[^1] == 'd' || value[^1] == 'D'))
+        {
+            value = value[..^1];
+        }
+
+        if (value.SequenceEqual("INF"))
+        {
+            return double.PositiveInfinity;
+        }
+
+        if (value.SequenceEqual("-INF"))
+        {
+            return double.NegativeInfinity;
+        }
+
+        if (value.SequenceEqual("NaN"))
+        {
+            return double.NaN;
+        }
+
+        return double.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+    }
+
+    private static decimal ParseDecimal(ReadOnlySpan<char> text)
+    {
+        ReadOnlySpan<char> value = text;
+        if (!value.IsEmpty && (value[^1] == 'm' || value[^1] == 'M'))
+        {
+            value = value[..^1];
+        }
+
+        return decimal.Parse(value, NumberStyles.Number, CultureInfo.InvariantCulture);
+    }
+
+    private static TimeSpan ParseDuration(ReadOnlySpan<char> text)
+    {
+        ReadOnlySpan<char> value = text.Slice(9, text.Length - 10);
+        int timeSeparator = value.IndexOf('T');
+        int minuteOrMonth = value.IndexOf('M');
+
+        if (value.Contains('Y') ||
+            (minuteOrMonth >= 0 && (timeSeparator < 0 || minuteOrMonth < timeSeparator)))
+        {
+            throw new FormatException($"'{text.ToString()}' is not a valid OData duration literal.");
+        }
+
+        return System.Xml.XmlConvert.ToTimeSpan(value.ToString());
+    }
+
+    private static long ParseInt64(ReadOnlySpan<char> text)
+    {
+        ReadOnlySpan<char> value = text;
+        if (!value.IsEmpty && (value[^1] == 'l' || value[^1] == 'L'))
+        {
+            value = value[..^1];
+        }
+
+        return long.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
+    }
+
+    private static float ParseSingle(ReadOnlySpan<char> text)
+    {
+        ReadOnlySpan<char> value = text;
+        if (!value.IsEmpty && (value[^1] == 'f' || value[^1] == 'F'))
+        {
+            value = value[..^1];
+        }
+
+        if (value.SequenceEqual("INF"))
+        {
+            return float.PositiveInfinity;
+        }
+
+        if (value.SequenceEqual("-INF"))
+        {
+            return float.NegativeInfinity;
+        }
+
+        if (value.SequenceEqual("NaN"))
+        {
+            return float.NaN;
+        }
+
+        return float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
     }
 
     /// <summary>

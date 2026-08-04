@@ -13,7 +13,7 @@ public class ExpressionLexerFactory : ILexerFactory
     /// <summary>
     /// The static default.
     /// </summary>
-    internal static ExpressionLexerFactory Default = new ExpressionLexerFactory();
+    internal static readonly ExpressionLexerFactory Default = new();
 
     /// <summary>
     /// Create the lexer.

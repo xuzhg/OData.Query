@@ -79,4 +79,36 @@ internal static class ExpressionLexerUtils
 
     internal static bool IsNull(ReadOnlySpan<char> text)
         => text.Equals("null", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Normalizes an OData temporal literal's fractional seconds to CLR tick precision.
+    /// OData permits up to 12 fractional digits while CLR temporal types retain 7.
+    /// </summary>
+    internal static bool TryNormalizeTemporalFraction(ReadOnlySpan<char> text, out string normalized)
+    {
+        int decimalPoint = text.IndexOf('.');
+        if (decimalPoint < 0)
+        {
+            normalized = text.ToString();
+            return true;
+        }
+
+        int fractionEnd = decimalPoint + 1;
+        while (fractionEnd < text.Length && char.IsDigit(text[fractionEnd]))
+        {
+            fractionEnd++;
+        }
+
+        int fractionLength = fractionEnd - decimalPoint - 1;
+        if (fractionLength is 0 or > 12)
+        {
+            normalized = null;
+            return false;
+        }
+
+        normalized = fractionLength <= 7
+            ? text.ToString()
+            : string.Concat(text[..(decimalPoint + 8)], text[fractionEnd..]);
+        return true;
+    }
 }
