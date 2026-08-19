@@ -54,7 +54,7 @@ public class QueryCompositer : IQueryCompositer
         {
             _parsedResult = await Context.GetParser().ParseAsync(Query, new QueryParserContext(source.ElementType));
         }
-        
+
         // Check the parsedResult
         if (_parsedResult == null)
         {
@@ -62,7 +62,10 @@ public class QueryCompositer : IQueryCompositer
         }
 
         // First apply $apply
-        source = await CompositeApplyAsync(_parsedResult.Apply, source);
+        if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Apply))
+        {
+            source = await CompositeApplyAsync(_parsedResult.Apply, source);
+        }
 
         // $filter
         if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Filter))
@@ -72,7 +75,10 @@ public class QueryCompositer : IQueryCompositer
 
         // If both $search and $filter are specified in the same request, only those items satisfying both criteria are returned
         // apply $search
-        source = await CompositeSearchAsync(_parsedResult.Search, source);
+        if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Search))
+        {
+            source = await CompositeSearchAsync(_parsedResult.Search, source);
+        }
 
         // $count=ture/false?
         // ...
@@ -84,10 +90,22 @@ public class QueryCompositer : IQueryCompositer
         }
 
         // $skiptoken?
-        source = await CompositeSkipTokenAsync(_parsedResult.SkipToken, source);
+        if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.SkipToken))
+        {
+            source = await CompositeSkipTokenAsync(_parsedResult.SkipToken, source);
+        }
 
         // $select and $expand?
-        source = await CompositeSelectAndExpandAsync(_parsedResult.Select, _parsedResult.Expand, source);
+        SelectClause select = settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Select)
+            ? null
+            : _parsedResult.Select;
+        ExpandClause expand = settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Expand)
+            ? null
+            : _parsedResult.Expand;
+        if (select != null || expand != null)
+        {
+            source = await CompositeSelectAndExpandAsync(select, expand, source);
+        }
 
         // $skip
         if (!settings.IgnoredQueryOptions.HasFlag(AllowedQueryOptions.Skip))
